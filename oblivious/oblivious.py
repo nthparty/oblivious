@@ -6,8 +6,7 @@ used to implement OPRF and OT protocols.
 
 from __future__ import annotations
 import secrets
-from fe25519 import *
-from ge25519 import *
+import ge25519
 import doctest
 
 #
@@ -53,11 +52,11 @@ def rand() -> bytes:
 def base(n: bytes) -> bytes:
     t = bytearray([b for b in n])
     t[31] &= 127
-    q = ge25519_p3.scalar_mult_base(t).to_bytes_ristretto255()
+    q = ge25519.ge25519_p3.scalar_mult_base(t).to_bytes_ristretto255()
     return None if _zero(q) else q
 
 def mul(n: bytes, p: bytes) -> bytes:
-    P = ge25519_p3.from_bytes_ristretto255(p)
+    P = ge25519.ge25519_p3.from_bytes_ristretto255(p)
     if not _ristretto255_is_canonical(p) or P is None:
         return None
 
@@ -68,28 +67,28 @@ def mul(n: bytes, p: bytes) -> bytes:
     return None if _zero(q) else q
 
 def add(p: bytes, q: bytes) -> bytes:
-    p_p3 = ge25519_p3.from_bytes_ristretto255(p)
-    q_p3 = ge25519_p3.from_bytes_ristretto255(q)
+    p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
+    q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
     if not _ristretto255_is_canonical(p) or p_p3 is None or\
        not _ristretto255_is_canonical(q) or q_p3 is None:
        return None
 
-    q_cached = ge25519_cached.from_p3(q_p3)
-    r_p1p1 = ge25519_p1p1.add(p_p3, q_cached)
-    r_p3 = ge25519_p3.from_p1p1(r_p1p1)
+    q_cached = ge25519.ge25519_cached.from_p3(q_p3)
+    r_p1p1 = ge25519.ge25519_p1p1.add(p_p3, q_cached)
+    r_p3 = ge25519.ge25519_p3.from_p1p1(r_p1p1)
 
     return r_p3.to_bytes_ristretto255()
 
 def sub(p: bytes, q: bytes) -> bytes:
-    p_p3 = ge25519_p3.from_bytes_ristretto255(p)
-    q_p3 = ge25519_p3.from_bytes_ristretto255(q)
+    p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
+    q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
     if not _ristretto255_is_canonical(p) or p_p3 is None or\
        not _ristretto255_is_canonical(q) or q_p3 is None:
         return None
 
-    q_cached = ge25519_cached.from_p3(q_p3)
-    r_p1p1 = ge25519_p1p1.sub(p_p3, q_cached)
-    r_p3 = ge25519_p3.from_p1p1(r_p1p1)
+    q_cached = ge25519.ge25519_cached.from_p3(q_p3)
+    r_p1p1 = ge25519.ge25519_p1p1.sub(p_p3, q_cached)
+    r_p3 = ge25519.ge25519_p3.from_p1p1(r_p1p1)
 
     return r_p3.to_bytes_ristretto255()
 
@@ -105,6 +104,16 @@ try:
     sodium =\
         ctypes.cdll.LoadLibrary(ctypes.util.find_library('sodium') or\
         ctypes.util.find_library('libsodium'))
+
+    # Ensure the detected version of libsodium has the necessary primitives.
+    assert(hasattr(sodium, 'crypto_box_secretkeybytes'))
+    assert(hasattr(sodium, 'crypto_box_publickeybytes'))
+    assert(hasattr(sodium, 'crypto_core_ristretto255_bytes'))
+    assert(hasattr(sodium, 'crypto_core_ristretto255_scalar_random'))
+    assert(hasattr(sodium, 'crypto_scalarmult_ristretto255_base'))
+    assert(hasattr(sodium, 'crypto_scalarmult_ristretto255'))
+    assert(hasattr(sodium, 'crypto_core_ristretto255_add'))
+    assert(hasattr(sodium, 'crypto_core_ristretto255_sub'))
 
     def rand() -> bytes:
         buf = ctypes.create_string_buffer(sodium.crypto_box_secretkeybytes())
