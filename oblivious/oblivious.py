@@ -42,105 +42,140 @@ def _ristretto255_is_canonical(s: bytes) -> bool:
     d = ((0xed - 1 - s[0]) >> 8) % 256
     return 1 == (1 - (((c & d) | s[0]) & 1))
 
-def rand() -> bytes:
-    while True:
-        r = bytearray(secrets.token_bytes(32))
-        r[-1] &= 0x1f
-        if _sc25519_is_canonical(r) and not _zero(r):
-           return r
+class native():
+    '''
+    Wrapper class for native Python implementations of
+    primitive operations.
+    '''
 
-def base(n: bytes) -> bytes:
-    t = bytearray([b for b in n])
-    t[31] &= 127
-    q = ge25519.ge25519_p3.scalar_mult_base(t).to_bytes_ristretto255()
-    return None if _zero(q) else q
+    @staticmethod
+    def rand() -> bytes:
+        while True:
+            r = bytearray(secrets.token_bytes(32))
+            r[-1] &= 0x1f
+            if _sc25519_is_canonical(r) and not _zero(r):
+               return r
 
-def mul(n: bytes, p: bytes) -> bytes:
-    P = ge25519.ge25519_p3.from_bytes_ristretto255(p)
-    if not _ristretto255_is_canonical(p) or P is None:
-        return None
+    @staticmethod
+    def base(n: bytes) -> bytes:
+        t = bytearray([b for b in n])
+        t[31] &= 127
+        q = ge25519.ge25519_p3.scalar_mult_base(t).to_bytes_ristretto255()
+        return None if _zero(q) else q
 
-    t = bytearray([b for b in n])
-    t[31] &= 127
+    @staticmethod
+    def mul(n: bytes, p: bytes) -> bytes:
+        P = ge25519.ge25519_p3.from_bytes_ristretto255(p)
+        if not _ristretto255_is_canonical(p) or P is None:
+            return None
 
-    q = P.scalar_mult(t).to_bytes_ristretto255()
-    return None if _zero(q) else q
+        t = bytearray([b for b in n])
+        t[31] &= 127
 
-def add(p: bytes, q: bytes) -> bytes:
-    p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
-    q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
-    if not _ristretto255_is_canonical(p) or p_p3 is None or\
-       not _ristretto255_is_canonical(q) or q_p3 is None:
-       return None
+        q = P.scalar_mult(t).to_bytes_ristretto255()
+        return None if _zero(q) else q
 
-    q_cached = ge25519.ge25519_cached.from_p3(q_p3)
-    r_p1p1 = ge25519.ge25519_p1p1.add(p_p3, q_cached)
-    r_p3 = ge25519.ge25519_p3.from_p1p1(r_p1p1)
+    @staticmethod
+    def add(p: bytes, q: bytes) -> bytes:
+        p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
+        q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
+        if not _ristretto255_is_canonical(p) or p_p3 is None or\
+           not _ristretto255_is_canonical(q) or q_p3 is None:
+           return None
 
-    return r_p3.to_bytes_ristretto255()
+        q_cached = ge25519.ge25519_cached.from_p3(q_p3)
+        r_p1p1 = ge25519.ge25519_p1p1.add(p_p3, q_cached)
+        r_p3 = ge25519.ge25519_p3.from_p1p1(r_p1p1)
 
-def sub(p: bytes, q: bytes) -> bytes:
-    p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
-    q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
-    if not _ristretto255_is_canonical(p) or p_p3 is None or\
-       not _ristretto255_is_canonical(q) or q_p3 is None:
-        return None
+        return r_p3.to_bytes_ristretto255()
 
-    q_cached = ge25519.ge25519_cached.from_p3(q_p3)
-    r_p1p1 = ge25519.ge25519_p1p1.sub(p_p3, q_cached)
-    r_p3 = ge25519.ge25519_p3.from_p1p1(r_p1p1)
+    @staticmethod
+    def sub(p: bytes, q: bytes) -> bytes:
+        p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
+        q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
+        if not _ristretto255_is_canonical(p) or p_p3 is None or\
+           not _ristretto255_is_canonical(q) or q_p3 is None:
+            return None
 
-    return r_p3.to_bytes_ristretto255()
+        q_cached = ge25519.ge25519_cached.from_p3(q_p3)
+        r_p1p1 = ge25519.ge25519_p1p1.sub(p_p3, q_cached)
+        r_p3 = ge25519.ge25519_p3.from_p1p1(r_p1p1)
+
+        return r_p3.to_bytes_ristretto255()
+
+# Top-level best-effort synonyms.
+rand = native.rand
+base = native.base
+mul = native.mul
+add = native.add
+sub = native.sub
 
 #
-# Attempt to use primitives from libsodium, if it is present.
+# Attempt to load primitives from libsodium, if it is present.
 #
 
 import ctypes
 import ctypes.util
 
-sodium = None
 try:
-    sodium =\
+    _sodium =\
         ctypes.cdll.LoadLibrary(ctypes.util.find_library('sodium') or\
         ctypes.util.find_library('libsodium'))
 
     # Ensure the detected version of libsodium has the necessary primitives.
-    assert(hasattr(sodium, 'crypto_box_secretkeybytes'))
-    assert(hasattr(sodium, 'crypto_box_publickeybytes'))
-    assert(hasattr(sodium, 'crypto_core_ristretto255_bytes'))
-    assert(hasattr(sodium, 'crypto_core_ristretto255_scalar_random'))
-    assert(hasattr(sodium, 'crypto_scalarmult_ristretto255_base'))
-    assert(hasattr(sodium, 'crypto_scalarmult_ristretto255'))
-    assert(hasattr(sodium, 'crypto_core_ristretto255_add'))
-    assert(hasattr(sodium, 'crypto_core_ristretto255_sub'))
+    assert(hasattr(_sodium, 'crypto_box_secretkeybytes'))
+    assert(hasattr(_sodium, 'crypto_box_publickeybytes'))
+    assert(hasattr(_sodium, 'crypto_core_ristretto255_bytes'))
+    assert(hasattr(_sodium, 'crypto_core_ristretto255_scalar_random'))
+    assert(hasattr(_sodium, 'crypto_scalarmult_ristretto255_base'))
+    assert(hasattr(_sodium, 'crypto_scalarmult_ristretto255'))
+    assert(hasattr(_sodium, 'crypto_core_ristretto255_add'))
+    assert(hasattr(_sodium, 'crypto_core_ristretto255_sub'))
 
-    def rand() -> bytes:
-        buf = ctypes.create_string_buffer(sodium.crypto_box_secretkeybytes())
-        sodium.crypto_core_ristretto255_scalar_random(buf)
-        return buf.raw
+    class sodium():
+        '''
+        Wrapper class for native Python implementations of
+        primitive operations.
+        '''
 
-    def base(e: bytes) -> bytes:
-        buf = ctypes.create_string_buffer(sodium.crypto_box_publickeybytes())
-        sodium.crypto_scalarmult_ristretto255_base(buf, e)
-        return buf.raw
+        @staticmethod
+        def rand() -> bytes:
+            buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
+            _sodium.crypto_core_ristretto255_scalar_random(buf)
+            return buf.raw
 
-    def mul(x: bytes, y: bytes) -> bytes:
-        buf = ctypes.create_string_buffer(sodium.crypto_box_secretkeybytes())
-        sodium.crypto_scalarmult_ristretto255(buf, x, y)
-        return buf.raw
+        @staticmethod
+        def base(e: bytes) -> bytes:
+            buf = ctypes.create_string_buffer(_sodium.crypto_box_publickeybytes())
+            _sodium.crypto_scalarmult_ristretto255_base(buf, e)
+            return buf.raw
 
-    def add(x: bytes, y: bytes) -> bytes:
-        buf = ctypes.create_string_buffer(sodium.crypto_core_ristretto255_bytes())
-        sodium.crypto_core_ristretto255_add(buf, x, y)
-        return buf.raw
-        
-    def sub(x: bytes, y: bytes) -> bytes:
-        buf = ctypes.create_string_buffer(sodium.crypto_core_ristretto255_bytes())
-        sodium.crypto_core_ristretto255_sub(buf, x, y)
-        return buf.raw
+        @staticmethod
+        def mul(x: bytes, y: bytes) -> bytes:
+            buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
+            _sodium.crypto_scalarmult_ristretto255(buf, x, y)
+            return buf.raw
+
+        @staticmethod
+        def add(x: bytes, y: bytes) -> bytes:
+            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
+            _sodium.crypto_core_ristretto255_add(buf, x, y)
+            return buf.raw
+
+        @staticmethod
+        def sub(x: bytes, y: bytes) -> bytes:
+            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
+            _sodium.crypto_core_ristretto255_sub(buf, x, y)
+            return buf.raw
+
+    # Top-level best-effort synonyms.
+    rand = sodium.rand
+    base = sodium.base
+    mul = sodium.mul
+    add = sodium.add
+    sub = sodium.sub
 except:
-    pass
+    sodium = None # Exported symbol.
 
 if __name__ == "__main__":
     doctest.testmod()
