@@ -24,3 +24,9 @@ The library can be imported in the usual ways::
 
     import oblivious
     from oblivious import *
+
+Conventions
+-----------
+Style conventions are enforced using `Pylint <https://www.pylint.org/>`_::
+
+    pylint oblivious

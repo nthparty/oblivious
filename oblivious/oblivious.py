@@ -5,9 +5,11 @@ used to implement OPRF and OT protocols.
 """
 
 from __future__ import annotations
+import doctest
+import ctypes
+import ctypes.util
 import secrets
 import ge25519
-import doctest
 
 #
 # Use native Python implementations of primitives by default.
@@ -15,8 +17,8 @@ import doctest
 
 def _zero(n: bytes) -> bool:
     d = 0
-    for i in range(len(n)):
-        d |= n[i]
+    for b in n:
+        d |= b
     return ((d - 1) >> 8) % 2 == 1
 
 _sc25519_is_canonical_L = [ # 2^252+27742317777372353535851937790883648493.
@@ -31,7 +33,6 @@ def _sc25519_is_canonical(s: bytes) -> bool:
     for i in range(31, -1, -1):
         c |= ((s[i] - _sc25519_is_canonical_L[i]) >> 8) & n
         n &= ((s[i] ^ _sc25519_is_canonical_L[i]) - 1) >> 8
-
     return c != 0
 
 def _ristretto255_is_canonical(s: bytes) -> bool:
@@ -40,57 +41,62 @@ def _ristretto255_is_canonical(s: bytes) -> bool:
         c |= (s[i] ^ 0xff) % 256
     c = (c - 1) >> 8
     d = ((0xed - 1 - s[0]) >> 8) % 256
-    return 1 == (1 - (((c & d) | s[0]) & 1))
+    return (1 - (((c & d) | s[0]) & 1)) == 1
 
 class native():
-    '''
+    """
     Wrapper class for native Python implementations of
     primitive operations.
-    '''
+    """
 
     @staticmethod
     def rand() -> bytes:
+        """Return random non-zero scalar."""
         while True:
             r = bytearray(secrets.token_bytes(32))
             r[-1] &= 0x1f
             if _sc25519_is_canonical(r) and not _zero(r):
-               return r
+                return r
 
     @staticmethod
-    def base(n: bytes) -> bytes:
-        t = bytearray([b for b in n])
+    def base(s: bytes) -> bytes:
+        """Return base point multiplied by supplied scalar."""
+        t = bytearray(s)
         t[31] &= 127
+
         q = ge25519.ge25519_p3.scalar_mult_base(t).to_bytes_ristretto255()
         return None if _zero(q) else q
 
     @staticmethod
-    def mul(n: bytes, p: bytes) -> bytes:
-        P = ge25519.ge25519_p3.from_bytes_ristretto255(p)
-        if not _ristretto255_is_canonical(p) or P is None:
+    def mul(s: bytes, p: bytes) -> bytes:
+        """Return base point multiplied by supplied scalar."""
+        p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
+        if not _ristretto255_is_canonical(p) or p3 is None:
             return None
 
-        t = bytearray([b for b in n])
+        t = bytearray(s)
         t[31] &= 127
 
-        q = P.scalar_mult(t).to_bytes_ristretto255()
+        q = p3.scalar_mult(t).to_bytes_ristretto255()
         return None if _zero(q) else q
 
     @staticmethod
     def add(p: bytes, q: bytes) -> bytes:
+        """Return sum of two points."""
         p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
         q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
         if not _ristretto255_is_canonical(p) or p_p3 is None or\
            not _ristretto255_is_canonical(q) or q_p3 is None:
-           return None
+            return None
 
         q_cached = ge25519.ge25519_cached.from_p3(q_p3)
         r_p1p1 = ge25519.ge25519_p1p1.add(p_p3, q_cached)
         r_p3 = ge25519.ge25519_p3.from_p1p1(r_p1p1)
-
         return r_p3.to_bytes_ristretto255()
 
     @staticmethod
     def sub(p: bytes, q: bytes) -> bytes:
+        """Return result of subtracting second point from first point."""
         p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
         q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
         if not _ristretto255_is_canonical(p) or p_p3 is None or\
@@ -100,7 +106,6 @@ class native():
         q_cached = ge25519.ge25519_cached.from_p3(q_p3)
         r_p1p1 = ge25519.ge25519_p1p1.sub(p_p3, q_cached)
         r_p3 = ge25519.ge25519_p3.from_p1p1(r_p1p1)
-
         return r_p3.to_bytes_ristretto255()
 
 # Top-level best-effort synonyms.
@@ -114,23 +119,20 @@ sub = native.sub
 # Attempt to load primitives from libsodium, if it is present.
 #
 
-import ctypes
-import ctypes.util
-
 try:
     _sodium =\
         ctypes.cdll.LoadLibrary(ctypes.util.find_library('sodium') or\
         ctypes.util.find_library('libsodium'))
 
     # Ensure the detected version of libsodium has the necessary primitives.
-    assert(hasattr(_sodium, 'crypto_box_secretkeybytes'))
-    assert(hasattr(_sodium, 'crypto_box_publickeybytes'))
-    assert(hasattr(_sodium, 'crypto_core_ristretto255_bytes'))
-    assert(hasattr(_sodium, 'crypto_core_ristretto255_scalar_random'))
-    assert(hasattr(_sodium, 'crypto_scalarmult_ristretto255_base'))
-    assert(hasattr(_sodium, 'crypto_scalarmult_ristretto255'))
-    assert(hasattr(_sodium, 'crypto_core_ristretto255_add'))
-    assert(hasattr(_sodium, 'crypto_core_ristretto255_sub'))
+    assert hasattr(_sodium, 'crypto_box_secretkeybytes')
+    assert hasattr(_sodium, 'crypto_box_publickeybytes')
+    assert hasattr(_sodium, 'crypto_core_ristretto255_bytes')
+    assert hasattr(_sodium, 'crypto_core_ristretto255_scalar_random')
+    assert hasattr(_sodium, 'crypto_scalarmult_ristretto255_base')
+    assert hasattr(_sodium, 'crypto_scalarmult_ristretto255')
+    assert hasattr(_sodium, 'crypto_core_ristretto255_add')
+    assert hasattr(_sodium, 'crypto_core_ristretto255_sub')
 
     class sodium():
         '''
@@ -140,30 +142,35 @@ try:
 
         @staticmethod
         def rand() -> bytes:
+            """Return random non-zero scalar."""
             buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
             _sodium.crypto_core_ristretto255_scalar_random(buf)
             return buf.raw
 
         @staticmethod
         def base(e: bytes) -> bytes:
+            """Return base point multiplied by supplied scalar."""
             buf = ctypes.create_string_buffer(_sodium.crypto_box_publickeybytes())
             _sodium.crypto_scalarmult_ristretto255_base(buf, e)
             return buf.raw
 
         @staticmethod
         def mul(x: bytes, y: bytes) -> bytes:
+            """Return base point multiplied by supplied scalar."""
             buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
             _sodium.crypto_scalarmult_ristretto255(buf, x, y)
             return buf.raw
 
         @staticmethod
         def add(x: bytes, y: bytes) -> bytes:
+            """Return sum of two points."""
             buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
             _sodium.crypto_core_ristretto255_add(buf, x, y)
             return buf.raw
 
         @staticmethod
         def sub(x: bytes, y: bytes) -> bytes:
+            """Return result of subtracting second point from first point."""
             buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
             _sodium.crypto_core_ristretto255_sub(buf, x, y)
             return buf.raw
