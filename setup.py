@@ -7,7 +7,7 @@ setup(
     name="oblivious",
     version="0.0.2.1",
     packages=["oblivious",],
-    install_requires=["fe25519","ge25519",],
+    install_requires=["fe25519","ge25519","parts","bitlist","fountains",],
     license="MIT",
     url="https://github.com/nthparty/oblivious",
     author="Andrei Lapets",

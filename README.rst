@@ -25,8 +25,16 @@ The library can be imported in the usual ways::
     import oblivious
     from oblivious import *
 
-Conventions
------------
+Testing and Conventions
+-----------------------
+Unit tests can be executed using `nose <https://nose.readthedocs.io/>`_::
+
+    nosetests
+
+Concise unit tests are implemented with the help of `fountains <https://pypi.org/project/fountains/>`_ and new reference bit lists for these tests can be generated in the following way::
+
+    python test/test_oblivious.py
+
 Style conventions are enforced using `Pylint <https://www.pylint.org/>`_::
 
     pylint oblivious
