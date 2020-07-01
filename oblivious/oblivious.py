@@ -43,7 +43,19 @@ def _ristretto255_is_canonical(s: bytes) -> bool:
     d = ((0xed - 1 - s[0]) >> 8) % 256
     return (1 - (((c & d) | s[0]) & 1)) == 1
 
-class native():
+class common():
+    """
+    Methods shared by wrapper classes.
+    """
+
+    @staticmethod
+    def scalar(s: bytes) -> bool:
+        """Only returns a byte vector if it is a valid scalar."""
+        s = list(s)
+        s[-1] &= 0x1f
+        return _sc25519_is_canonical(s) and not _zero(s)
+
+class native(common):
     """
     Wrapper class for native Python implementations of
     primitive operations.
@@ -109,6 +121,7 @@ class native():
         return r_p3.to_bytes_ristretto255()
 
 # Top-level best-effort synonyms.
+scalar = native.scalar
 rand = native.rand
 base = native.base
 mul = native.mul
@@ -134,7 +147,7 @@ try:
     assert hasattr(_sodium, 'crypto_core_ristretto255_add')
     assert hasattr(_sodium, 'crypto_core_ristretto255_sub')
 
-    class sodium():
+    class sodium(common):
         '''
         Wrapper class for native Python implementations of
         primitive operations.
@@ -176,6 +189,7 @@ try:
             return buf.raw
 
     # Top-level best-effort synonyms.
+    scalar = sodium.scalar
     rand = sodium.rand
     base = sodium.base
     mul = sodium.mul
