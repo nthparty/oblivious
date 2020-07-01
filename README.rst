@@ -4,9 +4,14 @@ oblivious
 
 Python library that serves as an API for common primitives used to implement OPRF and OT protocols.
 
-.. image:: https://badge.fury.io/py/oblivious.svg
+|pypi| |travis|
+
+.. |pypi| image:: https://badge.fury.io/py/oblivious.svg
    :target: https://badge.fury.io/py/oblivious
    :alt: PyPI version and link.
+
+.. |travis| image:: https://travis-ci.com/nthparty/oblivious.svg?branch=master
+    :target: https://travis-ci.com/nthparty/oblivious
 
 Purpose
 -------
