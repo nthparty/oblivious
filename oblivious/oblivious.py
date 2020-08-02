@@ -6,6 +6,7 @@ used to implement OPRF and OT protocols.
 
 from __future__ import annotations
 import doctest
+import platform
 import ctypes
 import ctypes.util
 import secrets
@@ -133,9 +134,12 @@ sub = native.sub
 #
 
 try:
+    xdll = ctypes.windll if platform.system() == 'Windows' else ctypes.cdll
     _sodium =\
-        ctypes.cdll.LoadLibrary(ctypes.util.find_library('sodium') or\
-        ctypes.util.find_library('libsodium'))
+        xdll.LoadLibrary(\
+            ctypes.util.find_library('sodium') or\
+            ctypes.util.find_library('libsodium')\
+        )
 
     # Ensure the detected version of libsodium has the necessary primitives.
     assert hasattr(_sodium, 'crypto_box_secretkeybytes')
