@@ -168,28 +168,28 @@ try:
         def base(e: bytes) -> bytes:
             """Return base point multiplied by supplied scalar."""
             buf = ctypes.create_string_buffer(_sodium.crypto_box_publickeybytes())
-            _sodium.crypto_scalarmult_ristretto255_base(buf, e)
+            _sodium.crypto_scalarmult_ristretto255_base(buf, bytes(e))
             return buf.raw
 
         @staticmethod
         def mul(x: bytes, y: bytes) -> bytes:
             """Return base point multiplied by supplied scalar."""
             buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
-            _sodium.crypto_scalarmult_ristretto255(buf, x, y)
+            _sodium.crypto_scalarmult_ristretto255(buf, bytes(x), bytes(y))
             return buf.raw
 
         @staticmethod
         def add(x: bytes, y: bytes) -> bytes:
             """Return sum of two points."""
             buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
-            _sodium.crypto_core_ristretto255_add(buf, x, y)
+            _sodium.crypto_core_ristretto255_add(buf, bytes(x), bytes(y))
             return buf.raw
 
         @staticmethod
         def sub(x: bytes, y: bytes) -> bytes:
             """Return result of subtracting second point from first point."""
             buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
-            _sodium.crypto_core_ristretto255_sub(buf, x, y)
+            _sodium.crypto_core_ristretto255_sub(buf, bytes(x), bytes(y))
             return buf.raw
 
     # Top-level best-effort synonyms.
