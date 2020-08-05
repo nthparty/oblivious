@@ -20,6 +20,34 @@ matrix:
       install:
         - pip install pylint
         - pip install .
+    - os: osx
+      language: generic
+      before_cache:
+        - brew cleanup
+        - find /usr/local/Homebrew \! -regex ".+\.git.+" -delete
+      cache:
+        ccache: true
+        directories:
+          - $HOME/Library/Caches/Homebrew
+          - /usr/local/Homebrew
+      env: PYTHON=3.8.3
+      before_install:
+        - brew update
+        - brew install libsodium
+        - brew install ccache
+        - brew install openssl readline
+        - brew outdated pyenv || brew upgrade pyenv
+        - brew install pyenv-virtualenv
+        - sudo pyenv install $PYTHON
+        - export PYENV_VERSION=$PYTHON
+        - export PATH="/Users/travis/.pyenv/shims:${PATH}"
+        - sudo pyenv virtualenv 3.8.3 venv
+        - sudo python3.8 -m pip install -U pip
+        - sudo python3.8 -m pip install setuptools
+      install:
+        - sudo python3.8 -m pip install pylint
+        - sudo python3.8 -m pip install nose
+        - sudo python3.8 -m pip install .
 script:
   - pylint oblivious
   - nosetests
