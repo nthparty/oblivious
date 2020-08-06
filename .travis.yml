@@ -48,6 +48,18 @@ matrix:
         - sudo python3.8 -m pip install pylint
         - sudo python3.8 -m pip install nose
         - sudo python3.8 -m pip install .
+    - os: windows
+      language: sh
+      before_install:
+        - wget https://github.com/jedisct1/libsodium/releases/download/1.0.18-RELEASE/libsodium-1.0.18-msvc.zip
+        - unzip libsodium-1.0.18-msvc.zip
+        - cp libsodium/x64/Release/v142/dynamic/libsodium.dll /usr/bin
+        - choco install python --version=3.8.3
+      env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
+      install:
+        - pip install pylint
+        - pip install nose
+        - pip install .
 script:
   - pylint oblivious
   - nosetests
