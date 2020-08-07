@@ -21,6 +21,12 @@ def check_or_generate_operation(self, fun, lengths, bits):
     )
     return check_or_generate(self, fs, bits)
 
+def check_rand(self, cls, bits=None):
+    bits = bits if bits is not None else\
+        'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+    fun = lambda bs: bitlist([1 if len(cls.rand()) == 32 else 0])
+    return check_or_generate_operation(self, fun, [32], bits)
+
 def check_scalar(self, cls, bits=None):
     bits = bits if bits is not None else\
         '4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
@@ -67,6 +73,9 @@ def check_sub(self, cls, bits=None):
     return check_or_generate_operation(self, fun, [32, 32], bits)
 
 class Test_native(TestCase):
+    def test_rand(self, bits=None):
+        return check_rand(self, native, bits)
+
     def test_scalar(self, bits=None):
         return check_scalar(self, native, bits)
 
@@ -83,6 +92,9 @@ class Test_native(TestCase):
         return check_sub(self, native, bits)
 
 class Test_sodium(TestCase):
+    def test_rand(self, bits=None):
+        return check_rand(self, sodium, bits)
+
     def test_scalar(self, bits=None):
         return check_scalar(self, sodium, bits)
 
