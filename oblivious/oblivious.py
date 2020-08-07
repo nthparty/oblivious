@@ -85,7 +85,7 @@ class native(common):
         """Return base point multiplied by supplied scalar."""
         p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
         if not _ristretto255_is_canonical(p) or p3 is None:
-            return None
+            return None # pragma: no cover
 
         t = bytearray(s)
         t[31] &= 127
@@ -100,7 +100,7 @@ class native(common):
         q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
         if not _ristretto255_is_canonical(p) or p_p3 is None or\
            not _ristretto255_is_canonical(q) or q_p3 is None:
-            return None
+            return None # pragma: no cover
 
         q_cached = ge25519.ge25519_cached.from_p3(q_p3)
         r_p1p1 = ge25519.ge25519_p1p1.add(p_p3, q_cached)
@@ -114,7 +114,7 @@ class native(common):
         q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
         if not _ristretto255_is_canonical(p) or p_p3 is None or\
            not _ristretto255_is_canonical(q) or q_p3 is None:
-            return None
+            return None # pragma: no cover
 
         q_cached = ge25519.ge25519_cached.from_p3(q_p3)
         r_p1p1 = ge25519.ge25519_p1p1.sub(p_p3, q_cached)
@@ -151,6 +151,7 @@ try:
     assert hasattr(_sodium, 'crypto_core_ristretto255_add')
     assert hasattr(_sodium, 'crypto_core_ristretto255_sub')
 
+    # Exported symbol.
     class sodium(common):
         '''
         Wrapper class for native Python implementations of
@@ -199,8 +200,9 @@ try:
     mul = sodium.mul
     add = sodium.add
     sub = sodium.sub
-except:
-    sodium = None # Exported symbol.
+except: # pragma: no cover
+    # Exported symbol.
+    sodium = None # pragma: no cover
 
 if __name__ == "__main__":
-    doctest.testmod()
+    doctest.testmod() # pragma: no cover
