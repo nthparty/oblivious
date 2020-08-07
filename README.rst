@@ -32,7 +32,7 @@ The library can be imported in the usual ways::
 
 Testing and Conventions
 -----------------------
-Unit tests can be executed using `nose <https://nose.readthedocs.io/>`_::
+All unit tests are executed and their coverage is measured when using `nose <https://nose.readthedocs.io/>`_ (see ``setup.cfg`` for configution details)::
 
     nosetests
 
