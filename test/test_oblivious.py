@@ -24,7 +24,7 @@ def check_or_generate_operation(self, fun, lengths, bits):
 def check_scalar(self, cls, bits=None):
     bits = bits if bits is not None else\
         '4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
-    fun = lambda bs: return bitlist([1 if cls.scalar(bs) else 0])
+    fun = lambda bs: bitlist([1 if cls.scalar(bs) else 0])
     return check_or_generate_operation(self, fun, [32], bits)
 
 def check_base(self, cls, bits=None):
