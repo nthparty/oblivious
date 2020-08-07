@@ -19,7 +19,10 @@ matrix:
         - cd ..
       install:
         - pip install pylint
+        - pip install coveralls
         - pip install .
+      after_success:
+        - coveralls
     - os: osx
       language: generic
       before_cache:
