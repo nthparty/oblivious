@@ -21,27 +21,31 @@ def check_or_generate_operation(self, fun, lengths, bits):
     )
     return check_or_generate(self, fs, bits)
 
-def check_rand(self, cls, bits=None):
-    bits = bits if bits is not None else\
-        'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+def check_rand(
+        self, cls,
+        bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+    ):
     fun = lambda bs: bitlist([1 if len(cls.rand()) == 32 else 0])
     return check_or_generate_operation(self, fun, [32], bits)
 
-def check_scalar(self, cls, bits=None):
-    bits = bits if bits is not None else\
-        '4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
+def check_scalar(
+        self, cls,
+        bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
+    ):
     fun = lambda bs: bitlist([1 if cls.scalar(bs) else 0])
     return check_or_generate_operation(self, fun, [32], bits)
 
-def check_base(self, cls, bits=None):
-    bits = bits if bits is not None else\
-        '080874618c0878927620101043a31002e840818101204000401210101261c120'
+def check_base(
+        self, cls,
+        bits='080874618c0878927620101043a31002e840818101204000401210101261c120'
+    ):
     fun = lambda bs: cls.base(bs) if cls.scalar(bs) else bytes([0])
     return check_or_generate_operation(self, fun, [32], bits)
 
-def check_mul(self, cls, bits=None):
-    bits = bits if bits is not None else\
-        '28c5004000000100850000002102088891100000000081080810004280080004'
+def check_mul(
+        self, cls,
+        bits='28c5004000000100850000002102088891100000000081080810004280080004'
+    ):
     def fun(bs):
         (bs1, bs2) = parts(bs, length=32)
         return\
@@ -50,9 +54,10 @@ def check_mul(self, cls, bits=None):
             bytes([0])
     return check_or_generate_operation(self, fun, [32, 32], bits)
 
-def check_add(self, cls, bits=None):
-    bits = bits if bits is not None else\
-        '0844000040000002818040008400000031080028000081080801000204081800'
+def check_add(
+        self, cls,
+        bits='0844000040000002818040008400000031080028000081080801000204081800'
+    ):
     def fun(bs):
         (bs1, bs2) = parts(bs, length=32)
         return\
@@ -61,9 +66,10 @@ def check_add(self, cls, bits=None):
             bytes([0])
     return check_or_generate_operation(self, fun, [32, 32], bits)
 
-def check_sub(self, cls, bits=None):
-    bits = bits if bits is not None else\
-        '002400041000800280800000a5024408111000800000810000008040a0081040'
+def check_sub(
+        self, cls,
+        bits='002400041000800280800000a5024408111000800000810000008040a0081040'
+    ):
     def fun(bs):
         (bs1, bs2) = parts(bs, length=32)
         return\
