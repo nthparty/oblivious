@@ -39,12 +39,7 @@ matrix:
         - brew install libsodium
         - brew install ccache
         - brew install openssl readline
-        - brew outdated pyenv || brew upgrade pyenv
-        - brew install pyenv-virtualenv
-        - sudo pyenv install $PYTHON
-        - export PYENV_VERSION=$PYTHON
-        - export PATH="/Users/travis/.pyenv/shims:${PATH}"
-        - sudo pyenv virtualenv 3.8.3 venv
+        - brew install python@3.8
         - sudo python3.8 -m pip install -U pip
         - sudo python3.8 -m pip install setuptools
       install:
