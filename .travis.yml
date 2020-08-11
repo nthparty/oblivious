@@ -33,7 +33,6 @@ matrix:
         directories:
           - $HOME/Library/Caches/Homebrew
           - /usr/local/Homebrew
-      env: PYTHON=3.8.3
       before_install:
         - brew update
         - brew install libsodium
