@@ -51,7 +51,11 @@ class common():
 
     @staticmethod
     def scalar(s: bytes) -> bool:
-        """Only returns a byte vector if it is a valid scalar."""
+        """
+        Only returns a byte vector if it is a valid scalar.
+        NOTE: This method is deprecated and will be replaced
+        in the next major revision.
+        """
         s = list(s)
         s[-1] &= 0x1f
         return _sc25519_is_canonical(s) and not _zero(s)
@@ -70,6 +74,11 @@ class native(common):
             r[-1] &= 0x1f
             if _sc25519_is_canonical(r) and not _zero(r):
                 return r
+
+    @staticmethod
+    def pnt(h: bytes) -> bytes:
+        """Return point from 64-byte hash."""
+        return ge25519.ge25519_p3.from_hash_ristretto255(h)
 
     @staticmethod
     def base(s: bytes) -> bytes:
@@ -122,8 +131,9 @@ class native(common):
         return r_p3.to_bytes_ristretto255()
 
 # Top-level best-effort synonyms.
-scalar = native.scalar
+scalar = native.scalar # Deprecated; will be absent in next major revision.
 rand = native.rand
+pnt = native.pnt
 base = native.base
 mul = native.mul
 add = native.add
@@ -166,6 +176,13 @@ try:
             return buf.raw
 
         @staticmethod
+        def pnt(h: bytes) -> bytes:
+            """Return point from 64-byte hash."""
+            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
+            _sodium.crypto_core_ristretto255_from_hash(buf, bytes(h))
+            return buf.raw
+
+        @staticmethod
         def base(e: bytes) -> bytes:
             """Return base point multiplied by supplied scalar."""
             buf = ctypes.create_string_buffer(_sodium.crypto_box_publickeybytes())
@@ -194,8 +211,9 @@ try:
             return buf.raw
 
     # Top-level best-effort synonyms.
-    scalar = sodium.scalar
+    scalar = sodium.scalar # Deprecated; will be absent in next major revision.
     rand = sodium.rand
+    pnt = sodium.pnt
     base = sodium.base
     mul = sodium.mul
     add = sodium.add
