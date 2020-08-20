@@ -35,6 +35,13 @@ def check_scalar(
     fun = lambda bs: bitlist([1 if cls.scalar(bs) else 0])
     return check_or_generate_operation(self, fun, [32], bits)
 
+def check_inv(
+        self, cls,
+        bits='74b7b5f914b56330255405678cad0c89aba783133e447b58b227c0e741bb0905'
+    ):
+    fun = lambda bs: cls.inv(bs)
+    return check_or_generate_operation(self, fun, [32], bits)
+
 def check_pnt(
         self, cls,
         bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
@@ -92,6 +99,9 @@ class Test_native(TestCase):
     def test_scalar(self, bits=None):
         return check_scalar(self, native, bits)
 
+    def test_inv(self, bits=None):
+        return check_inv(self, native, bits)
+
     def test_pnt(self, bits=None):
         return check_pnt(self, native, bits)
 
@@ -113,6 +123,9 @@ class Test_sodium(TestCase):
 
     def test_scalar(self, bits=None):
         return check_scalar(self, sodium, bits)
+
+    def test_inv(self, bits=None):
+        return check_inv(self, sodium, bits)
 
     def test_pnt(self, bits=None):
         return check_pnt(self, sodium, bits)

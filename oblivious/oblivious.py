@@ -36,6 +36,56 @@ def _sc25519_is_canonical(s: bytes) -> bool:
         n &= ((s[i] ^ _sc25519_is_canonical_L[i]) - 1) >> 8
     return c != 0
 
+def _sc25519_mul(a: bytes, b: bytes) -> bytes:
+    (a, b) = (int.from_bytes(a, 'little'), int.from_bytes(b, 'little'))
+    return ((a * b) % (pow(2, 252) + 27742317777372353535851937790883648493)).to_bytes(32, 'little')
+
+def _sc25519_sqmul(s: bytes, n: int, a: bytes) -> bytes:
+    for i in range(n):
+        s = _sc25519_mul(s, s)
+    return _sc25519_mul(s, a)
+
+def _sc25519_invert(s: bytes) -> bytes:
+    _10 = _sc25519_mul(s, s)
+    _100 = _sc25519_mul(_10, _10)
+    _11 = _sc25519_mul(_10, s)
+    _101 = _sc25519_mul(_10, _11)
+    _111 = _sc25519_mul(_10, _101)
+    _1001 = _sc25519_mul(_10, _111)
+    _1011 = _sc25519_mul(_10, _1001)
+    _1111 = _sc25519_mul(_100, _1011)
+    recip = _sc25519_mul(_1111, s)
+
+    recip = _sc25519_sqmul(recip, 123 + 3, _101)
+    recip = _sc25519_sqmul(recip, 2 + 2, _11)
+    recip = _sc25519_sqmul(recip, 1 + 4, _1111)
+    recip = _sc25519_sqmul(recip, 1 + 4, _1111)
+    recip = _sc25519_sqmul(recip, 4, _1001)
+    recip = _sc25519_sqmul(recip, 2, _11)
+    recip = _sc25519_sqmul(recip, 1 + 4, _1111)
+    recip = _sc25519_sqmul(recip, 1 + 3, _101)
+    recip = _sc25519_sqmul(recip, 3 + 3, _101)
+    recip = _sc25519_sqmul(recip, 3, _111)
+    recip = _sc25519_sqmul(recip, 1 + 4, _1111)
+    recip = _sc25519_sqmul(recip, 2 + 3, _111)
+    recip = _sc25519_sqmul(recip, 2 + 2, _11)
+    recip = _sc25519_sqmul(recip, 1 + 4, _1011)
+    recip = _sc25519_sqmul(recip, 2 + 4, _1011)
+    recip = _sc25519_sqmul(recip, 6 + 4, _1001)
+    recip = _sc25519_sqmul(recip, 2 + 2, _11)
+    recip = _sc25519_sqmul(recip, 3 + 2, _11)
+    recip = _sc25519_sqmul(recip, 3 + 2, _11)
+    recip = _sc25519_sqmul(recip, 1 + 4, _1001)
+    recip = _sc25519_sqmul(recip, 1 + 3, _111)
+    recip = _sc25519_sqmul(recip, 2 + 4, _1111)
+    recip = _sc25519_sqmul(recip, 1 + 4, _1011)
+    recip = _sc25519_sqmul(recip, 3, _101)
+    recip = _sc25519_sqmul(recip, 2 + 4, _1111)
+    recip = _sc25519_sqmul(recip, 3, _101)
+    recip = _sc25519_sqmul(recip, 1 + 2, _11)
+
+    return recip
+
 def _ristretto255_is_canonical(s: bytes) -> bool:
     c = ((s[31] & 0x7f) ^ 0x7f) % 256
     for i in range(30, 0, -1):
@@ -74,6 +124,14 @@ class native(common):
             r[-1] &= 0x1f
             if _sc25519_is_canonical(r) and not _zero(r):
                 return r
+
+    @staticmethod
+    def inv(s: bytes) -> bytes:
+        """
+        Return inverse of scalar modulo
+        2**252 + 27742317777372353535851937790883648493.
+        """
+        return _sc25519_invert(s)
 
     @staticmethod
     def pnt(h: bytes) -> bytes:
@@ -133,6 +191,7 @@ class native(common):
 # Top-level best-effort synonyms.
 scalar = native.scalar # Deprecated; will be absent in next major revision.
 rand = native.rand
+inv = native.inv
 pnt = native.pnt
 base = native.base
 mul = native.mul
@@ -176,6 +235,16 @@ try:
             return buf.raw
 
         @staticmethod
+        def inv(s: bytes) -> bytes:
+            """
+            Return inverse of scalar modulo
+            2**252 + 27742317777372353535851937790883648493.
+            """
+            buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
+            _sodium.crypto_core_ristretto255_scalar_invert(buf, bytes(s))
+            return buf.raw
+
+        @staticmethod
         def pnt(h: bytes) -> bytes:
             """Return point from 64-byte hash."""
             buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
@@ -213,6 +282,7 @@ try:
     # Top-level best-effort synonyms.
     scalar = sodium.scalar # Deprecated; will be absent in next major revision.
     rand = sodium.rand
+    inv = sodium.inv
     pnt = sodium.pnt
     base = sodium.base
     mul = sodium.mul
