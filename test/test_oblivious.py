@@ -1,9 +1,17 @@
+from importlib import import_module
 from parts import parts
 from bitlist import bitlist
 from fountains import fountains
 from unittest import TestCase
 
 from oblivious import *
+
+def api_methods():
+    return {
+        'scalar', 'rand', 'inv',
+        'pnt', 'base',
+        'mul', 'add', 'sub'
+    }
 
 def check_or_generate(self, fs, bits):
     if bits is not None:
@@ -141,6 +149,25 @@ class Test_sodium(TestCase):
 
     def test_sub(self, bits=None):
         return check_sub(self, sodium, bits)
+
+class Test_namespace(TestCase):
+    def test_init(self):
+        init = import_module('oblivious.__init__')
+        self.assertTrue('native' in init.__dict__)
+        self.assertTrue('sodium' in init.__dict__)
+        self.assertTrue(api_methods().issubset(init.__dict__.keys()))
+
+    def test_module(self):
+        module = import_module('oblivious.oblivious')
+        self.assertTrue('native' in module.__dict__)
+        self.assertTrue('sodium' in module.__dict__)
+        self.assertTrue(api_methods().issubset(module.__dict__.keys()))
+
+    def test_native(self):
+        self.assertTrue(api_methods().issubset(set(dir(native))))
+
+    def test_sodium(self):
+        self.assertTrue(api_methods().issubset(set(dir(sodium))))
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.
