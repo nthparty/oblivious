@@ -9,9 +9,8 @@ from oblivious import *
 def api_methods():
     """API symbols that should be available to users upon module import."""
     return {
-        'scalar', 'rand', 'inv',
-        'pnt', 'base',
-        'mul', 'add', 'sub'
+        'scl', 'rnd', 'inv',
+        'pnt', 'bas', 'mul', 'add', 'sub'
     }
 
 def none_to_list(x):
@@ -34,18 +33,18 @@ def check_or_generate_operation(self, fun, lengths, bits):
     )
     return check_or_generate(self, fs, bits)
 
-def check_rand(
+def check_rnd(
         self, cls,
         bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
     ):
-    fun = lambda bs: bitlist([1 if len(cls.rand()) == 32 else 0])
+    fun = lambda bs: bitlist([1 if len(cls.rnd()) == 32 else 0])
     return check_or_generate_operation(self, fun, [32], bits)
 
-def check_scalar(
+def check_scl(
         self, cls,
         bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
     ):
-    fun = lambda bs: bitlist([1 if cls.scalar(bs) else 0])
+    fun = lambda bs: bitlist([1 if cls.scl(bs) else 0])
     return check_or_generate_operation(self, fun, [32], bits)
 
 def check_inv(
@@ -62,11 +61,11 @@ def check_pnt(
     fun = lambda bs: cls.pnt(bs)
     return check_or_generate_operation(self, fun, [64], bits)
 
-def check_base(
+def check_bas(
         self, cls,
         bits='080874618c0878927620101043a31002e840818101204000401210101261c120'
     ):
-    fun = lambda bs: cls.base(bs) if cls.scalar(bs) else bytes([0])
+    fun = lambda bs: cls.bas(bs) if cls.scl(bs) else bytes([0])
     return check_or_generate_operation(self, fun, [32], bits)
 
 def check_mul(
@@ -76,8 +75,8 @@ def check_mul(
     def fun(bs):
         (bs1, bs2) = parts(bs, length=32)
         return\
-            cls.mul(bs1, cls.base(bs2))\
-            if cls.scalar(bs1) and cls.scalar(bs2) else\
+            cls.mul(bs1, cls.bas(bs2))\
+            if cls.scl(bs1) and cls.scl(bs2) else\
             bytes([0])
     return check_or_generate_operation(self, fun, [32, 32], bits)
 
@@ -88,8 +87,8 @@ def check_add(
     def fun(bs):
         (bs1, bs2) = parts(bs, length=32)
         return\
-            cls.add(cls.base(bs1), cls.base(bs2))\
-            if scalar(bs1) and cls.scalar(bs2) else\
+            cls.add(cls.bas(bs1), cls.bas(bs2))\
+            if cls.scl(bs1) and cls.scl(bs2) else\
             bytes([0])
     return check_or_generate_operation(self, fun, [32, 32], bits)
 
@@ -100,17 +99,17 @@ def check_sub(
     def fun(bs):
         (bs1, bs2) = parts(bs, length=32)
         return\
-            cls.sub(cls.base(bs1), cls.base(bs2))\
-            if cls.scalar(bs1) and cls.scalar(bs2) else\
+            cls.sub(cls.bas(bs1), cls.bas(bs2))\
+            if cls.scl(bs1) and cls.scl(bs2) else\
             bytes([0])
     return check_or_generate_operation(self, fun, [32, 32], bits)
 
 class Test_native(TestCase):
-    def test_rand(self, bits=None):
-        return check_rand(self, native, *none_to_list(bits))
+    def test_rnd(self, bits=None):
+        return check_rnd(self, native, *none_to_list(bits))
 
-    def test_scalar(self, bits=None):
-        return check_scalar(self, native, *none_to_list(bits))
+    def test_scl(self, bits=None):
+        return check_scl(self, native, *none_to_list(bits))
 
     def test_inv(self, bits=None):
         return check_inv(self, native, *none_to_list(bits))
@@ -118,8 +117,8 @@ class Test_native(TestCase):
     def test_pnt(self, bits=None):
         return check_pnt(self, native, *none_to_list(bits))
 
-    def test_base(self, bits=None):
-        return check_base(self, native, *none_to_list(bits))
+    def test_bas(self, bits=None):
+        return check_bas(self, native, *none_to_list(bits))
 
     def test_mul(self, bits=None):
         return check_mul(self, native, *none_to_list(bits))
@@ -131,11 +130,11 @@ class Test_native(TestCase):
         return check_sub(self, native, *none_to_list(bits))
 
 class Test_sodium(TestCase):
-    def test_rand(self, bits=None):
-        return check_rand(self, sodium, *none_to_list(bits))
+    def test_rnd(self, bits=None):
+        return check_rnd(self, sodium, *none_to_list(bits))
 
-    def test_scalar(self, bits=None):
-        return check_scalar(self, sodium, *none_to_list(bits))
+    def test_scl(self, bits=None):
+        return check_scl(self, sodium, *none_to_list(bits))
 
     def test_inv(self, bits=None):
         return check_inv(self, sodium, *none_to_list(bits))
@@ -143,8 +142,8 @@ class Test_sodium(TestCase):
     def test_pnt(self, bits=None):
         return check_pnt(self, sodium, *none_to_list(bits))
 
-    def test_base(self, bits=None):
-        return check_base(self, sodium, *none_to_list(bits))
+    def test_bas(self, bits=None):
+        return check_bas(self, sodium, *none_to_list(bits))
 
     def test_mul(self, bits=None):
         return check_mul(self, sodium, *none_to_list(bits))

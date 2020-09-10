@@ -100,7 +100,7 @@ class common():
     """
 
     @staticmethod
-    def scalar(s: bytes) -> bool:
+    def scl(s: bytes) -> bool:
         """
         Only returns a byte vector if it is a valid scalar.
         NOTE: This method is deprecated and will be replaced
@@ -117,7 +117,7 @@ class native(common):
     """
 
     @staticmethod
-    def rand() -> bytes:
+    def rnd() -> bytes:
         """Return random non-zero scalar."""
         while True:
             r = bytearray(secrets.token_bytes(32))
@@ -139,7 +139,7 @@ class native(common):
         return ge25519.ge25519_p3.from_hash_ristretto255(h)
 
     @staticmethod
-    def base(s: bytes) -> bytes:
+    def bas(s: bytes) -> bytes:
         """Return base point multiplied by supplied scalar."""
         t = bytearray(s)
         t[31] &= 127
@@ -189,11 +189,11 @@ class native(common):
         return r_p3.to_bytes_ristretto255()
 
 # Top-level best-effort synonyms.
-scalar = native.scalar # Deprecated; will be absent in next major revision.
-rand = native.rand
+scl = native.scl
+rnd = native.rnd
 inv = native.inv
 pnt = native.pnt
-base = native.base
+bas = native.bas
 mul = native.mul
 add = native.add
 sub = native.sub
@@ -228,7 +228,7 @@ try:
         '''
 
         @staticmethod
-        def rand() -> bytes:
+        def rnd() -> bytes:
             """Return random non-zero scalar."""
             buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
             _sodium.crypto_core_ristretto255_scalar_random(buf)
@@ -252,7 +252,7 @@ try:
             return buf.raw
 
         @staticmethod
-        def base(e: bytes) -> bytes:
+        def bas(e: bytes) -> bytes:
             """Return base point multiplied by supplied scalar."""
             buf = ctypes.create_string_buffer(_sodium.crypto_box_publickeybytes())
             _sodium.crypto_scalarmult_ristretto255_base(buf, bytes(e))
@@ -280,11 +280,11 @@ try:
             return buf.raw
 
     # Top-level best-effort synonyms.
-    scalar = sodium.scalar # Deprecated; will be absent in next major revision.
-    rand = sodium.rand
+    scl = sodium.scl
+    rnd = sodium.rnd
     inv = sodium.inv
     pnt = sodium.pnt
-    base = sodium.base
+    bas = sodium.bas
     mul = sodium.mul
     add = sodium.add
     sub = sodium.sub
