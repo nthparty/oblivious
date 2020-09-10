@@ -7,11 +7,16 @@ from unittest import TestCase
 from oblivious import *
 
 def api_methods():
+    """API symbols that should be available to users upon module import."""
     return {
         'scalar', 'rand', 'inv',
         'pnt', 'base',
         'mul', 'add', 'sub'
     }
+
+def none_to_list(x):
+    """Used for turning a `None` parameter into the absence of a parameter."""
+    return [] if x is None else [x]
 
 def check_or_generate(self, fs, bits):
     if bits is not None:
@@ -102,53 +107,53 @@ def check_sub(
 
 class Test_native(TestCase):
     def test_rand(self, bits=None):
-        return check_rand(self, native, bits)
+        return check_rand(self, native, *none_to_list(bits))
 
     def test_scalar(self, bits=None):
-        return check_scalar(self, native, bits)
+        return check_scalar(self, native, *none_to_list(bits))
 
     def test_inv(self, bits=None):
-        return check_inv(self, native, bits)
+        return check_inv(self, native, *none_to_list(bits))
 
     def test_pnt(self, bits=None):
-        return check_pnt(self, native, bits)
+        return check_pnt(self, native, *none_to_list(bits))
 
     def test_base(self, bits=None):
-        return check_base(self, native, bits)
+        return check_base(self, native, *none_to_list(bits))
 
     def test_mul(self, bits=None):
-        return check_mul(self, native, bits)
+        return check_mul(self, native, *none_to_list(bits))
 
     def test_add(self, bits=None):
-        return check_add(self, native, bits)
+        return check_add(self, native, *none_to_list(bits))
 
     def test_sub(self, bits=None):
-        return check_sub(self, native, bits)
+        return check_sub(self, native, *none_to_list(bits))
 
 class Test_sodium(TestCase):
     def test_rand(self, bits=None):
-        return check_rand(self, sodium, bits)
+        return check_rand(self, sodium, *none_to_list(bits))
 
     def test_scalar(self, bits=None):
-        return check_scalar(self, sodium, bits)
+        return check_scalar(self, sodium, *none_to_list(bits))
 
     def test_inv(self, bits=None):
-        return check_inv(self, sodium, bits)
+        return check_inv(self, sodium, *none_to_list(bits))
 
     def test_pnt(self, bits=None):
-        return check_pnt(self, sodium, bits)
+        return check_pnt(self, sodium, *none_to_list(bits))
 
     def test_base(self, bits=None):
-        return check_base(self, sodium, bits)
+        return check_base(self, sodium, *none_to_list(bits))
 
     def test_mul(self, bits=None):
-        return check_mul(self, sodium, bits)
+        return check_mul(self, sodium, *none_to_list(bits))
 
     def test_add(self, bits=None):
-        return check_add(self, sodium, bits)
+        return check_add(self, sodium, *none_to_list(bits))
 
     def test_sub(self, bits=None):
-        return check_sub(self, sodium, bits)
+        return check_sub(self, sodium, *none_to_list(bits))
 
 class Test_namespace(TestCase):
     def test_init(self):
