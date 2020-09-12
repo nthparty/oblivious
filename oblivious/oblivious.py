@@ -100,15 +100,18 @@ class common():
     """
 
     @staticmethod
-    def scl(s: bytes) -> bool:
+    def scl(s: bytes) -> bytes:
         """
-        Only returns a byte vector if it is a valid scalar.
-        NOTE: This method is deprecated and will be replaced
-        in the next major revision.
+        Return a byte vector if it is a valid scalar;
+        otherwise, return `None`.
         """
-        s = list(s)
+        s = bytearray(s)
         s[-1] &= 0x1f
-        return _sc25519_is_canonical(s) and not _zero(s)
+
+        if _sc25519_is_canonical(s) and not _zero(s):
+            return bytes(s)
+
+        return None
 
 class native(common):
     """

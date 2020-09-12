@@ -44,7 +44,7 @@ def check_scl(
         self, cls,
         bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
     ):
-    fun = lambda bs: bitlist([1 if cls.scl(bs) else 0])
+    fun = lambda bs: bitlist([1 if cls.scl(bs) is not None else 0])
     return check_or_generate_operation(self, fun, [32], bits)
 
 def check_inv(
@@ -65,7 +65,7 @@ def check_bas(
         self, cls,
         bits='080874618c0878927620101043a31002e840818101204000401210101261c120'
     ):
-    fun = lambda bs: cls.bas(bs) if cls.scl(bs) else bytes([0])
+    fun = lambda bs: cls.bas(bs) if cls.scl(bs) is not None else bytes([0])
     return check_or_generate_operation(self, fun, [32], bits)
 
 def check_mul(
@@ -76,7 +76,7 @@ def check_mul(
         (bs1, bs2) = parts(bs, length=32)
         return\
             cls.mul(bs1, cls.bas(bs2))\
-            if cls.scl(bs1) and cls.scl(bs2) else\
+            if cls.scl(bs1) is not None and cls.scl(bs2) is not None else\
             bytes([0])
     return check_or_generate_operation(self, fun, [32, 32], bits)
 
@@ -88,7 +88,7 @@ def check_add(
         (bs1, bs2) = parts(bs, length=32)
         return\
             cls.add(cls.bas(bs1), cls.bas(bs2))\
-            if cls.scl(bs1) and cls.scl(bs2) else\
+            if cls.scl(bs1) is not None and cls.scl(bs2) is not None else\
             bytes([0])
     return check_or_generate_operation(self, fun, [32, 32], bits)
 
@@ -100,7 +100,7 @@ def check_sub(
         (bs1, bs2) = parts(bs, length=32)
         return\
             cls.sub(cls.bas(bs1), cls.bas(bs2))\
-            if cls.scl(bs1) and cls.scl(bs2) else\
+            if cls.scl(bs1) is not None and cls.scl(bs2) is not None else\
             bytes([0])
     return check_or_generate_operation(self, fun, [32, 32], bits)
 
