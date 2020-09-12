@@ -202,6 +202,78 @@ add = native.add
 sub = native.sub
 
 #
+# Wrapper classes for bytes.
+#
+
+class point(bytes):
+    """
+    Wrapper class for a bytes-like object that corresponds
+    to a point.
+    """
+
+    @classmethod
+    def base(cls, s: scalar) -> point:
+        """
+        Return base point multiplied by supplied scalar
+        if the scalar is valid; otherwise, return `None`.
+        """
+        p = bas(s)
+        return bytes.__new__(cls, p) if p is not None else None
+
+    def __new__(cls, bs: bytes) -> point:
+        """Return point object corresponding to supplied bytes object."""
+        return bytes.__new__(cls, pnt(bs))
+
+    def __rmul__(self: point, other: scalar) -> point:
+        """Return point multiplied by supplied scalar."""
+        return mul(other, self)
+
+    def __add__(self: point, other: point) -> point:
+        """Return sum of the supplied points."""
+        return add(self, other)
+
+    def __sub__(self: point, other: point) -> point:
+        """Return result of subtracting second point from first point."""
+        return sub(self, other)
+
+class scalar(bytes):
+    """
+    Wrapper class for a bytes-like object that corresponds
+    to a scalar.
+    """
+
+    @classmethod
+    def random(cls) -> scalar:
+        """Return random non-zero scalar."""
+        return cls(rnd())
+
+    def __new__(cls, bs: bytes) -> scalar:
+        """
+        Return scalar object corresponding to supplied bytes object
+        if it is a valid scalar; otherwise, return `None`.
+        """
+        s = scl(bs)
+        return bytes.__new__(cls, s) if s is not None else None
+
+    def __invert__(self: scalar) -> scalar:
+        """
+        Return inverse of scalar modulo
+        2**252 + 27742317777372353535851937790883648493.
+        """
+        return inv(self)
+
+    def inverse(self: scalar) -> scalar:
+        """
+        Return inverse of scalar modulo
+        2**252 + 27742317777372353535851937790883648493.
+        """
+        return inv(self)
+
+# Access to wrapper classes for bytes.
+native.point = point
+native.scalar = scalar
+
+#
 # Attempt to load primitives from libsodium, if it is present.
 #
 
@@ -291,6 +363,78 @@ try:
     mul = sodium.mul
     add = sodium.add
     sub = sodium.sub
+
+    #
+    # Wrapper classes for bytes.
+    #
+
+    class point(bytes):
+        """
+        Wrapper class for a bytes-like object that corresponds
+        to a point.
+        """
+
+        @classmethod
+        def base(cls, s: scalar) -> point:
+            """
+            Return base point multiplied by supplied scalar
+            if the scalar is valid; otherwise, return `None`.
+            """
+            p = bas(s)
+            return bytes.__new__(cls, p) if p is not None else None
+
+        def __new__(cls, bs: bytes) -> point:
+            """Return point object corresponding to supplied bytes object."""
+            return bytes.__new__(cls, pnt(bs))
+
+        def __rmul__(self: point, other: scalar) -> point:
+            """Return point multiplied by supplied scalar."""
+            return mul(other, self)
+
+        def __add__(self: point, other: point) -> point:
+            """Return sum of the supplied points."""
+            return add(self, other)
+
+        def __sub__(self: point, other: point) -> point:
+            """Return result of subtracting second point from first point."""
+            return sub(self, other)
+
+    class scalar(bytes):
+        """
+        Wrapper class for a bytes-like object that corresponds
+        to a scalar.
+        """
+
+        @classmethod
+        def random(cls) -> scalar:
+            """Return random non-zero scalar."""
+            return cls(rnd())
+
+        def __new__(cls, bs: bytes) -> scalar:
+            """
+            Return scalar object corresponding to supplied bytes object
+            if it is a valid scalar; otherwise, return `None`.
+            """
+            s = scl(bs)
+            return bytes.__new__(cls, s) if s is not None else None
+
+        def __invert__(self: scalar) -> scalar:
+            """
+            Return inverse of scalar modulo
+            2**252 + 27742317777372353535851937790883648493.
+            """
+            return inv(self)
+
+        def inverse(self: scalar)  -> scalar:
+            """
+            Return inverse of scalar modulo
+            2**252 + 27742317777372353535851937790883648493.
+            """
+            return inv(self)
+
+    # Access to wrapper classes for bytes.
+    sodium.point = point
+    sodium.scalar = scalar
 
 except: # pragma: no cover
     # Exported symbol.
