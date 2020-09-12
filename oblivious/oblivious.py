@@ -149,7 +149,7 @@ class native(common):
 
     @staticmethod
     def mul(s: bytes, p: bytes) -> bytes:
-        """Return base point multiplied by supplied scalar."""
+        """Return point multiplied by supplied scalar."""
         p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
         if not _ristretto255_is_canonical(p) or p3 is None:
             return None # pragma: no cover
@@ -162,7 +162,7 @@ class native(common):
 
     @staticmethod
     def add(p: bytes, q: bytes) -> bytes:
-        """Return sum of two points."""
+        """Return sum of the supplied points."""
         p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
         q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
         if not _ristretto255_is_canonical(p) or p_p3 is None or\
@@ -222,10 +222,10 @@ try:
 
     # Exported symbol.
     class sodium(common):
-        '''
+        """
         Wrapper class for native Python implementations of
         primitive operations.
-        '''
+        """
 
         @staticmethod
         def rnd() -> bytes:
@@ -259,15 +259,15 @@ try:
             return buf.raw
 
         @staticmethod
-        def mul(x: bytes, y: bytes) -> bytes:
-            """Return base point multiplied by supplied scalar."""
+        def mul(s: bytes, p: bytes) -> bytes:
+            """Return point multiplied by supplied scalar."""
             buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
-            _sodium.crypto_scalarmult_ristretto255(buf, bytes(x), bytes(y))
+            _sodium.crypto_scalarmult_ristretto255(buf, bytes(s), bytes(p))
             return buf.raw
 
         @staticmethod
         def add(x: bytes, y: bytes) -> bytes:
-            """Return sum of two points."""
+            """Return sum of the supplied points."""
             buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
             _sodium.crypto_core_ristretto255_add(buf, bytes(x), bytes(y))
             return buf.raw
@@ -288,6 +288,7 @@ try:
     mul = sodium.mul
     add = sodium.add
     sub = sodium.sub
+
 except: # pragma: no cover
     # Exported symbol.
     sodium = None # pragma: no cover
