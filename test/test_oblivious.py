@@ -202,17 +202,36 @@ def check_algebra_scalar_inverse_identity(self, cls):
 
 def check_algebra_scalar_inverse_mul_cancel(self, cls):
     for bs in list(islice(fountains(32 + 64), 0, 256)):
-        (s, p) = (cls.scl(bs[:32]), cls.pnt(bs[32:]))
-        if s is not None:
-            self.assertEqual(cls.mul(inv(s), cls.mul(s, p)), p)
+        (s0, p0) = (cls.scl(bs[:32]), cls.pnt(bs[32:]))
+        if s0 is not None:
+            self.assertEqual(cls.mul(inv(s0), cls.mul(s0, p0)), p0)
 
 def check_algebra_scalar_mul_commute(self, cls):
     for bs in list(islice(fountains(32 + 32 + 64), 0, 256)):
-        (s1, s2, p) = (cls.scl(bs[:32]), cls.scl(bs[32:64]), cls.pnt(bs[64:]))
-        if s1 is not None and s2 is not None:
+        (s0, s1, p0) = (cls.scl(bs[:32]), cls.scl(bs[32:64]), cls.pnt(bs[64:]))
+        if s0 is not None and s1 is not None:
             self.assertEqual(
-               cls.mul(s1, cls.mul(s2, p)),
-               cls.mul(s2, cls.mul(s1, p))
+                cls.mul(s0, cls.mul(s1, p0)),
+                cls.mul(s1, cls.mul(s0, p0))
+            )
+
+def check_algebra_point_add_commute(self, cls):
+    for bs in list(islice(fountains(64 + 64), 0, 256)):
+        (p0, p1) = (cls.pnt(bs[:64]), cls.pnt(bs[64:]))
+        self.assertEqual(cls.add(p0, p1), cls.add(p1, p0))
+
+def check_algebra_point_add_sub_cancel(self, cls):
+    for bs in list(islice(fountains(64 + 64), 0, 256)):
+        (p0, p1) = (cls.pnt(bs[:64]), cls.pnt(bs[64:]))
+        self.assertEqual(cls.add(cls.sub(p0, p1), p1), p0)
+
+def check_algebra_scalar_mul_point_add_distribute(self, cls):
+    for bs in list(islice(fountains(32 + 64 + 64), 0, 256)):
+        (s0, p0, p1) = (cls.scl(bs[:32]), cls.pnt(bs[32:96]), cls.pnt(bs[96:]))
+        if s0 is not None:
+            self.assertEqual(
+                cls.add(cls.mul(s0, p0), cls.mul(s0, p1)),
+                cls.mul(s0, cls.add(p0, p1))
             )
 
 class Test_native(TestCase):
@@ -278,6 +297,15 @@ class Test_native_algebra(TestCase):
     def test_algebra_scalar_mul_commute(self):
         check_algebra_scalar_mul_commute(self, native)
 
+    def test_algebra_point_add_commute(self):
+        check_algebra_point_add_commute(self, native)
+
+    def test_algebra_point_add_sub_cancel(self):
+        check_algebra_point_add_sub_cancel(self, native)
+
+    def test_algebra_scalar_mul_point_add_distribute(self):
+        check_algebra_scalar_mul_point_add_distribute(self, native)
+
 class Test_sodium(TestCase):
     def test_rnd(self, bits=None):
         return check_rnd(self, sodium, *none_to_list(bits))
@@ -340,6 +368,15 @@ class Test_sodium_algebra(TestCase):
 
     def test_algebra_scalar_mul_commute(self):
         check_algebra_scalar_mul_commute(self, sodium)
+
+    def test_algebra_point_add_commute(self):
+        check_algebra_point_add_commute(self, sodium)
+
+    def test_algebra_point_add_sub_cancel(self):
+        check_algebra_point_add_sub_cancel(self, sodium)
+
+    def test_algebra_scalar_mul_point_add_distribute(self):
+        check_algebra_scalar_mul_point_add_distribute(self, sodium)
 
 class Test_namespace(TestCase):
     def test_init(self):
