@@ -15,10 +15,6 @@ def api_methods():
         'pnt', 'bas', 'mul', 'add', 'sub'
     }
 
-def none_to_list(x):
-    """Used for turning a `None` parameter into the absence of a parameter."""
-    return [] if x is None else [x]
-
 def check_or_generate(self, fs, bits):
     if bits is not None:
         self.assertTrue(all(fs)) # Check that all tests succeeded.
@@ -189,7 +185,7 @@ def check_scalar_inverse(
         return s.inverse() if s is not None else bytes([0])
     return check_or_generate_operation(self, fun, [32], bits)
 
-def check_scalar_inv_op(
+def check_scalar_invert_op(
         self, cls,
         bits='41c07230000960b274044a0080a8018aa0114380150000028c2700006081e1e1'
     ):
@@ -239,57 +235,57 @@ def check_algebra_scalar_mul_point_add_distribute(self, cls):
             )
 
 class Test_native(TestCase):
-    def test_rnd(self, bits=None):
-        return check_rnd(self, native, *none_to_list(bits))
+    def test_rnd(self, bits=[]):
+        return check_rnd(self, native, *bits)
 
-    def test_scl(self, bits=None):
-        return check_scl(self, native, *none_to_list(bits))
+    def test_scl(self, bits=[]):
+        return check_scl(self, native, *bits)
 
-    def test_inv(self, bits=None):
-        return check_inv(self, native, *none_to_list(bits))
+    def test_inv(self, bits=[]):
+        return check_inv(self, native, *bits)
 
-    def test_pnt(self, bits=None):
-        return check_pnt(self, native, *none_to_list(bits))
+    def test_pnt(self, bits=[]):
+        return check_pnt(self, native, *bits)
 
-    def test_bas(self, bits=None):
-        return check_bas(self, native, *none_to_list(bits))
+    def test_bas(self, bits=[]):
+        return check_bas(self, native, *bits)
 
-    def test_mul(self, bits=None):
-        return check_mul(self, native, *none_to_list(bits))
+    def test_mul(self, bits=[]):
+        return check_mul(self, native, *bits)
 
-    def test_add(self, bits=None):
-        return check_add(self, native, *none_to_list(bits))
+    def test_add(self, bits=[]):
+        return check_add(self, native, *bits)
 
-    def test_sub(self, bits=None):
-        return check_sub(self, native, *none_to_list(bits))
+    def test_sub(self, bits=[]):
+        return check_sub(self, native, *bits)
 
 class Test_native_classes(TestCase):
-    def test_point(self, bits=None):
-        return check_point(self, native, *none_to_list(bits))
+    def test_point(self, bits=[]):
+        return check_point(self, native, *bits)
 
-    def test_point_base(self, bits=None):
-        return check_point_base(self, native, *none_to_list(bits))
+    def test_point_base(self, bits=[]):
+        return check_point_base(self, native, *bits)
 
-    def test_point_rmul(self, bits=None):
-        return check_point_rmul(self, native, *none_to_list(bits))
+    def test_point_rmul(self, bits=[]):
+        return check_point_rmul(self, native, *bits)
 
-    def test_point_add(self, bits=None):
-        return check_point_add(self, native, *none_to_list(bits))
+    def test_point_add(self, bits=[]):
+        return check_point_add(self, native, *bits)
 
-    def test_point_sub(self, bits=None):
-        return check_point_sub(self, native, *none_to_list(bits))
+    def test_point_sub(self, bits=[]):
+        return check_point_sub(self, native, *bits)
 
-    def test_scalar(self, bits=None):
-        return check_scalar(self, native, *none_to_list(bits))
+    def test_scalar(self, bits=[]):
+        return check_scalar(self, native, *bits)
 
-    def test_scalar_random(self, bits=None):
-        return check_scalar_random(self, native, *none_to_list(bits))
+    def test_scalar_random(self, bits=[]):
+        return check_scalar_random(self, native, *bits)
 
-    def test_scalar_inv(self, bits=None):
-        return check_scalar_inverse(self, native, *none_to_list(bits))
+    def test_scalar_inv(self, bits=[]):
+        return check_scalar_inverse(self, native, *bits)
 
-    def test_scalar_inv_op(self, bits=None):
-        return check_scalar_inv_op(self, native, *none_to_list(bits))
+    def test_scalar_invert_op(self, bits=[]):
+        return check_scalar_invert_op(self, native, *bits)
 
 class Test_native_algebra(TestCase):
     def test_algebra_scalar_inverse_identity(self):
@@ -311,57 +307,57 @@ class Test_native_algebra(TestCase):
         check_algebra_scalar_mul_point_add_distribute(self, native)
 
 class Test_sodium(TestCase):
-    def test_rnd(self, bits=None):
-        return check_rnd(self, sodium, *none_to_list(bits))
+    def test_rnd(self, bits=[]):
+        return check_rnd(self, sodium, *bits)
 
-    def test_scl(self, bits=None):
-        return check_scl(self, sodium, *none_to_list(bits))
+    def test_scl(self, bits=[]):
+        return check_scl(self, sodium, *bits)
 
-    def test_inv(self, bits=None):
-        return check_inv(self, sodium, *none_to_list(bits))
+    def test_inv(self, bits=[]):
+        return check_inv(self, sodium, *bits)
 
-    def test_pnt(self, bits=None):
-        return check_pnt(self, sodium, *none_to_list(bits))
+    def test_pnt(self, bits=[]):
+        return check_pnt(self, sodium, *bits)
 
-    def test_bas(self, bits=None):
-        return check_bas(self, sodium, *none_to_list(bits))
+    def test_bas(self, bits=[]):
+        return check_bas(self, sodium, *bits)
 
-    def test_mul(self, bits=None):
-        return check_mul(self, sodium, *none_to_list(bits))
+    def test_mul(self, bits=[]):
+        return check_mul(self, sodium, *bits)
 
-    def test_add(self, bits=None):
-        return check_add(self, sodium, *none_to_list(bits))
+    def test_add(self, bits=[]):
+        return check_add(self, sodium, *bits)
 
-    def test_sub(self, bits=None):
-        return check_sub(self, sodium, *none_to_list(bits))
+    def test_sub(self, bits=[]):
+        return check_sub(self, sodium, *bits)
 
 class Test_sodium_classes(TestCase):
-    def test_point(self, bits=None):
-        return check_point(self, sodium, *none_to_list(bits))
+    def test_point(self, bits=[]):
+        return check_point(self, sodium, *bits)
 
-    def test_point_base(self, bits=None):
-        return check_point_base(self, sodium, *none_to_list(bits))
+    def test_point_base(self, bits=[]):
+        return check_point_base(self, sodium, *bits)
 
-    def test_point_rmul(self, bits=None):
-        return check_point_rmul(self, sodium, *none_to_list(bits))
+    def test_point_rmul(self, bits=[]):
+        return check_point_rmul(self, sodium, *bits)
 
-    def test_point_add(self, bits=None):
-        return check_point_add(self, sodium, *none_to_list(bits))
+    def test_point_add(self, bits=[]):
+        return check_point_add(self, sodium, *bits)
 
-    def test_point_sub(self, bits=None):
-        return check_point_sub(self, sodium, *none_to_list(bits))
+    def test_point_sub(self, bits=[]):
+        return check_point_sub(self, sodium, *bits)
 
-    def test_scalar(self, bits=None):
-        return check_scalar(self, sodium, *none_to_list(bits))
+    def test_scalar(self, bits=[]):
+        return check_scalar(self, sodium, *bits)
 
-    def test_scalar_random(self, bits=None):
-        return check_scalar_random(self, sodium, *none_to_list(bits))
+    def test_scalar_random(self, bits=[]):
+        return check_scalar_random(self, sodium, *bits)
 
-    def test_scalar_inv(self, bits=None):
-        return check_scalar_inverse(self, sodium, *none_to_list(bits))
+    def test_scalar_inv(self, bits=[]):
+        return check_scalar_inverse(self, sodium, *bits)
 
-    def test_scalar_inv_op(self, bits=None):
-        return check_scalar_inv_op(self, sodium, *none_to_list(bits)) 
+    def test_scalar_invert_op(self, bits=[]):
+        return check_scalar_invert_op(self, sodium, *bits) 
 
 class Test_sodium_algebra(TestCase):
     def test_algebra_scalar_inverse_identity(self):
@@ -403,6 +399,7 @@ class Test_namespace(TestCase):
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.
-    test_oblivious = Test_native()
-    for m in [m for m in dir(test_oblivious) if m.startswith('test_')]:
-        print(m + ': ' + getattr(test_oblivious, m)(bits=None))
+    for tests in [Test_native(), Test_native_classes()]:
+        print('\nUnit test reference bit vectors for ' + tests.__class__.__name__ + ' methods...')
+        for m in [m for m in dir(tests) if m.startswith('test_')]:
+            print('* ' + m + ': ' + getattr(tests, m)(bits=[None]))
