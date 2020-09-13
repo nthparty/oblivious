@@ -1,4 +1,5 @@
 from importlib import import_module
+from itertools import islice
 from parts import parts
 from bitlist import bitlist
 from fountains import fountains
@@ -193,6 +194,27 @@ def check_scalar_inv_op(
         return ~s if s is not None else bytes([0])
     return check_or_generate_operation(self, fun, [32], bits)
 
+def check_algebra_scalar_inverse_identity(self, cls):
+    for bs in list(islice(fountains(32), 0, 256)):
+        s = cls.scl(bs)
+        if s is not None:
+            self.assertEqual(inv(inv(s)), s)
+
+def check_algebra_scalar_inverse_mul_cancel(self, cls):
+    for bs in list(islice(fountains(32 + 64), 0, 256)):
+        (s, p) = (cls.scl(bs[:32]), cls.pnt(bs[32:]))
+        if s is not None:
+            self.assertEqual(cls.mul(inv(s), cls.mul(s, p)), p)
+
+def check_algebra_scalar_mul_commute(self, cls):
+    for bs in list(islice(fountains(32 + 32 + 64), 0, 256)):
+        (s1, s2, p) = (cls.scl(bs[:32]), cls.scl(bs[32:64]), cls.pnt(bs[64:]))
+        if s1 is not None and s2 is not None:
+            self.assertEqual(
+               cls.mul(s1, cls.mul(s2, p)),
+               cls.mul(s2, cls.mul(s1, p))
+            )
+
 class Test_native(TestCase):
     def test_rnd(self, bits=None):
         return check_rnd(self, native, *none_to_list(bits))
@@ -246,6 +268,16 @@ class Test_native_classes(TestCase):
     def test_scalar_inv_op(self, bits=None):
         return check_scalar_inv_op(self, native, *none_to_list(bits))
 
+class Test_native_algebra(TestCase):
+    def test_algebra_scalar_inverse_identity(self):
+        check_algebra_scalar_inverse_identity(self, native)
+
+    def test_algebra_scalar_inverse_mul_cancel(self):
+        check_algebra_scalar_inverse_mul_cancel(self, native)
+
+    def test_algebra_scalar_mul_commute(self):
+        check_algebra_scalar_mul_commute(self, native)
+
 class Test_sodium(TestCase):
     def test_rnd(self, bits=None):
         return check_rnd(self, sodium, *none_to_list(bits))
@@ -298,6 +330,16 @@ class Test_sodium_classes(TestCase):
 
     def test_scalar_inv_op(self, bits=None):
         return check_scalar_inv_op(self, sodium, *none_to_list(bits)) 
+
+class Test_sodium_algebra(TestCase):
+    def test_algebra_scalar_inverse_identity(self):
+        check_algebra_scalar_inverse_identity(self, sodium)
+
+    def test_algebra_scalar_inverse_mul_cancel(self):
+        check_algebra_scalar_inverse_mul_cancel(self, sodium)
+
+    def test_algebra_scalar_mul_commute(self):
+        check_algebra_scalar_mul_commute(self, sodium)
 
 class Test_namespace(TestCase):
     def test_init(self):
