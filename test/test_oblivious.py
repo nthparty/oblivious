@@ -39,7 +39,9 @@ def check_rnd(
         self, cls,
         bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
     ):
-    fun = lambda bs: bitlist([1 if len(cls.rnd()) == 32 else 0])
+    def fun(bs):
+        s = cls.rnd()
+        return bitlist([1 if len(s) == 32 and cls.scl(s) is not None else 0])
     return check_or_generate_operation(self, fun, [32], bits)
 
 def check_scl(
@@ -169,11 +171,13 @@ def check_scalar(
     fun = lambda bs: bitlist([1 if cls.scalar(bs) is not None else 0])
     return check_or_generate_operation(self, fun, [32], bits)
 
-def check_scalar_rnd(
+def check_scalar_random(
         self, cls,
         bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
     ):
-    fun = lambda bs: bitlist([1 if len(cls.scalar.random()) == 32 else 0])
+    def fun(bs):
+        s = cls.scalar.random()
+        return bitlist([ 1 if len(s) == 32 and cls.scalar(s) is not None else 0])
     return check_or_generate_operation(self, fun, [32], bits)
 
 def check_scalar_inverse(
@@ -278,8 +282,8 @@ class Test_native_classes(TestCase):
     def test_scalar(self, bits=None):
         return check_scalar(self, native, *none_to_list(bits))
 
-    def test_scalar_rnd(self, bits=None):
-        return check_scalar_rnd(self, native, *none_to_list(bits))
+    def test_scalar_random(self, bits=None):
+        return check_scalar_random(self, native, *none_to_list(bits))
 
     def test_scalar_inv(self, bits=None):
         return check_scalar_inverse(self, native, *none_to_list(bits))
@@ -350,8 +354,8 @@ class Test_sodium_classes(TestCase):
     def test_scalar(self, bits=None):
         return check_scalar(self, sodium, *none_to_list(bits))
 
-    def test_scalar_rnd(self, bits=None):
-        return check_scalar_rnd(self, sodium, *none_to_list(bits))
+    def test_scalar_random(self, bits=None):
+        return check_scalar_random(self, sodium, *none_to_list(bits))
 
     def test_scalar_inv(self, bits=None):
         return check_scalar_inverse(self, sodium, *none_to_list(bits))
