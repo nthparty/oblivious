@@ -5,6 +5,7 @@ used to implement OPRF and OT protocols.
 """
 
 from __future__ import annotations
+from typing import Union
 import doctest
 import platform
 import ctypes
@@ -137,6 +138,11 @@ class native(common):
         return _sc25519_invert(s)
 
     @staticmethod
+    def smu(s: bytes, t: bytes) -> bytes:
+        """Return scalar multiplied by another scalar."""
+        return _sc25519_mul(s, t)
+
+    @staticmethod
     def pnt(h: bytes) -> bytes:
         """Return point from 64-byte hash."""
         return ge25519.ge25519_p3.from_hash_ristretto255(h)
@@ -195,6 +201,7 @@ class native(common):
 scl = native.scl
 rnd = native.rnd
 inv = native.inv
+smu = native.smu
 pnt = native.pnt
 bas = native.bas
 mul = native.mul
@@ -269,6 +276,10 @@ class scalar(bytes):
         """
         return inv(self)
 
+    def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
+        """Multiply supplied scalar or point by this scalar."""
+        return smu(self, other) if isinstance(other, scalar) else mul(self, other)
+
 # Access to wrapper classes for bytes.
 native.point = point
 native.scalar = scalar
@@ -320,6 +331,16 @@ try:
             return buf.raw
 
         @staticmethod
+        def smu(s: bytes, t: bytes) -> bytes:
+            """
+            Return scalar multiplied by another scalar modulo
+            2**252 + 27742317777372353535851937790883648493.
+            """
+            buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
+            _sodium.crypto_core_ristretto255_scalar_mul(buf, bytes(s), bytes(t))
+            return buf.raw
+
+        @staticmethod
         def pnt(h: bytes) -> bytes:
             """Return point from 64-byte hash."""
             buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
@@ -358,6 +379,7 @@ try:
     scl = sodium.scl
     rnd = sodium.rnd
     inv = sodium.inv
+    smu = sodium.smu
     pnt = sodium.pnt
     bas = sodium.bas
     mul = sodium.mul
@@ -431,6 +453,10 @@ try:
             2**252 + 27742317777372353535851937790883648493.
             """
             return inv(self)
+
+        def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
+            """Multiply supplied scalar or point by this scalar."""
+            return smu(self, other) if isinstance(other, scalar) else mul(self, other)
 
     # Access to wrapper classes for bytes.
     sodium.point = point

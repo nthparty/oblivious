@@ -13,7 +13,7 @@ def api_methods():
     """
     return {
         'point', 'scalar',
-        'scl', 'rnd', 'inv',
+        'scl', 'rnd', 'inv', 'smu',
         'pnt', 'bas', 'mul', 'add', 'sub'
     }
 
@@ -97,6 +97,18 @@ def define_classes(cls):
                 s = cls.scl(bs)
                 return cls.inv(s) if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [32], bits)
+
+        def test_smu(
+                self,
+                bits='2ca120487000010295804000850254008018000000008000080100008400000c'
+            ):
+            def fun(bs):
+                (s1, s2) = (cls.scl(bs[:32]), cls.scl(bs[32:]))
+                return\
+                    cls.smu(s1, s2)\
+                    if s1 is not None and s2 is not None else\
+                    bytes([0])
+            return check_or_generate_operation(self, fun, [32, 32], bits)
 
         def test_pnt(
                 self,
@@ -241,6 +253,18 @@ def define_classes(cls):
                 return ~s if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [32], bits)
 
+        def test_scalar_mul(
+                self,
+                bits='2ca120487000010295804000850254008018000000008000080100008400000c'
+            ):
+            def fun(bs):
+                (s1, s2) = (cls.scalar(bs[:32]), cls.scalar(bs[32:]))
+                return\
+                    s1 * s2\
+                    if s1 is not None and s2 is not None else\
+                    bytes([0])
+            return check_or_generate_operation(self, fun, [32, 32], bits)
+
     class Test_algebra(TestCase):
         """
         Tests of algebraic properties of primitive operators.
@@ -276,6 +300,15 @@ def define_classes(cls):
             for bs in list(islice(fountains(64 + 64), 0, 256)):
                 (p0, p1) = (cls.pnt(bs[:64]), cls.pnt(bs[64:]))
                 self.assertEqual(cls.add(cls.sub(p0, p1), p1), p0)
+
+        def test_algebra_scalar_mul_point_mul_associate(self):
+            for bs in list(islice(fountains(32 + 32 + 64), 0, 256)):
+                (s0, s1, p0) = (cls.scl(bs[:32]), cls.scl(bs[32:64]), cls.pnt(bs[64:]))
+                if s0 is not None and s1 is not None:
+                    self.assertEqual(
+                        cls.mul(s0, cls.mul(s1, p0)),
+                        cls.mul(cls.smu(s0, s1), p0)
+                    )
 
         def test_algebra_scalar_mul_point_add_distribute(self):
             for bs in list(islice(fountains(32 + 64 + 64), 0, 256)):
