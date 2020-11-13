@@ -190,6 +190,20 @@ def define_classes(cls):
             def fun(bs):
                 (s1, s2) = (cls.scalar(bs[:32]), cls.scalar(bs[32:]))
                 return\
+                    cls.point.base(s2).__rmul__(s1)\
+                    if s1 is not None and s2 is not None else\
+                    bytes([0])
+            return check_or_generate_operation(self, fun, [32, 32], bits)
+
+        def test_point_scalar_mul_op(
+                self,
+                bits='2c040004500080008180400080000008a1180020001080080211004000080040'
+            ):
+            def fun(bs):
+                (s1, s2) = (cls.scalar(bs[:32]), cls.scalar(bs[32:]))
+                # Below, `*` invokes `scalar.__mul__`, which delegates to `mul`
+                # due to the type of the second argument.
+                return\
                     s1 * cls.point.base(s2)\
                     if s1 is not None and s2 is not None else\
                     bytes([0])
@@ -318,6 +332,15 @@ def define_classes(cls):
                         cls.add(cls.mul(s0, p0), cls.mul(s0, p1)),
                         cls.mul(s0, cls.add(p0, p1))
                     )
+
+        def test_algebra_scalar_mul_scalar_on_right_hand_side_of_non_scalar(self):
+            s = cls.scalar.random()
+            self.assertRaises(TypeError, lambda: bytes([0]) * s)
+
+        def test_algebra_scalar_mul_point_on_left_hand_side(self):
+            s = cls.scalar.random()
+            p = cls.point([0]*32)
+            self.assertRaises(TypeError, lambda: p * s)
 
     return (
         Test_primitives,

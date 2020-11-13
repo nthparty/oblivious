@@ -231,6 +231,10 @@ class point(bytes):
         """Return point object corresponding to supplied bytes object."""
         return bytes.__new__(cls, pnt(bs))
 
+    def __mul__(self: point, other) -> point:
+        """A point cannot be a left-hand argument."""
+        raise TypeError('point must be on right-hand side of multiplication operator')
+
     def __rmul__(self: point, other: scalar) -> point:
         """Return point multiplied by supplied scalar."""
         return mul(other, self)
@@ -278,7 +282,13 @@ class scalar(bytes):
 
     def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
         """Multiply supplied scalar or point by this scalar."""
-        return smu(self, other) if isinstance(other, scalar) else mul(self, other)
+        if isinstance(other, (native.scalar, sodium.scalar)):
+            return smu(self, other)
+        return mul(self, other)
+
+    def __rmul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
+        """A scalar cannot be on the right-hand side of a non-scalar."""
+        raise TypeError('scalar must be on left-hand side of multiplication operator')
 
 # Access to wrapper classes for bytes.
 native.point = point
@@ -409,6 +419,10 @@ try:
             """Return point object corresponding to supplied bytes object."""
             return bytes.__new__(cls, pnt(bs))
 
+        def __mul__(self: point, other) -> point:
+            """A point cannot be a left-hand argument."""
+            raise TypeError('point must be on right-hand side of multiplication operator')
+
         def __rmul__(self: point, other: scalar) -> point:
             """Return point multiplied by supplied scalar."""
             return mul(other, self)
@@ -456,7 +470,13 @@ try:
 
         def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
             """Multiply supplied scalar or point by this scalar."""
-            return smu(self, other) if isinstance(other, scalar) else mul(self, other)
+            if isinstance(other, (native.scalar, sodium.scalar)):
+                return smu(self, other)
+            return mul(self, other)
+
+        def __rmul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
+            """A scalar cannot be on the right-hand side of a non-scalar."""
+            raise TypeError('scalar must be on left-hand side of multiplication operator')
 
     # Access to wrapper classes for bytes.
     sodium.point = point
