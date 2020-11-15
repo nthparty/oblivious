@@ -280,13 +280,13 @@ class scalar(bytes):
         """
         return inv(self)
 
-    def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
+    def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]: # pylint: disable=E1136
         """Multiply supplied scalar or point by this scalar."""
         if isinstance(other, (native.scalar, sodium.scalar)):
             return smu(self, other)
         return mul(self, other)
 
-    def __rmul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
+    def __rmul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]: # pylint: disable=E1136
         """A scalar cannot be on the right-hand side of a non-scalar."""
         raise TypeError('scalar must be on left-hand side of multiplication operator')
 
@@ -468,13 +468,13 @@ try:
             """
             return inv(self)
 
-        def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
+        def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]: # pylint: disable=E1136
             """Multiply supplied scalar or point by this scalar."""
             if isinstance(other, (native.scalar, sodium.scalar)):
                 return smu(self, other)
             return mul(self, other)
 
-        def __rmul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
+        def __rmul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]: # pylint: disable=E1136
             """A scalar cannot be on the right-hand side of a non-scalar."""
             raise TypeError('scalar must be on left-hand side of multiplication operator')
 
