@@ -357,7 +357,7 @@ def define_classes(cls):
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.
-    for tests in [Test_primitives_native(), Test_classes_native()]:
+    for tests in [Test_primitives_native(), Test_classes_sodium()]:
         print('\nUnit test reference bit vectors for ' + tests.__class__.__name__ + ' methods...')
         for m in [m for m in dir(tests) if m.startswith('test_')]:
             print('* ' + m + ': ' + getattr(tests, m)(bits=None))
