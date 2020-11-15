@@ -43,6 +43,7 @@ matrix:
         - sudo python3 -m pip install setuptools
       install:
         - sudo python3 -m pip install pylint
+        - sudo python3 -m pip install coverage
         - sudo python3 -m pip install nose
         - sudo python3 -m pip install .
     - os: windows
