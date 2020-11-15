@@ -39,12 +39,12 @@ matrix:
         - brew install ccache
         - brew install openssl readline
         - brew install python@3.8
-        - sudo python3.8 -m pip install -U pip
-        - sudo python3.8 -m pip install setuptools
+        - sudo python3 -m pip install -U pip
+        - sudo python3 -m pip install setuptools
       install:
-        - sudo python3.8 -m pip install pylint
-        - sudo python3.8 -m pip install nose
-        - sudo python3.8 -m pip install .
+        - sudo python3 -m pip install pylint
+        - sudo python3 -m pip install nose
+        - sudo python3 -m pip install .
     - os: windows
       language: sh
       before_install:
