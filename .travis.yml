@@ -24,23 +24,17 @@ matrix:
       after_success:
         - coveralls
     - os: osx
-      language: generic
-      before_cache:
-        - brew cleanup
-        - find /usr/local/Homebrew \! -regex ".+\.git.+" -delete
-      cache:
-        ccache: true
-        directories:
-          - $HOME/Library/Caches/Homebrew
-          - /usr/local/Homebrew
+      osx_image: xcode10.2
+      language: shell
       before_install:
-        - brew update
-        - brew install libsodium
-        - brew install ccache
-        - brew install openssl readline
-        - brew install python@3.8
-        - sudo python3 -m pip install -U pip
-        - sudo python3 -m pip install setuptools
+        - wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.18.tar.gz
+        - tar xvfz libsodium-1.0.18.tar.gz
+        - cd libsodium-1.0.18
+        - sudo ./configure
+        - sudo make
+        - sudo make install
+        - sudo ldconfig
+        - cd ..
       install:
         - sudo python3 -m pip install pylint
         - sudo python3 -m pip install coverage
@@ -56,6 +50,7 @@ matrix:
       env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
       install:
         - pip install pylint
+        - pip install coverage
         - pip install nose
         - pip install .
 script:
