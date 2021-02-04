@@ -222,17 +222,17 @@ class point(bytes):
     @classmethod
     def random(cls) -> point:
         """Return random point object."""
-        return bytes.__new__(cls, pnt())
+        return bytes.__new__(cls, native.pnt())
 
     @classmethod
     def bytes(cls, bs: bytes) -> point:
         """Return point object obtained by transforming supplied bytes-like object."""
-        return bytes.__new__(cls, pnt(bs))
+        return bytes.__new__(cls, native.pnt(bs))
 
     @classmethod
     def hash(cls, bs: bytes) -> point:
         """Return point object by hashing supplied bytes-like object."""
-        return bytes.__new__(cls, pnt(hashlib.sha512(bs).digest()))
+        return bytes.__new__(cls, native.pnt(hashlib.sha512(bs).digest()))
 
     @classmethod
     def base(cls, s: scalar) -> Optional[point]:
@@ -240,7 +240,7 @@ class point(bytes):
         Return base point multiplied by supplied scalar
         if the scalar is valid; otherwise, return `None`.
         """
-        p = bas(s)
+        p = native.bas(s)
         return bytes.__new__(cls, p) if p is not None else None
 
     def __new__(cls, bs: bytes = None) -> point:
@@ -257,15 +257,15 @@ class point(bytes):
 
     def __rmul__(self: point, other: scalar) -> point:
         """Return point multiplied by supplied scalar."""
-        return native.point(mul(other, self))
+        return native.point(native.mul(other, self))
 
     def __add__(self: point, other: point) -> point:
         """Return sum of the supplied points."""
-        return native.point(add(self, other))
+        return native.point(native.add(self, other))
 
     def __sub__(self: point, other: point) -> point:
         """Return result of subtracting second point from first point."""
-        return native.point(sub(self, other))
+        return native.point(native.sub(self, other))
 
 class scalar(bytes):
     """
@@ -276,7 +276,7 @@ class scalar(bytes):
     @classmethod
     def random(cls) -> scalar:
         """Return random non-zero scalar object."""
-        return bytes.__new__(cls, rnd())
+        return bytes.__new__(cls, native.rnd())
 
     @classmethod
     def bytes(cls, bs: bytes) -> Optional[scalar]:
@@ -284,17 +284,17 @@ class scalar(bytes):
         Return scalar object obtained by transforming supplied bytes-like
         object if it is possible to do; otherwise, return `None`.
         """
-        s = scl(bs)
+        s = native.scl(bs)
         return bytes.__new__(cls, s) if s is not None else None
 
     @classmethod
     def hash(cls, bs: bytes) -> scalar:
         """Return scalar object by hashing supplied bytes-like object."""
         h = hashlib.sha256(bs).digest()
-        s = scl(h)
+        s = native.scl(h)
         while s is None:
             h = hashlib.sha256(h).digest()
-            s = scl(h)
+            s = native.scl(h)
         return bytes.__new__(cls, s)
 
     def __new__(cls, bs: bytes = None) -> scalar:
@@ -310,22 +310,22 @@ class scalar(bytes):
         Return inverse of scalar modulo
         2**252 + 27742317777372353535851937790883648493.
         """
-        return native.scalar(inv(self))
+        return native.scalar(native.inv(self))
 
     def inverse(self: scalar) -> scalar:
         """
         Return inverse of scalar modulo
         2**252 + 27742317777372353535851937790883648493.
         """
-        return native.scalar(inv(self))
+        return native.scalar(native.inv(self))
 
     # pylint: disable=E1136
     def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
         """Multiply supplied scalar or point by this scalar."""
         if isinstance(other, native.scalar) or\
            (sodium is not None and isinstance(other, sodium.scalar)):
-            return native.scalar(smu(self, other))
-        return native.point(mul(self, other))
+            return native.scalar(native.smu(self, other))
+        return native.point(native.mul(self, other))
 
     # pylint: disable=E1136
     def __rmul__(self: scalar, other: Union[scalar, point]):
@@ -470,17 +470,17 @@ try:
         @classmethod
         def random(cls) -> point:
             """Return random point object."""
-            return bytes.__new__(cls, pnt())
+            return bytes.__new__(cls, sodium.pnt())
 
         @classmethod
         def bytes(cls, bs: bytes) -> point:
             """Return point object obtained by transforming supplied bytes-like object."""
-            return bytes.__new__(cls, pnt(bs))
+            return bytes.__new__(cls, sodium.pnt(bs))
 
         @classmethod
         def hash(cls, bs: bytes) -> point:
             """Return point object by hashing supplied bytes-like object."""
-            return bytes.__new__(cls, pnt(hashlib.sha512(bs).digest()))
+            return bytes.__new__(cls, sodium.pnt(hashlib.sha512(bs).digest()))
 
         @classmethod
         def base(cls, s: scalar) -> point:
@@ -488,7 +488,7 @@ try:
             Return base point multiplied by supplied scalar
             if the scalar is valid; otherwise, return `None`.
             """
-            p = bas(s)
+            p = sodium.bas(s)
             return bytes.__new__(cls, p) if p is not None else None
 
         def __new__(cls, bs: bytes = None) -> point:
@@ -505,15 +505,15 @@ try:
 
         def __rmul__(self: point, other: scalar) -> point:
             """Return point multiplied by supplied scalar."""
-            return sodium.point(mul(other, self))
+            return sodium.point(sodium.mul(other, self))
 
         def __add__(self: point, other: point) -> point:
             """Return sum of the supplied points."""
-            return sodium.point(add(self, other))
+            return sodium.point(sodium.add(self, other))
 
         def __sub__(self: point, other: point) -> point:
             """Return result of subtracting second point from first point."""
-            return sodium.point(sub(self, other))
+            return sodium.point(sodium.sub(self, other))
 
     class scalar(bytes):
         """
@@ -524,7 +524,7 @@ try:
         @classmethod
         def random(cls) -> scalar:
             """Return random non-zero scalar object."""
-            return bytes.__new__(cls, rnd())
+            return bytes.__new__(cls, sodium.rnd())
 
         @classmethod
         def bytes(cls, bs: bytes) -> Optional[scalar]:
@@ -532,17 +532,17 @@ try:
             Return scalar object obtained by transforming supplied bytes-like
             object if it is possible to do; otherwise, return `None`.
             """
-            s = scl(bs)
+            s = sodium.scl(bs)
             return bytes.__new__(cls, s) if s is not None else None
 
         @classmethod
         def hash(cls, bs: bytes) -> scalar:
             """Return scalar object by hashing supplied bytes-like object."""
             h = hashlib.sha256(bs).digest()
-            s = scl(h)
+            s = sodium.scl(h)
             while s is None:
                 h = hashlib.sha256(h).digest()
-                s = scl(h)
+                s = sodium.scl(h)
             return bytes.__new__(cls, s)
 
         def __new__(cls, bs: bytes = None) -> scalar:
@@ -558,21 +558,21 @@ try:
             Return inverse of scalar modulo
             2**252 + 27742317777372353535851937790883648493.
             """
-            return sodium.scalar(inv(self))
+            return sodium.scalar(sodium.inv(self))
 
         def inverse(self: scalar)  -> scalar:
             """
             Return inverse of scalar modulo
             2**252 + 27742317777372353535851937790883648493.
             """
-            return sodium.scalar(inv(self))
+            return sodium.scalar(sodium.inv(self))
 
         # pylint: disable=E1136
         def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
             """Multiply supplied scalar or point by this scalar."""
             if isinstance(other, (native.scalar, sodium.scalar)):
-                return sodium.scalar(smu(self, other))
-            return sodium.point(mul(self, other))
+                return sodium.scalar(sodium.smu(self, other))
+            return sodium.point(sodium.mul(self, other))
 
         # pylint: disable=E1136
         def __rmul__(self: scalar, other: Union[scalar, point]):
