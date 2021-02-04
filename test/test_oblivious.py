@@ -11,7 +11,7 @@ from bitlist import bitlist
 from fountains import fountains
 from unittest import TestCase # pylint: disable=C0411
 
-from oblivious.oblivious import * # pylint: disable=W0401,W0614
+import oblivious.oblivious as oblivious
 
 def api_methods():
     """
@@ -42,12 +42,13 @@ class Test_namespace(TestCase):
         self.assertTrue(api_methods().issubset(module.__dict__.keys()))
 
     def test_native(self):
-        self.assertTrue(api_methods().issubset(set(dir(native))))
+        self.assertTrue(api_methods().issubset(set(dir(oblivious.native))))
 
     def test_sodium(self):
-        self.assertTrue(api_methods().issubset(set(dir(sodium))))
+        if oblivious.sodium is not None:
+            self.assertTrue(api_methods().issubset(set(dir(oblivious.sodium))))
 
-def check_or_generate_operation(self, fun, lengths, bits): # pylint: disable=R1710
+def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R1710
     """
     This function does either of two things depending on `bits`:
     * checks that test inputs drawn from the fountains input bit stream
@@ -66,12 +67,12 @@ def check_or_generate_operation(self, fun, lengths, bits): # pylint: disable=R17
     if bits is None: # There is no output reference bit vector, so test is not possible.
         return bitlist(list(fs)).hex() # Return reference output bits for test.
 
-    self.assertTrue(all(fs)) # Check that all outputs match.
+    test.assertTrue(all(fs)) # Check that all outputs match.
 
 def define_classes(cls): # pylint: disable=R0915
     """
-    Define and return three classes of unit tests given a wrapper
-    class of primitive operations.
+    Define and return four classes of unit tests given a wrapper
+    class (`native` or `sodium`) for primitive operations.
     """
 
     class Test_primitives(TestCase):
@@ -344,6 +345,7 @@ def define_classes(cls): # pylint: disable=R0915
         """
         Tests verifying that methods return objects of the appropriate type.
         """
+
         def test_types_point_random(self):
             p = cls.point.random()
             self.assertTrue(isinstance(p, cls.point))
@@ -362,7 +364,7 @@ def define_classes(cls): # pylint: disable=R0915
             p = cls.point.base(cls.scalar.random())
             self.assertTrue(isinstance(p, cls.point))
 
-        def test_types_point_add(self):
+        def test_types_point_mul(self):
             (bs,) = fountains(32 + 64, limit=1)
             (s, p) = (cls.scalar.hash(bs[:32]), cls.point.hash(bs[64:]))
             self.assertTrue(isinstance(s * p, cls.point))
@@ -412,13 +414,13 @@ def define_classes(cls): # pylint: disable=R0915
             for bs in fountains(32, limit=256):
                 s = cls.scl(bs)
                 if s is not None:
-                    self.assertEqual(inv(inv(s)), s)
+                    self.assertEqual(cls.inv(cls.inv(s)), s)
 
         def test_algebra_scalar_inverse_mul_cancel(self):
             for bs in fountains(32 + 64, limit=256):
                 (s0, p0) = (cls.scl(bs[:32]), cls.pnt(bs[32:]))
                 if s0 is not None:
-                    self.assertEqual(cls.mul(inv(s0), cls.mul(s0, p0)), p0)
+                    self.assertEqual(cls.mul(cls.inv(s0), cls.mul(s0, p0)), p0)
 
         def test_algebra_scalar_mul_commute(self):
             for bs in fountains(32 + 32 + 64, limit=256):
@@ -463,7 +465,7 @@ def define_classes(cls): # pylint: disable=R0915
 
         def test_algebra_scalar_mul_point_on_left_hand_side(self):
             s = cls.scalar.random()
-            p = cls.point.bytes([0]*32)
+            p = cls.point.hash(bytes([0]*32))
             self.assertRaises(TypeError, lambda: p * s)
 
     return (
@@ -473,12 +475,12 @@ def define_classes(cls): # pylint: disable=R0915
         Test_algebra
     )
 
-# The instantiated test classes below are discovered and executed
-# (e.g., using nosetests).
+# The instantiated test classes below are discovered by nose and
+# executed in alphabetical order.
 (Test_primitives_native, Test_classes_native, Test_types_native, Test_algebra_native) =\
-    define_classes(native)
+    define_classes(oblivious.native)
 (Test_primitives_sodium, Test_classes_sodium, Test_types_sodium, Test_algebra_sodium) =\
-    define_classes(sodium)
+    define_classes(oblivious.sodium)
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.
