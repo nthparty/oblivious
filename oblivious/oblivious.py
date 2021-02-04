@@ -251,21 +251,21 @@ class point(bytes):
         """
         return bytes.__new__(cls, bs) if bs is not None else cls.random()
 
-    def __mul__(self: point, other) -> point:
+    def __mul__(self: point, other):
         """A point cannot be a left-hand argument."""
         raise TypeError('point must be on right-hand side of multiplication operator')
 
     def __rmul__(self: point, other: scalar) -> point:
         """Return point multiplied by supplied scalar."""
-        return mul(other, self)
+        return native.point(mul(other, self))
 
     def __add__(self: point, other: point) -> point:
         """Return sum of the supplied points."""
-        return add(self, other)
+        return native.point(add(self, other))
 
     def __sub__(self: point, other: point) -> point:
         """Return result of subtracting second point from first point."""
-        return sub(self, other)
+        return native.point(sub(self, other))
 
 class scalar(bytes):
     """
@@ -310,24 +310,24 @@ class scalar(bytes):
         Return inverse of scalar modulo
         2**252 + 27742317777372353535851937790883648493.
         """
-        return inv(self)
+        return native.scalar(inv(self))
 
     def inverse(self: scalar) -> scalar:
         """
         Return inverse of scalar modulo
         2**252 + 27742317777372353535851937790883648493.
         """
-        return inv(self)
+        return native.scalar(inv(self))
 
     # pylint: disable=E1136
     def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
         """Multiply supplied scalar or point by this scalar."""
         if isinstance(other, (native.scalar, sodium.scalar)):
-            return smu(self, other)
-        return mul(self, other)
+            return native.scalar(smu(self, other))
+        return native.point(mul(self, other))
 
     # pylint: disable=E1136
-    def __rmul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
+    def __rmul__(self: scalar, other: Union[scalar, point]):
         """A scalar cannot be on the right-hand side of a non-scalar."""
         raise TypeError('scalar must be on left-hand side of multiplication operator')
 
@@ -498,21 +498,21 @@ try:
             """
             return bytes.__new__(cls, bs) if bs is not None else cls.random()
 
-        def __mul__(self: point, other) -> point:
+        def __mul__(self: point, other):
             """A point cannot be a left-hand argument."""
             raise TypeError('point must be on right-hand side of multiplication operator')
 
         def __rmul__(self: point, other: scalar) -> point:
             """Return point multiplied by supplied scalar."""
-            return mul(other, self)
+            return sodium.point(mul(other, self))
 
         def __add__(self: point, other: point) -> point:
             """Return sum of the supplied points."""
-            return add(self, other)
+            return sodium.point(add(self, other))
 
         def __sub__(self: point, other: point) -> point:
             """Return result of subtracting second point from first point."""
-            return sub(self, other)
+            return sodium.point(sub(self, other))
 
     class scalar(bytes):
         """
@@ -557,24 +557,24 @@ try:
             Return inverse of scalar modulo
             2**252 + 27742317777372353535851937790883648493.
             """
-            return inv(self)
+            return sodium.scalar(inv(self))
 
         def inverse(self: scalar)  -> scalar:
             """
             Return inverse of scalar modulo
             2**252 + 27742317777372353535851937790883648493.
             """
-            return inv(self)
+            return sodium.scalar(inv(self))
 
         # pylint: disable=E1136
         def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
             """Multiply supplied scalar or point by this scalar."""
             if isinstance(other, (native.scalar, sodium.scalar)):
-                return smu(self, other)
-            return mul(self, other)
+                return sodium.scalar(smu(self, other))
+            return sodium.point(mul(self, other))
 
         # pylint: disable=E1136
-        def __rmul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
+        def __rmul__(self: scalar, other: Union[scalar, point]):
             """A scalar cannot be on the right-hand side of a non-scalar."""
             raise TypeError('scalar must be on left-hand side of multiplication operator')
 

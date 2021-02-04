@@ -69,7 +69,7 @@ def check_or_generate_operation(self, fun, lengths, bits): # pylint: disable=R17
 
     self.assertTrue(all(fs)) # Check that all outputs match.
 
-def define_classes(cls):
+def define_classes(cls): # pylint: disable=R0915
     """
     Define and return three classes of unit tests given a wrapper
     class of primitive operations.
@@ -341,6 +341,69 @@ def define_classes(cls):
                     bytes([0])
             return check_or_generate_operation(self, fun, [32, 32], bits)
 
+    class Test_types(TestCase):
+        """
+        Tests verifying that methods return objects of the appropriate type.
+        """
+        def test_types_point_random(self):
+            p = cls.point.random()
+            self.assertTrue(isinstance(p, cls.point))
+
+        def test_types_point_bytes(self):
+            bs = list(islice(fountains(64), 0, 1))[0]
+            p = cls.point.bytes(bs)
+            self.assertTrue(isinstance(p, cls.point))
+
+        def test_types_point_hash(self):
+            bs = list(islice(fountains(64), 0, 1))[0]
+            p = cls.point.hash(bs)
+            self.assertTrue(isinstance(p, cls.point))
+
+        def test_types_point_base(self):
+            p = cls.point.base(cls.scalar.random())
+            self.assertTrue(isinstance(p, cls.point))
+
+        def test_types_point_add(self):
+            bs = list(islice(fountains(32 + 64), 0, 1))[0]
+            (s, p) = (cls.scalar.hash(bs[:32]), cls.point.hash(bs[64:]))
+            self.assertTrue(isinstance(s * p, cls.point))
+
+        def test_types_point_add(self):
+            bs = list(islice(fountains(64 + 64), 0, 1))[0]
+            (p0, p1) = (cls.point.hash(bs[:64]), cls.point.hash(bs[64:]))
+            self.assertTrue(isinstance(p0 + p1, cls.point))
+
+        def test_types_point_sub(self):
+            bs = list(islice(fountains(64 + 64), 0, 1))[0]
+            (p0, p1) = (cls.point.hash(bs[:64]), cls.point.hash(bs[64:]))
+            self.assertTrue(isinstance(p0 - p1, cls.point))
+
+        def test_types_scalar_random(self):
+            self.assertTrue(isinstance(cls.scalar.random(), cls.scalar))
+
+        def test_types_scalar_bytes(self):
+            bs = bytes(cls.scalar.random())
+            self.assertTrue(isinstance(cls.scalar.bytes(bs), cls.scalar))
+
+        def test_types_scalar_hash(self):
+            bs = list(islice(fountains(32), 0, 1))[0]
+            self.assertTrue(isinstance(cls.scalar.hash(bs), cls.scalar))
+
+        def test_types_scalar_invert(self):
+            self.assertTrue(isinstance(~cls.scalar.random(), cls.scalar))
+
+        def test_types_scalar_inverse(self):
+            self.assertTrue(isinstance(cls.scalar.random().inverse(), cls.scalar))
+
+        def test_types_scalar_mul_scalar(self):
+            (s0, s1) = (cls.scalar.random(), cls.scalar.random())
+            self.assertTrue(isinstance(s0 * s1, cls.scalar))
+
+        def test_types_scalar_mul_point(self):
+            bs = list(islice(fountains(32 + 64), 0, 1))[0]
+            (s, p) = (cls.scalar.hash(bs[:32]), cls.point.hash(bs[64:]))
+            self.assertTrue(isinstance(s * p, cls.point))
+
     class Test_algebra(TestCase):
         """
         Tests of algebraic properties of primitive operators.
@@ -407,14 +470,15 @@ def define_classes(cls):
     return (
         Test_primitives,
         Test_classes,
+        Test_types,
         Test_algebra
     )
 
 # The instantiated test classes below are discovered and executed
 # (e.g., using nosetests).
-(Test_primitives_native, Test_classes_native, Test_algebra_native) =\
+(Test_primitives_native, Test_classes_native, Test_types_native, Test_algebra_native) =\
     define_classes(native)
-(Test_primitives_sodium, Test_classes_sodium, Test_algebra_sodium) =\
+(Test_primitives_sodium, Test_classes_sodium, Test_types_sodium, Test_algebra_sodium) =\
     define_classes(sodium)
 
 if __name__ == "__main__":
