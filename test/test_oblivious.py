@@ -1,11 +1,18 @@
+"""Functional and algebraic unit tests for primitives and classes.
+
+Test suite containing functional unit tests for the exported primitives and
+classes, as well as unit tests confirming algebraic relationships among
+primitives.
+"""
+# pylint: disable=C0103,C0116
+
 from importlib import import_module
 from itertools import islice
-from parts import parts
 from bitlist import bitlist
 from fountains import fountains
-from unittest import TestCase
+from unittest import TestCase # pylint: disable=C0411
 
-from oblivious import *
+from oblivious.oblivious import * # pylint: disable=W0401,W0614
 
 def api_methods():
     """
@@ -41,7 +48,7 @@ class Test_namespace(TestCase):
     def test_sodium(self):
         self.assertTrue(api_methods().issubset(set(dir(sodium))))
 
-def check_or_generate_operation(self, fun, lengths, bits):
+def check_or_generate_operation(self, fun, lengths, bits): # pylint: disable=R1710
     """
     This function does either of two things depending on `bits`:
     * checks that test inputs drawn from the fountains input bit stream
@@ -57,10 +64,10 @@ def check_or_generate_operation(self, fun, lengths, bits):
         function=fun
     )
 
-    if bits is not None: # There is an output reference bit vector.
-        self.assertTrue(all(fs)) # Check that all outputs match.
-    else:
+    if bits is None: # There is no output reference bit vector, so test is not possible.
         return bitlist(list(fs)).hex() # Return reference output bits for test.
+
+    self.assertTrue(all(fs)) # Check that all outputs match.
 
 def define_classes(cls):
     """
@@ -77,7 +84,7 @@ def define_classes(cls):
                 self,
                 bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
             ):
-            def fun(bs):
+            def fun(bs): # pylint: disable=W0613
                 s = cls.rnd()
                 return bitlist([1 if len(s) == 32 and cls.scl(s) is not None else 0])
             return check_or_generate_operation(self, fun, [32], bits)
@@ -114,8 +121,7 @@ def define_classes(cls):
                 self,
                 bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
             ):
-            fun = lambda bs: cls.pnt(bs)
-            return check_or_generate_operation(self, fun, [64], bits)
+            return check_or_generate_operation(self, cls.pnt, [64], bits)
 
         def test_bas(
                 self,
@@ -171,8 +177,7 @@ def define_classes(cls):
                 self,
                 bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
             ):
-            fun = lambda bs: cls.point(bs)
-            return check_or_generate_operation(self, fun, [64], bits)
+            return check_or_generate_operation(self, cls.point, [64], bits)
 
         def test_point_base(
                 self,
@@ -244,9 +249,9 @@ def define_classes(cls):
                 self,
                 bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
             ):
-            def fun(bs):
+            def fun(bs): # pylint: disable=W0613
                 s = cls.scalar.random()
-                return bitlist([ 1 if len(s) == 32 and cls.scalar(s) is not None else 0])
+                return bitlist([1 if len(s) == 32 and cls.scalar(s) is not None else 0])
             return check_or_generate_operation(self, fun, [32], bits)
 
         def test_scalar_inverse(

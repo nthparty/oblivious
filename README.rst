@@ -45,7 +45,7 @@ Concise unit tests are implemented with the help of `fountains <https://pypi.org
 
 Style conventions are enforced using `Pylint <https://www.pylint.org/>`_::
 
-    pylint oblivious
+    pylint oblivious test/test_oblivious
 
 Contributions
 -------------
