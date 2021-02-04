@@ -89,6 +89,15 @@ def define_classes(cls):
                 return bitlist([1 if len(s) == 32 and cls.scl(s) is not None else 0])
             return check_or_generate_operation(self, fun, [32], bits)
 
+        def test_scl_none(
+                self,
+                bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+            ):
+            def fun(bs): # pylint: disable=W0613
+                s = cls.scl()
+                return bitlist([1 if len(s) == 32 and cls.scl(s) is not None else 0])
+            return check_or_generate_operation(self, fun, [32], bits)
+
         def test_scl(
                 self,
                 bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
@@ -116,6 +125,15 @@ def define_classes(cls):
                     if s1 is not None and s2 is not None else\
                     bytes([0])
             return check_or_generate_operation(self, fun, [32, 32], bits)
+
+        def test_pnt_none(
+                self,
+                bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+            ):
+            def fun(bs): # pylint: disable=W0613
+                p = cls.pnt()
+                return bitlist([1 if len(p) == 32 else 0])
+            return check_or_generate_operation(self, fun, [32], bits)
 
         def test_pnt(
                 self,
@@ -173,19 +191,43 @@ def define_classes(cls):
         Tests of point and scalar wrapper classes and their methods.
         """
 
-        def test_point(
+        def test_point_random(
+                self,
+                bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+            ):
+            def fun(bs): # pylint: disable=W0613
+                p = cls.point.random()
+                return bitlist([1 if len(p) == 32 else 0])
+            return check_or_generate_operation(self, fun, [32], bits)
+
+        def test_point_bytes(
                 self,
                 bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
             ):
-            return check_or_generate_operation(self, cls.point, [64], bits)
+            return check_or_generate_operation(self, cls.point.bytes, [64], bits)
+
+        def test_point_hash(
+                self,
+                bits='10cb044c737b034d5755f8ba0e29432745ed4fb1a78ea22a15b2d1113492841b'
+            ):
+            return check_or_generate_operation(self, cls.point.hash, [64], bits)
 
         def test_point_base(
                 self,
                 bits='00386671840148d05620421002a2110aa800e289010040404cb2101c20e165a0'
             ):
             def fun(bs):
-                s = cls.scalar(bs)
+                s = cls.scalar.bytes(bs)
                 return cls.point.base(s) if s is not None else bytes([0])
+            return check_or_generate_operation(self, fun, [32], bits)
+
+        def test_point(
+                self,
+                bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+            ):
+            def fun(bs): # pylint: disable=W0613
+                p = cls.point()
+                return bitlist([1 if len(p) == 32 else 0])
             return check_or_generate_operation(self, fun, [32], bits)
 
         def test_point_rmul(
@@ -193,7 +235,7 @@ def define_classes(cls):
                 bits='2c040004500080008180400080000008a1180020001080080211004000080040'
             ):
             def fun(bs):
-                (s1, s2) = (cls.scalar(bs[:32]), cls.scalar(bs[32:]))
+                (s1, s2) = (cls.scalar.bytes(bs[:32]), cls.scalar.bytes(bs[32:]))
                 return\
                     cls.point.base(s2).__rmul__(s1)\
                     if s1 is not None and s2 is not None else\
@@ -205,7 +247,7 @@ def define_classes(cls):
                 bits='2c040004500080008180400080000008a1180020001080080211004000080040'
             ):
             def fun(bs):
-                (s1, s2) = (cls.scalar(bs[:32]), cls.scalar(bs[32:]))
+                (s1, s2) = (cls.scalar.bytes(bs[:32]), cls.scalar.bytes(bs[32:]))
                 # Below, `*` invokes `scalar.__mul__`, which delegates to `mul`
                 # due to the type of the second argument.
                 return\
@@ -219,7 +261,7 @@ def define_classes(cls):
                 bits='28400040500000008480000020024c00211800080000800002110040ac001044'
             ):
             def fun(bs):
-                (s1, s2) = (cls.scalar(bs[:32]), cls.scalar(bs[32:]))
+                (s1, s2) = (cls.scalar.bytes(bs[:32]), cls.scalar.bytes(bs[32:]))
                 return\
                     cls.point.base(s1) + cls.point.base(s2)\
                     if s1 is not None and s2 is not None else\
@@ -231,19 +273,12 @@ def define_classes(cls):
                 bits='24210008500080028000000025020c08000001200000800002008002ac081040'
             ):
             def fun(bs):
-                (s1, s2) = (cls.scalar(bs[:32]), cls.scalar(bs[32:]))
+                (s1, s2) = (cls.scalar.bytes(bs[:32]), cls.scalar.bytes(bs[32:]))
                 return\
                     cls.point.base(s1) - cls.point.base(s2)\
                     if s1 is not None and s2 is not None else\
                     bytes([0])
             return check_or_generate_operation(self, fun, [32, 32], bits)
-
-        def test_scalar(
-                self,
-                bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
-            ):
-            fun = lambda bs: bitlist([1 if cls.scalar(bs) is not None else 0])
-            return check_or_generate_operation(self, fun, [32], bits)
 
         def test_scalar_random(
                 self,
@@ -251,7 +286,29 @@ def define_classes(cls):
             ):
             def fun(bs): # pylint: disable=W0613
                 s = cls.scalar.random()
-                return bitlist([1 if len(s) == 32 and cls.scalar(s) is not None else 0])
+                return bitlist([1 if len(s) == 32 and cls.scalar.bytes(s) is not None else 0])
+            return check_or_generate_operation(self, fun, [32], bits)
+
+        def test_scalar_bytes(
+                self,
+                bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
+            ):
+            fun = lambda bs: bitlist([1 if cls.scalar.bytes(bs) is not None else 0])
+            return check_or_generate_operation(self, fun, [32], bits)
+
+        def test_scalar_hash(
+                self,
+                bits='09991cc13ab3799d9c05e0c75968859298977fb7b78efa2dcb6e1689e927ac0e'
+            ):
+            return check_or_generate_operation(self, cls.scalar.hash, [32], bits)
+
+        def test_scalar(
+                self,
+                bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+            ):
+            def fun(bs): # pylint: disable=W0613
+                s = cls.scalar()
+                return bitlist([1 if len(s) == 32 and cls.scalar.bytes(s) is not None else 0])
             return check_or_generate_operation(self, fun, [32], bits)
 
         def test_scalar_inverse(
@@ -259,7 +316,7 @@ def define_classes(cls):
                 bits='41c07230000960b274044a0080a8018aa0114380150000028c2700006081e1e1'
             ):
             def fun(bs):
-                s = cls.scalar(bs)
+                s = cls.scalar.bytes(bs)
                 return s.inverse() if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [32], bits)
 
@@ -268,7 +325,7 @@ def define_classes(cls):
                 bits='41c07230000960b274044a0080a8018aa0114380150000028c2700006081e1e1'
             ):
             def fun(bs):
-                s = cls.scalar(bs)
+                s = cls.scalar.bytes(bs)
                 return ~s if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [32], bits)
 
@@ -277,7 +334,7 @@ def define_classes(cls):
                 bits='2ca120487000010295804000850254008018000000008000080100008400000c'
             ):
             def fun(bs):
-                (s1, s2) = (cls.scalar(bs[:32]), cls.scalar(bs[32:]))
+                (s1, s2) = (cls.scalar.bytes(bs[:32]), cls.scalar.bytes(bs[32:]))
                 return\
                     s1 * s2\
                     if s1 is not None and s2 is not None else\
@@ -344,7 +401,7 @@ def define_classes(cls):
 
         def test_algebra_scalar_mul_point_on_left_hand_side(self):
             s = cls.scalar.random()
-            p = cls.point([0]*32)
+            p = cls.point.bytes([0]*32)
             self.assertRaises(TypeError, lambda: p * s)
 
     return (

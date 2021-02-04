@@ -5,9 +5,10 @@ used to implement OPRF and OT protocols.
 """
 
 from __future__ import annotations
-from typing import Union
+from typing import Union, Optional
 import doctest
 import platform
+import hashlib
 import ctypes
 import ctypes.util
 import secrets
@@ -95,26 +96,7 @@ def _ristretto255_is_canonical(s: bytes) -> bool:
     d = ((0xed - 1 - s[0]) >> 8) % 256
     return (1 - (((c & d) | s[0]) & 1)) == 1
 
-class common():
-    """
-    Methods shared by wrapper classes.
-    """
-
-    @staticmethod
-    def scl(s: bytes) -> bytes:
-        """
-        Return a byte vector if it is a valid scalar;
-        otherwise, return `None`.
-        """
-        s = bytearray(s)
-        s[-1] &= 0x1f
-
-        if _sc25519_is_canonical(s) and not _zero(s):
-            return bytes(s)
-
-        return None
-
-class native(common):
+class native:
     """
     Wrapper class for native Python implementations of
     primitive operations.
@@ -128,6 +110,23 @@ class native(common):
             r[-1] &= 0x1f
             if _sc25519_is_canonical(r) and not _zero(r):
                 return r
+
+    @classmethod
+    def scl(cls, s: bytes = None) -> Optional[bytes]:
+        """
+        Return supplied byte vector if it is a valid scalar; otherwise, return
+        `None`. If no byte vector is supplied, return a random scalar.
+        """
+        if s is None:
+            return cls.rnd()
+
+        s = bytearray(s)
+        s[-1] &= 0x1f
+
+        if _sc25519_is_canonical(s) and not _zero(s):
+            return bytes(s)
+
+        return None
 
     @staticmethod
     def inv(s: bytes) -> bytes:
@@ -143,9 +142,11 @@ class native(common):
         return _sc25519_mul(s, t)
 
     @staticmethod
-    def pnt(h: bytes) -> bytes:
-        """Return point from 64-byte hash."""
-        return ge25519.ge25519_p3.from_hash_ristretto255(h)
+    def pnt(h: bytes = None) -> bytes:
+        """Return point from 64-byte vector (normally obtained via hashing)."""
+        return ge25519.ge25519_p3.from_hash_ristretto255(
+            hashlib.sha512(native.rnd()).digest() if h is None else h
+        )
 
     @staticmethod
     def bas(s: bytes) -> bytes:
@@ -219,7 +220,22 @@ class point(bytes):
     """
 
     @classmethod
-    def base(cls, s: scalar) -> point:
+    def random(cls) -> point:
+        """Return random point object."""
+        return bytes.__new__(cls, pnt())
+
+    @classmethod
+    def bytes(cls, bs: bytes) -> point:
+        """Return point object obtained by transforming supplied bytes-like object."""
+        return bytes.__new__(cls, pnt(bs))
+
+    @classmethod
+    def hash(cls, bs: bytes) -> point:
+        """Return point object by hashing supplied bytes-like object."""
+        return bytes.__new__(cls, pnt(hashlib.sha512(bs).digest()))
+
+    @classmethod
+    def base(cls, s: scalar) -> Optional[point]:
         """
         Return base point multiplied by supplied scalar
         if the scalar is valid; otherwise, return `None`.
@@ -227,9 +243,13 @@ class point(bytes):
         p = bas(s)
         return bytes.__new__(cls, p) if p is not None else None
 
-    def __new__(cls, bs: bytes) -> point:
-        """Return point object corresponding to supplied bytes object."""
-        return bytes.__new__(cls, pnt(bs))
+    def __new__(cls, bs: bytes = None) -> point:
+        """
+        Return point object corresponding to supplied bytes object.
+        No checking is performed to confirm that the bytes-like object
+        is a valid point.
+        """
+        return bytes.__new__(cls, bs) if bs is not None else cls.random()
 
     def __mul__(self: point, other) -> point:
         """A point cannot be a left-hand argument."""
@@ -255,16 +275,35 @@ class scalar(bytes):
 
     @classmethod
     def random(cls) -> scalar:
-        """Return random non-zero scalar."""
-        return cls(rnd())
+        """Return random non-zero scalar object."""
+        return bytes.__new__(cls, rnd())
 
-    def __new__(cls, bs: bytes) -> scalar:
+    @classmethod
+    def bytes(cls, bs: bytes) -> Optional[scalar]:
         """
-        Return scalar object corresponding to supplied bytes object
-        if it is a valid scalar; otherwise, return `None`.
+        Return scalar object obtained by transforming supplied bytes-like
+        object if it is possible to do; otherwise, return `None`.
         """
         s = scl(bs)
         return bytes.__new__(cls, s) if s is not None else None
+
+    @classmethod
+    def hash(cls, bs: bytes) -> scalar:
+        """Return scalar object by hashing supplied bytes-like object."""
+        h = hashlib.sha256(bs).digest()
+        s = scl(h)
+        while s is None:
+            h = hashlib.sha256(h).digest()
+            s = scl(h)
+        return bytes.__new__(cls, s)
+
+    def __new__(cls, bs: bytes = None) -> scalar:
+        """
+        Return scalar object corresponding to supplied bytes-like object.
+        No checking is performed to confirm that the bytes-like object
+        is a valid scalar.
+        """
+        return bytes.__new__(cls, bs) if bs is not None else cls.random()
 
     def __invert__(self: scalar) -> scalar:
         """
@@ -319,7 +358,7 @@ try:
     assert hasattr(_sodium, 'crypto_core_ristretto255_sub')
 
     # Exported symbol.
-    class sodium(common):
+    class sodium:
         """
         Wrapper class for native Python implementations of
         primitive operations.
@@ -331,6 +370,23 @@ try:
             buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
             _sodium.crypto_core_ristretto255_scalar_random(buf)
             return buf.raw
+
+        @classmethod
+        def scl(cls, s: bytes = None) -> Optional[bytes]:
+            """
+            Return supplied byte vector if it is a valid scalar; otherwise, return
+            `None`. If no byte vector is supplied, return a random scalar.
+            """
+            if s is None:
+                return cls.rnd()
+
+            s = bytearray(s)
+            s[-1] &= 0x1f
+
+            if _sc25519_is_canonical(s) and not _zero(s):
+                return bytes(s)
+
+            return None
 
         @staticmethod
         def inv(s: bytes) -> bytes:
@@ -353,10 +409,12 @@ try:
             return buf.raw
 
         @staticmethod
-        def pnt(h: bytes) -> bytes:
+        def pnt(h: bytes = None) -> bytes:
             """Return point from 64-byte hash."""
             buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
-            _sodium.crypto_core_ristretto255_from_hash(buf, bytes(h))
+            _sodium.crypto_core_ristretto255_from_hash(buf, bytes(
+                hashlib.sha512(sodium.rnd()).digest() if h is None else h
+            ))
             return buf.raw
 
         @staticmethod
@@ -399,7 +457,7 @@ try:
     sub = sodium.sub
 
     #
-    # Wrapper classes for bytes.
+    # Dedicated point and scalar data structures derived from `bytes`.
     #
 
     class point(bytes):
@@ -407,6 +465,21 @@ try:
         Wrapper class for a bytes-like object that corresponds
         to a point.
         """
+
+        @classmethod
+        def random(cls) -> point:
+            """Return random point object."""
+            return bytes.__new__(cls, pnt())
+
+        @classmethod
+        def bytes(cls, bs: bytes) -> point:
+            """Return point object obtained by transforming supplied bytes-like object."""
+            return bytes.__new__(cls, pnt(bs))
+
+        @classmethod
+        def hash(cls, bs: bytes) -> point:
+            """Return point object by hashing supplied bytes-like object."""
+            return bytes.__new__(cls, pnt(hashlib.sha512(bs).digest()))
 
         @classmethod
         def base(cls, s: scalar) -> point:
@@ -417,9 +490,13 @@ try:
             p = bas(s)
             return bytes.__new__(cls, p) if p is not None else None
 
-        def __new__(cls, bs: bytes) -> point:
-            """Return point object corresponding to supplied bytes object."""
-            return bytes.__new__(cls, pnt(bs))
+        def __new__(cls, bs: bytes = None) -> point:
+            """
+            Return point object corresponding to supplied bytes-like object.
+            No checking is performed to confirm that the bytes-like object
+            is a valid point.
+            """
+            return bytes.__new__(cls, bs) if bs is not None else cls.random()
 
         def __mul__(self: point, other) -> point:
             """A point cannot be a left-hand argument."""
@@ -445,16 +522,35 @@ try:
 
         @classmethod
         def random(cls) -> scalar:
-            """Return random non-zero scalar."""
-            return cls(rnd())
+            """Return random non-zero scalar object."""
+            return bytes.__new__(cls, rnd())
 
-        def __new__(cls, bs: bytes) -> scalar:
+        @classmethod
+        def bytes(cls, bs: bytes) -> Optional[scalar]:
             """
-            Return scalar object corresponding to supplied bytes object
-            if it is a valid scalar; otherwise, return `None`.
+            Return scalar object obtained by transforming supplied bytes-like
+            object if it is possible to do; otherwise, return `None`.
             """
             s = scl(bs)
             return bytes.__new__(cls, s) if s is not None else None
+
+        @classmethod
+        def hash(cls, bs: bytes) -> scalar:
+            """Return scalar object by hashing supplied bytes-like object."""
+            h = hashlib.sha256(bs).digest()
+            s = scl(h)
+            while s is None:
+                h = hashlib.sha256(h).digest()
+                s = scl(h)
+            return bytes.__new__(cls, s)
+
+        def __new__(cls, bs: bytes = None) -> scalar:
+            """
+            Return scalar object corresponding to supplied bytes-like object.
+            No checking is performed to confirm that the bytes-like object
+            is a valid scalar.
+            """
+            return bytes.__new__(cls, bs) if bs is not None else cls.random()
 
         def __invert__(self: scalar) -> scalar:
             """
