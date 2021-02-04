@@ -5,12 +5,12 @@ with open("README.rst", "r") as fh:
 
 setup(
     name="oblivious",
-    version="2.0.0",
+    version="2.0.1",
     packages=["oblivious",],
     install_requires=[
         "fe25519>=0.2.0",
         "ge25519>=0.2.0",
-        "parts>=0.2.1",
+        "parts>=1.0.2",
         "bitlist>=0.3.1",
         "fountains>=0.2.1",
     ],

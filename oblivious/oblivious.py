@@ -322,7 +322,8 @@ class scalar(bytes):
     # pylint: disable=E1136
     def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
         """Multiply supplied scalar or point by this scalar."""
-        if isinstance(other, (native.scalar, sodium.scalar)):
+        if isinstance(other, native.scalar) or\
+           (sodium is not None and isinstance(other, sodium.scalar)):
             return native.scalar(smu(self, other))
         return native.point(mul(self, other))
 

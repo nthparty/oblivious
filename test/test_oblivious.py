@@ -7,7 +7,6 @@ primitives.
 # pylint: disable=C0103,C0116
 
 from importlib import import_module
-from itertools import islice
 from bitlist import bitlist
 from fountains import fountains
 from unittest import TestCase # pylint: disable=C0411
@@ -350,12 +349,12 @@ def define_classes(cls): # pylint: disable=R0915
             self.assertTrue(isinstance(p, cls.point))
 
         def test_types_point_bytes(self):
-            bs = list(islice(fountains(64), 0, 1))[0]
+            (bs,) = fountains(64, limit=1)
             p = cls.point.bytes(bs)
             self.assertTrue(isinstance(p, cls.point))
 
         def test_types_point_hash(self):
-            bs = list(islice(fountains(64), 0, 1))[0]
+            (bs,) = fountains(64, limit=1)
             p = cls.point.hash(bs)
             self.assertTrue(isinstance(p, cls.point))
 
@@ -364,17 +363,17 @@ def define_classes(cls): # pylint: disable=R0915
             self.assertTrue(isinstance(p, cls.point))
 
         def test_types_point_add(self):
-            bs = list(islice(fountains(32 + 64), 0, 1))[0]
+            (bs,) = fountains(32 + 64, limit=1)
             (s, p) = (cls.scalar.hash(bs[:32]), cls.point.hash(bs[64:]))
             self.assertTrue(isinstance(s * p, cls.point))
 
         def test_types_point_add(self):
-            bs = list(islice(fountains(64 + 64), 0, 1))[0]
+            (bs,) = fountains(64 + 64, limit=1)
             (p0, p1) = (cls.point.hash(bs[:64]), cls.point.hash(bs[64:]))
             self.assertTrue(isinstance(p0 + p1, cls.point))
 
         def test_types_point_sub(self):
-            bs = list(islice(fountains(64 + 64), 0, 1))[0]
+            (bs,) = fountains(64 + 64, limit=1)
             (p0, p1) = (cls.point.hash(bs[:64]), cls.point.hash(bs[64:]))
             self.assertTrue(isinstance(p0 - p1, cls.point))
 
@@ -386,7 +385,7 @@ def define_classes(cls): # pylint: disable=R0915
             self.assertTrue(isinstance(cls.scalar.bytes(bs), cls.scalar))
 
         def test_types_scalar_hash(self):
-            bs = list(islice(fountains(32), 0, 1))[0]
+            (bs,) = fountains(32, limit=1)
             self.assertTrue(isinstance(cls.scalar.hash(bs), cls.scalar))
 
         def test_types_scalar_invert(self):
@@ -400,7 +399,7 @@ def define_classes(cls): # pylint: disable=R0915
             self.assertTrue(isinstance(s0 * s1, cls.scalar))
 
         def test_types_scalar_mul_point(self):
-            bs = list(islice(fountains(32 + 64), 0, 1))[0]
+            (bs,) = fountains(32 + 64, limit=1)
             (s, p) = (cls.scalar.hash(bs[:32]), cls.point.hash(bs[64:]))
             self.assertTrue(isinstance(s * p, cls.point))
 
@@ -410,19 +409,19 @@ def define_classes(cls): # pylint: disable=R0915
         """
 
         def test_algebra_scalar_inverse_identity(self):
-            for bs in list(islice(fountains(32), 0, 256)):
+            for bs in fountains(32, limit=256):
                 s = cls.scl(bs)
                 if s is not None:
                     self.assertEqual(inv(inv(s)), s)
 
         def test_algebra_scalar_inverse_mul_cancel(self):
-            for bs in list(islice(fountains(32 + 64), 0, 256)):
+            for bs in fountains(32 + 64, limit=256):
                 (s0, p0) = (cls.scl(bs[:32]), cls.pnt(bs[32:]))
                 if s0 is not None:
                     self.assertEqual(cls.mul(inv(s0), cls.mul(s0, p0)), p0)
 
         def test_algebra_scalar_mul_commute(self):
-            for bs in list(islice(fountains(32 + 32 + 64), 0, 256)):
+            for bs in fountains(32 + 32 + 64, limit=256):
                 (s0, s1, p0) = (cls.scl(bs[:32]), cls.scl(bs[32:64]), cls.pnt(bs[64:]))
                 if s0 is not None and s1 is not None:
                     self.assertEqual(
@@ -431,17 +430,17 @@ def define_classes(cls): # pylint: disable=R0915
                     )
 
         def test_algebra_point_add_commute(self):
-            for bs in list(islice(fountains(64 + 64), 0, 256)):
+            for bs in fountains(64 + 64, limit=256):
                 (p0, p1) = (cls.pnt(bs[:64]), cls.pnt(bs[64:]))
                 self.assertEqual(cls.add(p0, p1), cls.add(p1, p0))
 
         def test_algebra_point_add_sub_cancel(self):
-            for bs in list(islice(fountains(64 + 64), 0, 256)):
+            for bs in fountains(64 + 64, limit=256):
                 (p0, p1) = (cls.pnt(bs[:64]), cls.pnt(bs[64:]))
                 self.assertEqual(cls.add(cls.sub(p0, p1), p1), p0)
 
         def test_algebra_scalar_mul_point_mul_associate(self):
-            for bs in list(islice(fountains(32 + 32 + 64), 0, 256)):
+            for bs in fountains(32 + 32 + 64, limit=256):
                 (s0, s1, p0) = (cls.scl(bs[:32]), cls.scl(bs[32:64]), cls.pnt(bs[64:]))
                 if s0 is not None and s1 is not None:
                     self.assertEqual(
@@ -450,7 +449,7 @@ def define_classes(cls): # pylint: disable=R0915
                     )
 
         def test_algebra_scalar_mul_point_add_distribute(self):
-            for bs in list(islice(fountains(32 + 64 + 64), 0, 256)):
+            for bs in fountains(32 + 64 + 64, limit=256):
                 (s0, p0, p1) = (cls.scl(bs[:32]), cls.pnt(bs[32:96]), cls.pnt(bs[96:]))
                 if s0 is not None:
                     self.assertEqual(
