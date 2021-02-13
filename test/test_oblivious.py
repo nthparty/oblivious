@@ -84,25 +84,17 @@ def define_classes(cls, sodium_hidden=False): # pylint: disable=R0915
         Direct tests of primitive operators that operate on bytes-like objects.
         """
 
-        def test_rnd(
-                self,
-                bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
-            ):
+        def test_rnd(self):
             oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
-            def fun(bs): # pylint: disable=W0613
+            for _ in range(256):
                 s = cls.rnd()
-                return bitlist([1 if len(s) == 32 and cls.scl(s) is not None else 0])
-            return check_or_generate_operation(self, fun, [32], bits)
+                self.assertTrue(len(s) == 32 and cls.scl(s))
 
-        def test_scl_none(
-                self,
-                bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
-            ):
+        def test_scl_none(self):
             oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
-            def fun(bs): # pylint: disable=W0613
+            for _ in range(256):
                 s = cls.scl()
-                return bitlist([1 if len(s) == 32 and cls.scl(s) is not None else 0])
-            return check_or_generate_operation(self, fun, [32], bits)
+                self.assertTrue(len(s) == 32 and cls.scl(s))
 
         def test_scl(
                 self,
@@ -135,15 +127,10 @@ def define_classes(cls, sodium_hidden=False): # pylint: disable=R0915
                     bytes([0])
             return check_or_generate_operation(self, fun, [32, 32], bits)
 
-        def test_pnt_none(
-                self,
-                bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
-            ):
+        def test_pnt_none(self):
             oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
-            def fun(bs): # pylint: disable=W0613
-                p = cls.pnt()
-                return bitlist([1 if len(p) == 32 else 0])
-            return check_or_generate_operation(self, fun, [32], bits)
+            for _ in range(256):
+                self.assertTrue(len(cls.pnt()) == 32)
 
         def test_pnt(
                 self,
@@ -206,15 +193,10 @@ def define_classes(cls, sodium_hidden=False): # pylint: disable=R0915
         Tests of point and scalar wrapper classes and their methods.
         """
 
-        def test_point_random(
-                self,
-                bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
-            ):
+        def test_point_random(self):
             oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
-            def fun(bs): # pylint: disable=W0613
-                p = cls.point.random()
-                return bitlist([1 if len(p) == 32 else 0])
-            return check_or_generate_operation(self, fun, [32], bits)
+            for _ in range(256):
+                self.assertTrue(len(cls.point.random()) == 32)
 
         def test_point_bytes(
                 self,
@@ -240,15 +222,10 @@ def define_classes(cls, sodium_hidden=False): # pylint: disable=R0915
                 return cls.point.base(s) if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [32], bits)
 
-        def test_point(
-                self,
-                bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
-            ):
+        def test_point(self):
             oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
-            def fun(bs): # pylint: disable=W0613
-                p = cls.point()
-                return bitlist([1 if len(p) == 32 else 0])
-            return check_or_generate_operation(self, fun, [32], bits)
+            for _ in range(256):
+                self.assertTrue(len(cls.point()) == 32)
 
         def test_point_rmul(
                 self,
@@ -304,15 +281,11 @@ def define_classes(cls, sodium_hidden=False): # pylint: disable=R0915
                     bytes([0])
             return check_or_generate_operation(self, fun, [32, 32], bits)
 
-        def test_scalar_random(
-                self,
-                bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
-            ):
+        def test_scalar_random(self):
             oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
-            def fun(bs): # pylint: disable=W0613
+            for _ in range(256):
                 s = cls.scalar.random()
-                return bitlist([1 if len(s) == 32 and cls.scalar.bytes(s) is not None else 0])
-            return check_or_generate_operation(self, fun, [32], bits)
+                self.assertTrue(len(s) == 32 and cls.scalar.bytes(s) is not None)
 
         def test_scalar_bytes(
                 self,
@@ -329,15 +302,11 @@ def define_classes(cls, sodium_hidden=False): # pylint: disable=R0915
             oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             return check_or_generate_operation(self, cls.scalar.hash, [32], bits)
 
-        def test_scalar(
-                self,
-                bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
-            ):
+        def test_scalar(self):
             oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
-            def fun(bs): # pylint: disable=W0613
+            for _ in range(256):
                 s = cls.scalar()
-                return bitlist([1 if len(s) == 32 and cls.scalar.bytes(s) is not None else 0])
-            return check_or_generate_operation(self, fun, [32], bits)
+                self.assertTrue(len(s) == 32 and cls.scalar.bytes(s) is not None)
 
         def test_scalar_inverse(
                 self,
@@ -544,4 +513,6 @@ if __name__ == "__main__":
     for tests in [Test_primitives_native(), Test_classes_sodium()]:
         print('\nUnit test reference bit vectors for ' + tests.__class__.__name__ + ' methods...')
         for m in [m for m in dir(tests) if m.startswith('test_')]:
-            print('* ' + m + ': ' + getattr(tests, m)(bits=None))
+            method = getattr(tests, m)
+            if 'bits' in method.__code__.co_varnames:
+                print('* ' + m + ': ' + method(bits=None))
