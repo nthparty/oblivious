@@ -13,6 +13,10 @@ from unittest import TestCase # pylint: disable=C0411
 
 import oblivious.oblivious as oblivious
 
+# To simulate an environment in which sodium is absent, some tests set
+# `oblivious.sodium` to `None`; the reference below is used for restoration.
+oblivious.sodium_restore = oblivious.sodium
+
 def api_methods():
     """
     API symbols that should be available to users upon module import.
@@ -69,7 +73,7 @@ def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R17
 
     test.assertTrue(all(fs)) # Check that all outputs match.
 
-def define_classes(cls): # pylint: disable=R0915
+def define_classes(cls, sodium_hidden=False): # pylint: disable=R0915
     """
     Define and return four classes of unit tests given a wrapper
     class (`native` or `sodium`) for primitive operations.
@@ -84,6 +88,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs): # pylint: disable=W0613
                 s = cls.rnd()
                 return bitlist([1 if len(s) == 32 and cls.scl(s) is not None else 0])
@@ -93,6 +98,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs): # pylint: disable=W0613
                 s = cls.scl()
                 return bitlist([1 if len(s) == 32 and cls.scl(s) is not None else 0])
@@ -102,6 +108,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             fun = lambda bs: bitlist([1 if cls.scl(bs) is not None else 0])
             return check_or_generate_operation(self, fun, [32], bits)
 
@@ -109,6 +116,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='41c07230000960b274044a0080a8018aa0114380150000028c2700006081e1e1'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 s = cls.scl(bs)
                 return cls.inv(s) if s is not None else bytes([0])
@@ -118,6 +126,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='2ca120487000010295804000850254008018000000008000080100008400000c'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 (s1, s2) = (cls.scl(bs[:32]), cls.scl(bs[32:]))
                 return\
@@ -130,6 +139,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs): # pylint: disable=W0613
                 p = cls.pnt()
                 return bitlist([1 if len(p) == 32 else 0])
@@ -139,12 +149,14 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             return check_or_generate_operation(self, cls.pnt, [64], bits)
 
         def test_bas(
                 self,
                 bits='00386671840148d05620421002a2110aa800e289010040404cb2101c20e165a0'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 s = cls.scl(bs)
                 return cls.bas(s) if s is not None else bytes([0])
@@ -154,6 +166,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='2c040004500080008180400080000008a1180020001080080211004000080040'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 (s1, s2) = (cls.scl(bs[:32]), cls.scl(bs[32:]))
                 return\
@@ -166,6 +179,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='28400040500000008480000020024c00211800080000800002110040ac001044'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 (s1, s2) = (cls.scl(bs[:32]), cls.scl(bs[32:]))
                 return\
@@ -178,6 +192,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='24210008500080028000000025020c08000001200000800002008002ac081040'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 (s1, s2) = (cls.scl(bs[:32]), cls.scl(bs[32:]))
                 return\
@@ -195,6 +210,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs): # pylint: disable=W0613
                 p = cls.point.random()
                 return bitlist([1 if len(p) == 32 else 0])
@@ -204,18 +220,21 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             return check_or_generate_operation(self, cls.point.bytes, [64], bits)
 
         def test_point_hash(
                 self,
                 bits='10cb044c737b034d5755f8ba0e29432745ed4fb1a78ea22a15b2d1113492841b'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             return check_or_generate_operation(self, cls.point.hash, [64], bits)
 
         def test_point_base(
                 self,
                 bits='00386671840148d05620421002a2110aa800e289010040404cb2101c20e165a0'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 s = cls.scalar.bytes(bs)
                 return cls.point.base(s) if s is not None else bytes([0])
@@ -225,6 +244,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs): # pylint: disable=W0613
                 p = cls.point()
                 return bitlist([1 if len(p) == 32 else 0])
@@ -234,6 +254,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='2c040004500080008180400080000008a1180020001080080211004000080040'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 (s1, s2) = (cls.scalar.bytes(bs[:32]), cls.scalar.bytes(bs[32:]))
                 return\
@@ -246,6 +267,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='2c040004500080008180400080000008a1180020001080080211004000080040'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 (s1, s2) = (cls.scalar.bytes(bs[:32]), cls.scalar.bytes(bs[32:]))
                 # Below, `*` invokes `scalar.__mul__`, which delegates to `mul`
@@ -260,6 +282,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='28400040500000008480000020024c00211800080000800002110040ac001044'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 (s1, s2) = (cls.scalar.bytes(bs[:32]), cls.scalar.bytes(bs[32:]))
                 return\
@@ -272,6 +295,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='24210008500080028000000025020c08000001200000800002008002ac081040'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 (s1, s2) = (cls.scalar.bytes(bs[:32]), cls.scalar.bytes(bs[32:]))
                 return\
@@ -284,6 +308,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs): # pylint: disable=W0613
                 s = cls.scalar.random()
                 return bitlist([1 if len(s) == 32 and cls.scalar.bytes(s) is not None else 0])
@@ -293,6 +318,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             fun = lambda bs: bitlist([1 if cls.scalar.bytes(bs) is not None else 0])
             return check_or_generate_operation(self, fun, [32], bits)
 
@@ -300,12 +326,14 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='09991cc13ab3799d9c05e0c75968859298977fb7b78efa2dcb6e1689e927ac0e'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             return check_or_generate_operation(self, cls.scalar.hash, [32], bits)
 
         def test_scalar(
                 self,
                 bits='ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs): # pylint: disable=W0613
                 s = cls.scalar()
                 return bitlist([1 if len(s) == 32 and cls.scalar.bytes(s) is not None else 0])
@@ -315,6 +343,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='41c07230000960b274044a0080a8018aa0114380150000028c2700006081e1e1'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 s = cls.scalar.bytes(bs)
                 return s.inverse() if s is not None else bytes([0])
@@ -324,6 +353,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='41c07230000960b274044a0080a8018aa0114380150000028c2700006081e1e1'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 s = cls.scalar.bytes(bs)
                 return ~s if s is not None else bytes([0])
@@ -333,6 +363,7 @@ def define_classes(cls): # pylint: disable=R0915
                 self,
                 bits='2ca120487000010295804000850254008018000000008000080100008400000c'
             ):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             def fun(bs):
                 (s1, s2) = (cls.scalar.bytes(bs[:32]), cls.scalar.bytes(bs[32:]))
                 return\
@@ -347,60 +378,74 @@ def define_classes(cls): # pylint: disable=R0915
         """
 
         def test_types_point_random(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             p = cls.point.random()
             self.assertTrue(isinstance(p, cls.point))
 
         def test_types_point_bytes(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             (bs,) = fountains(64, limit=1)
             p = cls.point.bytes(bs)
             self.assertTrue(isinstance(p, cls.point))
 
         def test_types_point_hash(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             (bs,) = fountains(64, limit=1)
             p = cls.point.hash(bs)
             self.assertTrue(isinstance(p, cls.point))
 
         def test_types_point_base(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             p = cls.point.base(cls.scalar.random())
             self.assertTrue(isinstance(p, cls.point))
 
         def test_types_point_mul(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             (bs,) = fountains(32 + 64, limit=1)
             (s, p) = (cls.scalar.hash(bs[:32]), cls.point.hash(bs[64:]))
             self.assertTrue(isinstance(s * p, cls.point))
 
         def test_types_point_add(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             (bs,) = fountains(64 + 64, limit=1)
             (p0, p1) = (cls.point.hash(bs[:64]), cls.point.hash(bs[64:]))
             self.assertTrue(isinstance(p0 + p1, cls.point))
 
         def test_types_point_sub(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             (bs,) = fountains(64 + 64, limit=1)
             (p0, p1) = (cls.point.hash(bs[:64]), cls.point.hash(bs[64:]))
             self.assertTrue(isinstance(p0 - p1, cls.point))
 
         def test_types_scalar_random(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             self.assertTrue(isinstance(cls.scalar.random(), cls.scalar))
 
         def test_types_scalar_bytes(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             bs = bytes(cls.scalar.random())
             self.assertTrue(isinstance(cls.scalar.bytes(bs), cls.scalar))
 
         def test_types_scalar_hash(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             (bs,) = fountains(32, limit=1)
             self.assertTrue(isinstance(cls.scalar.hash(bs), cls.scalar))
 
         def test_types_scalar_invert(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             self.assertTrue(isinstance(~cls.scalar.random(), cls.scalar))
 
         def test_types_scalar_inverse(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             self.assertTrue(isinstance(cls.scalar.random().inverse(), cls.scalar))
 
         def test_types_scalar_mul_scalar(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             (s0, s1) = (cls.scalar.random(), cls.scalar.random())
             self.assertTrue(isinstance(s0 * s1, cls.scalar))
 
         def test_types_scalar_mul_point(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             (bs,) = fountains(32 + 64, limit=1)
             (s, p) = (cls.scalar.hash(bs[:32]), cls.point.hash(bs[64:]))
             self.assertTrue(isinstance(s * p, cls.point))
@@ -411,18 +456,21 @@ def define_classes(cls): # pylint: disable=R0915
         """
 
         def test_algebra_scalar_inverse_identity(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             for bs in fountains(32, limit=256):
                 s = cls.scl(bs)
                 if s is not None:
                     self.assertEqual(cls.inv(cls.inv(s)), s)
 
         def test_algebra_scalar_inverse_mul_cancel(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             for bs in fountains(32 + 64, limit=256):
                 (s0, p0) = (cls.scl(bs[:32]), cls.pnt(bs[32:]))
                 if s0 is not None:
                     self.assertEqual(cls.mul(cls.inv(s0), cls.mul(s0, p0)), p0)
 
         def test_algebra_scalar_mul_commute(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             for bs in fountains(32 + 32 + 64, limit=256):
                 (s0, s1, p0) = (cls.scl(bs[:32]), cls.scl(bs[32:64]), cls.pnt(bs[64:]))
                 if s0 is not None and s1 is not None:
@@ -432,16 +480,19 @@ def define_classes(cls): # pylint: disable=R0915
                     )
 
         def test_algebra_point_add_commute(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             for bs in fountains(64 + 64, limit=256):
                 (p0, p1) = (cls.pnt(bs[:64]), cls.pnt(bs[64:]))
                 self.assertEqual(cls.add(p0, p1), cls.add(p1, p0))
 
         def test_algebra_point_add_sub_cancel(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             for bs in fountains(64 + 64, limit=256):
                 (p0, p1) = (cls.pnt(bs[:64]), cls.pnt(bs[64:]))
                 self.assertEqual(cls.add(cls.sub(p0, p1), p1), p0)
 
         def test_algebra_scalar_mul_point_mul_associate(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             for bs in fountains(32 + 32 + 64, limit=256):
                 (s0, s1, p0) = (cls.scl(bs[:32]), cls.scl(bs[32:64]), cls.pnt(bs[64:]))
                 if s0 is not None and s1 is not None:
@@ -451,6 +502,7 @@ def define_classes(cls): # pylint: disable=R0915
                     )
 
         def test_algebra_scalar_mul_point_add_distribute(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             for bs in fountains(32 + 64 + 64, limit=256):
                 (s0, p0, p1) = (cls.scl(bs[:32]), cls.pnt(bs[32:96]), cls.pnt(bs[96:]))
                 if s0 is not None:
@@ -460,10 +512,12 @@ def define_classes(cls): # pylint: disable=R0915
                     )
 
         def test_algebra_scalar_mul_scalar_on_right_hand_side_of_non_scalar(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             s = cls.scalar.random()
             self.assertRaises(TypeError, lambda: bytes([0]) * s)
 
         def test_algebra_scalar_mul_point_on_left_hand_side(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             s = cls.scalar.random()
             p = cls.point.hash(bytes([0]*32))
             self.assertRaises(TypeError, lambda: p * s)
@@ -477,6 +531,9 @@ def define_classes(cls): # pylint: disable=R0915
 
 # The instantiated test classes below are discovered by nose and
 # executed in alphabetical order.
+(Test_primitives_native_no_sodium, Test_classes_native_no_sodium,
+ Test_types_native_no_sodium, Test_algebra_native_no_sodium) =\
+    define_classes(oblivious.native, sodium_hidden=True)
 (Test_primitives_native, Test_classes_native, Test_types_native, Test_algebra_native) =\
     define_classes(oblivious.native)
 (Test_primitives_sodium, Test_classes_sodium, Test_types_sodium, Test_algebra_sodium) =\
