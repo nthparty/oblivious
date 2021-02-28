@@ -11,7 +11,7 @@ Python library that serves as an API for common primitives used to implement OPR
    :alt: PyPI version and link.
 
 .. |travis| image:: https://travis-ci.com/nthparty/oblivious.svg?branch=master
-    :target: https://travis-ci.com/nthparty/oblivious
+   :target: https://travis-ci.com/nthparty/oblivious
 
 .. |coveralls| image:: https://coveralls.io/repos/github/nthparty/oblivious/badge.svg?branch=master
    :target: https://coveralls.io/github/nthparty/oblivious?branch=master

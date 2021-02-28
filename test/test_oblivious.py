@@ -7,6 +7,7 @@ primitives.
 # pylint: disable=C0103,C0116
 
 from importlib import import_module
+import base64
 from bitlist import bitlist
 from fountains import fountains
 from unittest import TestCase # pylint: disable=C0411
@@ -222,6 +223,14 @@ def define_classes(cls, sodium_hidden=False): # pylint: disable=R0915
                 return cls.point.base(s) if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [32], bits)
 
+        def test_point_base64(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
+            for _ in range(256):
+                p = cls.point()
+                p_b64 = base64.standard_b64encode(p).decode('utf-8')
+                self.assertEqual(p.to_base64(), p_b64)
+                self.assertEqual(cls.point.from_base64(p_b64), p)
+
         def test_point(self):
             oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             for _ in range(256):
@@ -301,6 +310,14 @@ def define_classes(cls, sodium_hidden=False): # pylint: disable=R0915
             ):
             oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
             return check_or_generate_operation(self, cls.scalar.hash, [32], bits)
+
+        def test_scalar_base64(self):
+            oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore
+            for _ in range(256):
+                s = cls.scalar()
+                s_b64 = base64.standard_b64encode(s).decode('utf-8')
+                self.assertEqual(s.to_base64(), s_b64)
+                self.assertEqual(cls.scalar.from_base64(s_b64), s)
 
         def test_scalar(self):
             oblivious.sodium = None if sodium_hidden else oblivious.sodium_restore

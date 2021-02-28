@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setup(
     name="oblivious",
-    version="2.0.1",
+    version="2.2.0",
     packages=["oblivious",],
     install_requires=[
         "fe25519>=0.2.0",

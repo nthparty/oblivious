@@ -12,6 +12,7 @@ import hashlib
 import ctypes
 import ctypes.util
 import secrets
+import base64
 import ge25519
 
 #
@@ -243,6 +244,11 @@ class point(bytes):
         p = native.bas(s)
         return bytes.__new__(cls, p) if p is not None else None
 
+    @classmethod
+    def from_base64(cls, s: str) -> point:
+        """Convert Base64 UTF-8 string representation of a point to a point instance."""
+        return bytes.__new__(cls, base64.standard_b64decode(s))
+
     def __new__(cls, bs: bytes = None) -> point:
         """
         Return point object corresponding to supplied bytes object.
@@ -266,6 +272,10 @@ class point(bytes):
     def __sub__(self: point, other: point) -> point:
         """Return result of subtracting second point from first point."""
         return native.point(native.sub(self, other))
+
+    def to_base64(self: point) -> str:
+        """Convert to equivalent Base64 UTF-8 string representation."""
+        return base64.standard_b64encode(self).decode('utf-8')
 
 class scalar(bytes):
     """
@@ -296,6 +306,11 @@ class scalar(bytes):
             h = hashlib.sha256(h).digest()
             s = native.scl(h)
         return bytes.__new__(cls, s)
+
+    @classmethod
+    def from_base64(cls, s: str) -> scalar:
+        """Convert Base64 UTF-8 string representation of a scalar to a scalar instance."""
+        return bytes.__new__(cls, base64.standard_b64decode(s))
 
     def __new__(cls, bs: bytes = None) -> scalar:
         """
@@ -331,6 +346,10 @@ class scalar(bytes):
     def __rmul__(self: scalar, other: Union[scalar, point]):
         """A scalar cannot be on the right-hand side of a non-scalar."""
         raise TypeError('scalar must be on left-hand side of multiplication operator')
+
+    def to_base64(self: scalar) -> str:
+        """Convert to equivalent Base64 UTF-8 string representation."""
+        return base64.standard_b64encode(self).decode('utf-8')
 
 # Access to wrapper classes for bytes.
 native.point = point
@@ -491,6 +510,11 @@ try:
             p = sodium.bas(s)
             return bytes.__new__(cls, p) if p is not None else None
 
+        @classmethod
+        def from_base64(cls, s: str) -> point:
+            """Convert Base64 UTF-8 string representation of a point to a point instance."""
+            return bytes.__new__(cls, base64.standard_b64decode(s))
+
         def __new__(cls, bs: bytes = None) -> point:
             """
             Return point object corresponding to supplied bytes-like object.
@@ -514,6 +538,10 @@ try:
         def __sub__(self: point, other: point) -> point:
             """Return result of subtracting second point from first point."""
             return sodium.point(sodium.sub(self, other))
+
+        def to_base64(self: point) -> str:
+            """Convert to equivalent Base64 UTF-8 string representation."""
+            return base64.standard_b64encode(self).decode('utf-8')
 
     class scalar(bytes):
         """
@@ -544,6 +572,11 @@ try:
                 h = hashlib.sha256(h).digest()
                 s = sodium.scl(h)
             return bytes.__new__(cls, s)
+
+        @classmethod
+        def from_base64(cls, s: str) -> scalar:
+            """Convert Base64 UTF-8 string representation of a scalar to a scalar instance."""
+            return bytes.__new__(cls, base64.standard_b64decode(s))
 
         def __new__(cls, bs: bytes = None) -> scalar:
             """
@@ -578,6 +611,10 @@ try:
         def __rmul__(self: scalar, other: Union[scalar, point]):
             """A scalar cannot be on the right-hand side of a non-scalar."""
             raise TypeError('scalar must be on left-hand side of multiplication operator')
+
+        def to_base64(self: scalar) -> str:
+            """Convert to equivalent Base64 UTF-8 string representation."""
+            return base64.standard_b64encode(self).decode('utf-8')
 
     # Access to wrapper classes for bytes.
     sodium.point = point
