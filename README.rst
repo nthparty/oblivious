@@ -10,11 +10,11 @@ Python library that serves as an API for common primitives used to implement OPR
    :target: https://badge.fury.io/py/oblivious
    :alt: PyPI version and link.
 
-.. |travis| image:: https://travis-ci.com/nthparty/oblivious.svg?branch=master
+.. |travis| image:: https://travis-ci.com/nthparty/oblivious.svg?branch=main
    :target: https://travis-ci.com/nthparty/oblivious
 
-.. |coveralls| image:: https://coveralls.io/repos/github/nthparty/oblivious/badge.svg?branch=master
-   :target: https://coveralls.io/github/nthparty/oblivious?branch=master
+.. |coveralls| image:: https://coveralls.io/repos/github/nthparty/oblivious/badge.svg?branch=main
+   :target: https://coveralls.io/github/nthparty/oblivious?branch=main
 
 Purpose
 -------
