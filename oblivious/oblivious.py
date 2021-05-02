@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Union, Optional
 import doctest
 import platform
+import os
 import hashlib
 import ctypes
 import ctypes.util
@@ -360,12 +361,21 @@ native.scalar = scalar
 #
 
 try:
-    xdll = ctypes.windll if platform.system() == 'Windows' else ctypes.cdll
-    _sodium =\
-        xdll.LoadLibrary(\
-            ctypes.util.find_library('sodium') or\
-            ctypes.util.find_library('libsodium')\
-        )
+    xdll = ctypes.cdll if platform.system() != 'Windows' else ctypes.windll
+    libf = ctypes.util.find_library('sodium') or ctypes.util.find_library('libsodium')
+    if libf is not None:
+        _sodium = xdll.LoadLibrary(libf)
+    else: # pragma: no cover
+        # Perform explicit search in case `ld` is not present in environment.
+        libf = 'libsodium.so' if platform.system() != 'Windows' else 'libsodium.dll'
+        for var in ['PATH', 'LD_LIBRARY_PATH']:
+            if var in os.environ:
+                for path in os.environ[var].split(os.pathsep):
+                    try:
+                        _sodium = ctypes.cdll.LoadLibrary(path + os.path.sep + libf)
+                        break
+                    except:
+                        continue
 
     # Ensure the detected version of libsodium has the necessary primitives.
     assert hasattr(_sodium, 'crypto_box_secretkeybytes')
