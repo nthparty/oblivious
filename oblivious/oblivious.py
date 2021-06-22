@@ -15,7 +15,7 @@ import ctypes.util
 import secrets
 import base64
 import ge25519
-import rbcl.bindings as rbcl
+import rbcl.bindings
 
 #
 # Use native Python implementations of primitives by default.
@@ -364,7 +364,6 @@ native.scalar = scalar
 try:
     # Ensure the detected version of libsodium has the necessary primitives.
     def check_attr(_lib):
-        print("check_attr")
         assert hasattr(_lib, 'crypto_core_ristretto255_scalarbytes')
         assert hasattr(_lib, 'crypto_core_ristretto255_bytes')
         assert hasattr(_lib, 'crypto_core_ristretto255_scalar_random')
@@ -372,6 +371,27 @@ try:
         assert hasattr(_lib, 'crypto_scalarmult_ristretto255')
         assert hasattr(_lib, 'crypto_core_ristretto255_add')
         assert hasattr(_lib, 'crypto_core_ristretto255_sub')
+
+    def call_unwrapped(length, func, s=None, t=None):
+        buf = ctypes.create_string_buffer(length)
+        if t is not None:
+            func(buf, s, t)
+        elif s is not None:
+            func(buf, s)
+        else:
+            func(buf)
+        return buf.raw
+
+    def call_wrapped(length, func, s=None, t=None):
+        if t is not None:
+            ret = func(s, t)
+        elif s is not None:
+            ret = func(s)
+        else:
+            ret = func()
+        return ret
+
+    call = call_unwrapped
 
     try:
         xdll = ctypes.cdll if platform.system() != 'Windows' else ctypes.windll
@@ -389,14 +409,15 @@ try:
                             break
                         except:
                             continue
+        # _sodium = None
 
         check_attr(_sodium)
 
     except:
-        _sodium = rbcl
-        setattr(_sodium, 'crypto_core_ristretto255_scalarbytes', lambda : rbcl.crypto_core_ristretto255_SCALARBYTES)
-        setattr(_sodium, 'crypto_core_ristretto255_bytes', lambda : rbcl.crypto_core_ristretto255_BYTES)
+        _sodium = rbcl.bindings.sodium_core.lib
         check_attr(_sodium)
+        call = call_wrapped
+        print("falling back to rbcl")
 
     # Exported symbol.
     class sodium:
@@ -408,9 +429,8 @@ try:
         @staticmethod
         def rnd() -> bytes:
             """Return random non-zero scalar."""
-            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_scalarbytes())
-            _sodium.crypto_core_ristretto255_scalar_random(buf)
-            return buf.raw
+            ret_length = _sodium.crypto_core_ristretto255_scalarbytes()
+            return call(ret_length, _sodium.crypto_core_ristretto255_scalar_random)
 
         @classmethod
         def scl(cls, s: bytes = None) -> Optional[bytes]:
@@ -435,9 +455,8 @@ try:
             Return inverse of scalar modulo
             2**252 + 27742317777372353535851937790883648493.
             """
-            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_scalarbytes())
-            _sodium.crypto_core_ristretto255_scalar_invert(buf, bytes(s))
-            return buf.raw
+            ret_length = _sodium.crypto_core_ristretto255_scalarbytes()
+            return call(ret_length, _sodium.crypto_core_ristretto255_scalar_invert, bytes(s))
 
         @staticmethod
         def smu(s: bytes, t: bytes) -> bytes:
@@ -445,9 +464,8 @@ try:
             Return scalar multiplied by another scalar modulo
             2**252 + 27742317777372353535851937790883648493.
             """
-            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_scalarbytes())
-            _sodium.crypto_core_ristretto255_scalar_mul(buf, bytes(s), bytes(t))
-            return buf.raw
+            ret_length = _sodium.crypto_core_ristretto255_scalarbytes()
+            return call(ret_length, _sodium.crypto_core_ristretto255_scalar_mul, bytes(s), bytes(t))
 
         @staticmethod
         def pnt(h: bytes = None) -> bytes:
@@ -461,30 +479,26 @@ try:
         @staticmethod
         def bas(e: bytes) -> bytes:
             """Return base point multiplied by supplied scalar."""
-            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_scalarbytes())
-            _sodium.crypto_scalarmult_ristretto255_base(buf, bytes(e))
-            return buf.raw
+            ret_length = _sodium.crypto_core_ristretto255_scalarbytes()
+            return call(ret_length, _sodium.crypto_scalarmult_ristretto255_base, bytes(e))
 
         @staticmethod
         def mul(s: bytes, p: bytes) -> bytes:
             """Return point multiplied by supplied scalar."""
-            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_scalarbytes())
-            _sodium.crypto_scalarmult_ristretto255(buf, bytes(s), bytes(p))
-            return buf.raw
+            ret_length = _sodium.crypto_core_ristretto255_scalarbytes()
+            return call(ret_length, _sodium.crypto_scalarmult_ristretto255, bytes(s), bytes(p))
 
         @staticmethod
         def add(x: bytes, y: bytes) -> bytes:
             """Return sum of the supplied points."""
-            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
-            _sodium.crypto_core_ristretto255_add(buf, bytes(x), bytes(y))
-            return buf.raw
+            ret_length = _sodium.crypto_core_ristretto255_scalarbytes()
+            return call(ret_length, _sodium.crypto_core_ristretto255_add, bytes(x), bytes(y))
 
         @staticmethod
         def sub(x: bytes, y: bytes) -> bytes:
             """Return result of subtracting second point from first point."""
-            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
-            _sodium.crypto_core_ristretto255_sub(buf, bytes(x), bytes(y))
-            return buf.raw
+            ret_length = _sodium.crypto_core_ristretto255_scalarbytes()
+            return call(ret_length, _sodium.crypto_core_ristretto255_sub, bytes(x), bytes(y))
 
     # Top-level best-effort synonyms.
     scl = sodium.scl
