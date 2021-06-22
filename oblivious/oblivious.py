@@ -414,7 +414,7 @@ try:
         check_attr(_sodium)
 
     except:
-        _sodium = rbcl.bindings.sodium_core.lib
+        _sodium = rbcl.bindings
         check_attr(_sodium)
         call = call_wrapped
         print("falling back to rbcl")
@@ -470,11 +470,10 @@ try:
         @staticmethod
         def pnt(h: bytes = None) -> bytes:
             """Return point from 64-byte hash."""
-            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_bytes())
-            _sodium.crypto_core_ristretto255_from_hash(buf, bytes(
+            ret_length = _sodium.crypto_core_ristretto255_bytes()
+            return call(ret_length, _sodium.crypto_core_ristretto255_from_hash, bytes(
                 hashlib.sha512(sodium.rnd()).digest() if h is None else h
             ))
-            return buf.raw
 
         @staticmethod
         def bas(e: bytes) -> bytes:
