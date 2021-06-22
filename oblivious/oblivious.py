@@ -15,7 +15,7 @@ import ctypes.util
 import secrets
 import base64
 import ge25519
-import rbcl.bindings
+import rbcl.bindings as rbcl
 
 #
 # Use native Python implementations of primitives by default.
@@ -414,10 +414,11 @@ try:
         check_attr(_sodium)
 
     except:
-        _sodium = rbcl.bindings
+        _sodium = rbcl
+        setattr(_sodium, 'crypto_core_ristretto255_scalarbytes', lambda : rbcl.crypto_core_ristretto255_SCALARBYTES)
+        setattr(_sodium, 'crypto_core_ristretto255_bytes', lambda : rbcl.crypto_core_ristretto255_BYTES)
         check_attr(_sodium)
         call = call_wrapped
-        print("falling back to rbcl")
 
     # Exported symbol.
     class sodium:
