@@ -15,6 +15,7 @@ import ctypes.util
 import secrets
 import base64
 import ge25519
+import rbcl.bindings as rbcl
 
 #
 # Use native Python implementations of primitives by default.
@@ -361,31 +362,41 @@ native.scalar = scalar
 #
 
 try:
-    xdll = ctypes.cdll if platform.system() != 'Windows' else ctypes.windll
-    libf = ctypes.util.find_library('sodium') or ctypes.util.find_library('libsodium')
-    if libf is not None:
-        _sodium = xdll.LoadLibrary(libf)
-    else: # pragma: no cover
-        # Perform explicit search in case `ld` is not present in environment.
-        libf = 'libsodium.so' if platform.system() != 'Windows' else 'libsodium.dll'
-        for var in ['PATH', 'LD_LIBRARY_PATH']:
-            if var in os.environ:
-                for path in os.environ[var].split(os.pathsep):
-                    try:
-                        _sodium = ctypes.cdll.LoadLibrary(path + os.path.sep + libf)
-                        break
-                    except:
-                        continue
-
     # Ensure the detected version of libsodium has the necessary primitives.
-    assert hasattr(_sodium, 'crypto_box_secretkeybytes')
-    assert hasattr(_sodium, 'crypto_box_publickeybytes')
-    assert hasattr(_sodium, 'crypto_core_ristretto255_bytes')
-    assert hasattr(_sodium, 'crypto_core_ristretto255_scalar_random')
-    assert hasattr(_sodium, 'crypto_scalarmult_ristretto255_base')
-    assert hasattr(_sodium, 'crypto_scalarmult_ristretto255')
-    assert hasattr(_sodium, 'crypto_core_ristretto255_add')
-    assert hasattr(_sodium, 'crypto_core_ristretto255_sub')
+    def check_attr(_lib):
+        print("check_attr")
+        assert hasattr(_lib, 'crypto_core_ristretto255_scalarbytes')
+        assert hasattr(_lib, 'crypto_core_ristretto255_bytes')
+        assert hasattr(_lib, 'crypto_core_ristretto255_scalar_random')
+        assert hasattr(_lib, 'crypto_scalarmult_ristretto255_base')
+        assert hasattr(_lib, 'crypto_scalarmult_ristretto255')
+        assert hasattr(_lib, 'crypto_core_ristretto255_add')
+        assert hasattr(_lib, 'crypto_core_ristretto255_sub')
+
+    try:
+        xdll = ctypes.cdll if platform.system() != 'Windows' else ctypes.windll
+        libf = ctypes.util.find_library('sodium') or ctypes.util.find_library('libsodium')
+        if libf is not None:
+            _sodium = xdll.LoadLibrary(libf)
+        else: # pragma: no cover
+            # Perform explicit search in case `ld` is not present in environment.
+            libf = 'libsodium.so' if platform.system() != 'Windows' else 'libsodium.dll'
+            for var in ['PATH', 'LD_LIBRARY_PATH']:
+                if var in os.environ:
+                    for path in os.environ[var].split(os.pathsep):
+                        try:
+                            _sodium = ctypes.cdll.LoadLibrary(path + os.path.sep + libf)
+                            break
+                        except:
+                            continue
+
+        check_attr(_sodium)
+
+    except:
+        _sodium = rbcl
+        setattr(_sodium, 'crypto_core_ristretto255_scalarbytes', lambda : rbcl.crypto_core_ristretto255_SCALARBYTES)
+        setattr(_sodium, 'crypto_core_ristretto255_bytes', lambda : rbcl.crypto_core_ristretto255_BYTES)
+        check_attr(_sodium)
 
     # Exported symbol.
     class sodium:
@@ -397,7 +408,7 @@ try:
         @staticmethod
         def rnd() -> bytes:
             """Return random non-zero scalar."""
-            buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
+            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_scalarbytes())
             _sodium.crypto_core_ristretto255_scalar_random(buf)
             return buf.raw
 
@@ -424,7 +435,7 @@ try:
             Return inverse of scalar modulo
             2**252 + 27742317777372353535851937790883648493.
             """
-            buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
+            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_scalarbytes())
             _sodium.crypto_core_ristretto255_scalar_invert(buf, bytes(s))
             return buf.raw
 
@@ -434,7 +445,7 @@ try:
             Return scalar multiplied by another scalar modulo
             2**252 + 27742317777372353535851937790883648493.
             """
-            buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
+            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_scalarbytes())
             _sodium.crypto_core_ristretto255_scalar_mul(buf, bytes(s), bytes(t))
             return buf.raw
 
@@ -450,14 +461,14 @@ try:
         @staticmethod
         def bas(e: bytes) -> bytes:
             """Return base point multiplied by supplied scalar."""
-            buf = ctypes.create_string_buffer(_sodium.crypto_box_publickeybytes())
+            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_scalarbytes())
             _sodium.crypto_scalarmult_ristretto255_base(buf, bytes(e))
             return buf.raw
 
         @staticmethod
         def mul(s: bytes, p: bytes) -> bytes:
             """Return point multiplied by supplied scalar."""
-            buf = ctypes.create_string_buffer(_sodium.crypto_box_secretkeybytes())
+            buf = ctypes.create_string_buffer(_sodium.crypto_core_ristretto255_scalarbytes())
             _sodium.crypto_scalarmult_ristretto255(buf, bytes(s), bytes(p))
             return buf.raw
 
