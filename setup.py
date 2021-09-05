@@ -13,7 +13,8 @@ setup(
         "parts>=1.0.2",
         "bitlist>=0.3.1",
         "fountains>=0.2.1",
-        "rbcl>=0.1.0",
+        "cffi>=1.14.6",
+        "rbcl>=0.1.0"
     ],
     license="MIT",
     url="https://github.com/nthparty/oblivious",
