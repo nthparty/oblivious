@@ -54,7 +54,6 @@ matrix:
         - pip install pylint
         - pip install coverage
         - pip install nose
-        - pip install six
         - pip install .
 script:
   - pylint oblivious
