@@ -14,6 +14,7 @@ setup(
         "bitlist>=0.3.1",
         "fountains>=0.2.1",
         "cffi>=1.14.6",
+        "six>=1.16.0",
         "rbcl>=0.1.0"
     ],
     license="MIT",
