@@ -49,6 +49,7 @@ matrix:
         - choco install make
       env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
       install:
+        - python -c "import platform; print(platform.architecture())"
         - pip install --user pip
         - pip install pylint
         - pip install coverage
