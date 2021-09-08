@@ -20,7 +20,7 @@ Purpose
 -------
 This library provides native Python implementations, Python `libsodium <https://github.com/jedisct1/libsodium>`_ wrappers, and additional utility methods for cryptographic primitives that are often used to implement `oblivious pseudorandom function (OPRF) <https://en.wikipedia.org/wiki/Pseudorandom_function_family>`_, `oblivious transfer (OT) <https://en.wikipedia.org/wiki/Oblivious_transfer>`_, and `private set intersection (PSI) <https://en.wikipedia.org/wiki/Private_set_intersection>`_ protocols.
 
-For more information and background about the underlying mathematical structures and primitives, consult materials about `Curve25519 <https://cr.yp.to/ecdh.html>, the `Ristretto <https://ristretto.group/>`_ group, and the related `Ed25519 <https://ed25519.cr.yp.to/>`_ system.
+For more information and background about the underlying mathematical structures and primitives, consult materials about `Curve25519 <https://cr.yp.to/ecdh.html>`_, the `Ristretto <https://ristretto.group/>`_ group, and the related `Ed25519 <https://ed25519.cr.yp.to/>`_ system.
 
 Package Installation and Usage
 ------------------------------
