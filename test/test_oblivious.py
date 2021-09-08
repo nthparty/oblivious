@@ -13,7 +13,7 @@ import rbcl.bindings
 from fountains import fountains
 from unittest import TestCase # pylint: disable=C0411
 
-import oblivious.oblivious as oblivious
+from oblivious import oblivious
 
 # Constant for the number of input-output pairs to include in each test.
 TRIALS_PER_TEST = 16
@@ -21,7 +21,7 @@ TRIALS_PER_TEST = 16
 # To simulate an environment in which sodium is absent, some tests set
 # `oblivious.sodium` to `None` or modify `oblivious.sodium._sodium`;
 # the references below are used for restoration.
-sodium_lib_restore = oblivious.sodium._lib
+sodium_lib_restore = oblivious.sodium._lib # pylint: disable=W0212
 sodium_restore = oblivious.sodium
 
 def api_methods():
@@ -85,6 +85,7 @@ def sodium_hidden_and_fallback(hidden=False, fallback=False):
     Return binary wrapper class definition that conforms to the
     scenario being tested.
     """
+    # pylint: disable=W0212
     if hidden:
         oblivious.sodium = None
     elif fallback:
