@@ -421,9 +421,12 @@ try:
         _call_variant = _call_variant_wrapped
 
     # Ensure the chosen version of libsodium (or its substitute) has the necessary primitives.
-    assert hasattr(_sodium, 'crypto_core_ristretto255_scalarbytes')
     assert hasattr(_sodium, 'crypto_core_ristretto255_bytes')
+    assert hasattr(_sodium, 'crypto_core_ristretto255_scalarbytes')
     assert hasattr(_sodium, 'crypto_core_ristretto255_scalar_random')
+    assert hasattr(_sodium, 'crypto_core_ristretto255_scalar_invert')
+    assert hasattr(_sodium, 'crypto_core_ristretto255_scalar_mul')
+    assert hasattr(_sodium, 'crypto_core_ristretto255_from_hash')
     assert hasattr(_sodium, 'crypto_scalarmult_ristretto255_base')
     assert hasattr(_sodium, 'crypto_scalarmult_ristretto255')
     assert hasattr(_sodium, 'crypto_core_ristretto255_add')
@@ -505,7 +508,7 @@ try:
             """Return base point multiplied by supplied scalar."""
             return sodium._call(
                 sodium._lib.crypto_core_ristretto255_scalarbytes(),
-                sodium._lib.crypto_scalarmult_ristretto255_base,\
+                sodium._lib.crypto_scalarmult_ristretto255_base,
                 bytes(e)
             )
 
