@@ -69,8 +69,8 @@ def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R17
     fs = fountains( # Generate the input bit stream.
         sum(lengths),
         seed=bytes(0), # This is also the default; explicit for clarity.
-        limit=min(TRIALS_PER_TEST, (len(bits) * 4)),
-        bits=bits[:(TRIALS_PER_TEST // 4)], # Reference output bit vector.
+        limit=min(TRIALS_PER_TEST, (len(bits) * 4) if bits is not None else 256),
+        bits=bits[:(TRIALS_PER_TEST // 4)] if bits is not None else None,
         function=fun
     )
 
