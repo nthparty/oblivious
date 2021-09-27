@@ -55,7 +55,9 @@ def _sc25519_is_canonical(s: bytes) -> bool:
 
 def _sc25519_mul(a: bytes, b: bytes) -> bytes:
     (a, b) = (int.from_bytes(a, 'little'), int.from_bytes(b, 'little'))
-    return ((a * b) % (pow(2, 252) + 27742317777372353535851937790883648493)).to_bytes(32, 'little')
+    return (
+        (a * b) % (pow(2, 252) + 27742317777372353535851937790883648493)
+    ).to_bytes(32, 'little')
 
 def _sc25519_sqmul(s: bytes, n: int, a: bytes) -> bytes:
     for _ in range(n):
@@ -169,21 +171,19 @@ class native:
         t = bytearray(s)
         t[31] &= 127
 
-        q = ge25519.ge25519_p3.scalar_mult_base(t).to_bytes_ristretto255()
-        return None if _zero(q) else q
+        return ge25519.ge25519_p3.scalar_mult_base(t).to_bytes_ristretto255()
 
     @staticmethod
     def mul(s: bytes, p: bytes) -> bytes:
         """Return point multiplied by supplied scalar."""
         p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
         if not _ristretto255_is_canonical(p) or p3 is None:
-            return None # pragma: no cover
+            return bytes(32) # pragma: no cover
 
         t = bytearray(s)
         t[31] &= 127
 
-        q = p3.scalar_mult(t).to_bytes_ristretto255()
-        return None if _zero(q) else q
+        return p3.scalar_mult(t).to_bytes_ristretto255()
 
     @staticmethod
     def add(p: bytes, q: bytes) -> bytes:
@@ -192,7 +192,7 @@ class native:
         q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
         if not _ristretto255_is_canonical(p) or p_p3 is None or\
            not _ristretto255_is_canonical(q) or q_p3 is None:
-            return None # pragma: no cover
+            return bytes(32) # pragma: no cover
 
         q_cached = ge25519.ge25519_cached.from_p3(q_p3)
         r_p1p1 = ge25519.ge25519_p1p1.add(p_p3, q_cached)
@@ -206,7 +206,7 @@ class native:
         q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
         if not _ristretto255_is_canonical(p) or p_p3 is None or\
            not _ristretto255_is_canonical(q) or q_p3 is None:
-            return None # pragma: no cover
+            return bytes(32) # pragma: no cover
 
         q_cached = ge25519.ge25519_cached.from_p3(q_p3)
         r_p1p1 = ge25519.ge25519_p1p1.sub(p_p3, q_cached)
@@ -256,7 +256,7 @@ class point(bytes):
         if the scalar is valid; otherwise, return `None`.
         """
         p = native.bas(s)
-        return bytes.__new__(cls, p) if p is not None else None
+        return None if _zero(p) else bytes.__new__(cls, p)
 
     @classmethod
     def from_base64(cls, s: str) -> point:
@@ -275,17 +275,20 @@ class point(bytes):
         """A point cannot be a left-hand argument."""
         raise TypeError('point must be on right-hand side of multiplication operator')
 
-    def __rmul__(self: point, other: scalar) -> point:
+    def __rmul__(self: point, other: scalar) -> Optional[point]:
         """Return point multiplied by supplied scalar."""
-        return native.point(native.mul(other, self))
+        p = native.mul(other, self)
+        return None if _zero(p) else native.point(p)
 
-    def __add__(self: point, other: point) -> point:
+    def __add__(self: point, other: point) -> Optional[point]:
         """Return sum of the supplied points."""
-        return native.point(native.add(self, other))
+        p = native.add(self, other)
+        return None if _zero(p) else native.point(p)
 
-    def __sub__(self: point, other: point) -> point:
+    def __sub__(self: point, other: point) -> Optional[point]:
         """Return result of subtracting second point from first point."""
-        return native.point(native.sub(self, other))
+        p = native.sub(self, other)
+        return None if _zero(p) else native.point(p)
 
     def to_base64(self: point) -> str:
         """Convert to equivalent Base64 UTF-8 string representation."""
@@ -349,12 +352,13 @@ class scalar(bytes):
         return native.scalar(native.inv(self))
 
     # pylint: disable=E1136
-    def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
+    def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point, None]:
         """Multiply supplied scalar or point by this scalar."""
         if isinstance(other, native.scalar) or\
            (sodium is not None and isinstance(other, sodium.scalar)):
             return native.scalar(native.smu(self, other))
-        return native.point(native.mul(self, other))
+        p = native.mul(self, other)
+        return None if _zero(p) else native.point(p)
 
     # pylint: disable=E1136
     def __rmul__(self: scalar, other: Union[scalar, point]):
@@ -504,12 +508,12 @@ try:
             )
 
         @staticmethod
-        def bas(e: bytes) -> bytes:
+        def bas(s: bytes) -> bytes:
             """Return base point multiplied by supplied scalar."""
             return sodium._call(
                 sodium._lib.crypto_core_ristretto255_scalarbytes(),
                 sodium._lib.crypto_scalarmult_ristretto255_base,
-                bytes(e)
+                bytes(s)
             )
 
         @staticmethod
@@ -576,13 +580,13 @@ try:
             return bytes.__new__(cls, sodium.pnt(hashlib.sha512(bs).digest()))
 
         @classmethod
-        def base(cls, s: scalar) -> point:
+        def base(cls, s: scalar) -> Optional[point]:
             """
             Return base point multiplied by supplied scalar
             if the scalar is valid; otherwise, return `None`.
             """
             p = sodium.bas(s)
-            return bytes.__new__(cls, p) if p is not None else None
+            return None if _zero(p) else bytes.__new__(cls, p)
 
         @classmethod
         def from_base64(cls, s: str) -> point:
@@ -601,17 +605,20 @@ try:
             """A point cannot be a left-hand argument."""
             raise TypeError('point must be on right-hand side of multiplication operator')
 
-        def __rmul__(self: point, other: scalar) -> point:
+        def __rmul__(self: point, other: scalar) -> Optional[point]:
             """Return point multiplied by supplied scalar."""
-            return sodium.point(sodium.mul(other, self))
+            p = sodium.mul(other, self)
+            return None if _zero(p) else sodium.point(p)
 
-        def __add__(self: point, other: point) -> point:
+        def __add__(self: point, other: point) -> Optional[point]:
             """Return sum of the supplied points."""
-            return sodium.point(sodium.add(self, other))
+            p = sodium.add(self, other)
+            return None if _zero(p) else sodium.point(p)
 
-        def __sub__(self: point, other: point) -> point:
+        def __sub__(self: point, other: point) -> Optional[point]:
             """Return result of subtracting second point from first point."""
-            return sodium.point(sodium.sub(self, other))
+            p = sodium.sub(self, other)
+            return None if _zero(p) else sodium.point(p)
 
         def to_base64(self: point) -> str:
             """Convert to equivalent Base64 UTF-8 string representation."""
@@ -667,7 +674,7 @@ try:
             """
             return sodium.scalar(sodium.inv(self))
 
-        def inverse(self: scalar)  -> scalar:
+        def inverse(self: scalar) -> scalar:
             """
             Return inverse of scalar modulo
             2**252 + 27742317777372353535851937790883648493.
@@ -675,11 +682,12 @@ try:
             return sodium.scalar(sodium.inv(self))
 
         # pylint: disable=E1136
-        def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
+        def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point, None]:
             """Multiply supplied scalar or point by this scalar."""
             if isinstance(other, (native.scalar, sodium.scalar)):
                 return sodium.scalar(sodium.smu(self, other))
-            return sodium.point(sodium.mul(self, other))
+            p = sodium.mul(self, other)
+            return None if _zero(p) else sodium.point(p)
 
         # pylint: disable=E1136
         def __rmul__(self: scalar, other: Union[scalar, point]):
