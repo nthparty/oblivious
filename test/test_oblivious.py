@@ -1,5 +1,4 @@
-"""Functional and algebraic unit tests for primitives and classes.
-
+"""
 Test suite containing functional unit tests for the exported primitives and
 classes, as well as unit tests confirming algebraic relationships among
 primitives.

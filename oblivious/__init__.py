@@ -1,4 +1,4 @@
-"""Allow users to use values directly."""
+"""Gives users direct access to classes and functions."""
 from oblivious.oblivious import\
     native, sodium,\
     point, scalar,\
