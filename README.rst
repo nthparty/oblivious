@@ -4,17 +4,23 @@ oblivious
 
 Python library that serves as an API for common primitives used to implement OPRF, OT, and PSI protocols.
 
-|pypi| |travis| |coveralls|
+|pypi| |readthedocs| |travis| |coveralls|
 
 .. |pypi| image:: https://badge.fury.io/py/oblivious.svg
    :target: https://badge.fury.io/py/oblivious
    :alt: PyPI version and link.
 
-.. |travis| image:: https://travis-ci.com/nthparty/oblivious.svg?branch=main
-   :target: https://travis-ci.com/nthparty/oblivious
+.. |readthedocs| image:: https://readthedocs.org/projects/oblivious/badge/?version=latest
+   :target: https://oblivious.readthedocs.io/en/latest/?badge=latest
+   :alt: Read the Docs documentation status.
+
+.. |travis| image:: https://app.travis-ci.com/nthparty/oblivious.svg?branch=main
+   :target: https://app.travis-ci.com/nthparty/oblivious
+   :alt: Travis CI build status.
 
 .. |coveralls| image:: https://coveralls.io/repos/github/nthparty/oblivious/badge.svg?branch=main
    :target: https://coveralls.io/github/nthparty/oblivious?branch=main
+   :alt: Coveralls test coverage summary.
 
 Purpose
 -------
