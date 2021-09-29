@@ -15,9 +15,9 @@ encapsulate pure Python and shared/dynamic library variants of the above.
   `libsodium <https://doc.libsodium.org/>`_ library is found on the
   system and successfully loaded at the time this module is imported,
   then the wrapper class :obj:`sodium` is defined and exports a wrapper
-  (to the appropriate function in the dynamic/shared library) for every
-  operation and class method exported by this module as a whole. Otherwise,
-  the exported variable ``sodium`` is assigned ``None``.
+  (around the appropriate function in the dynamic/shared library) for
+  every operation and class method exported by this module as a whole.
+  Otherwise, the exported variable ``sodium`` is assigned ``None``.
 
 * All operations and class methods exported by this module correspond to
   the variants defined by :obj:`sodium` if a dynamic/shared library is
@@ -358,8 +358,7 @@ sub = native.sub
 
 class point(bytes):
     """
-    Wrapper class for a bytes-like object that corresponds
-    to a point.
+    Class for a bytes-like object that corresponds to a point.
     """
     @classmethod
     def random(cls) -> point:
@@ -493,8 +492,7 @@ class point(bytes):
 
 class scalar(bytes):
     """
-    Wrapper class for a bytes-like object that corresponds
-    to a scalar.
+    Class for a bytes-like object that corresponds to a scalar.
     """
     @classmethod
     def random(cls) -> scalar:
@@ -628,7 +626,7 @@ class scalar(bytes):
         """
         return base64.standard_b64encode(self).decode('utf-8')
 
-# Access to wrapper classes for bytes.
+# Encapsulate classes that use pure Python implementations for methods.
 native.point = point
 native.scalar = scalar
 
@@ -1199,7 +1197,7 @@ try:
             """
             return base64.standard_b64encode(self).decode('utf-8')
 
-    # Access to wrapper classes for bytes.
+    # Encapsulate classes that use wrappers for shared/dynamic library bindings for methods.
     sodium.point = point
     sodium.scalar = scalar
 
