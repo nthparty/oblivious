@@ -2,7 +2,7 @@
 oblivious
 =========
 
-Python library that serves as an API for common primitives used to implement OPRF, OT, and PSI protocols.
+Python library that serves as an API for common cryptographic primitives used to implement OPRF, OT, and PSI protocols.
 
 |pypi| |readthedocs| |travis| |coveralls|
 
