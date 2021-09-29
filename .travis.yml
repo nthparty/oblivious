@@ -18,6 +18,7 @@ matrix:
         - sudo ldconfig
         - cd ..
       install:
+        - pip install -r docs/requirements.txt
         - pip install pylint
         - pip install coveralls
         - pip install .
@@ -35,6 +36,7 @@ matrix:
         - sudo make install
         - cd ..
       install:
+        - sudo python3 -m pip install -r docs/requirements.txt
         - sudo python3 -m pip install pylint
         - sudo python3 -m pip install coverage
         - sudo python3 -m pip install nose
@@ -49,12 +51,13 @@ matrix:
         - choco install make
       env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
       install:
-        - python -c "import platform; print(platform.architecture())"
+        - pip install -r docs/requirements.txt
         - pip install --user --upgrade pip
         - pip install pylint
         - pip install coverage
         - pip install nose
         - pip install .
 script:
+  - cd docs && sphinx-apidoc -f -E --templatedir=_templates -o _source .. ../setup.py && make html && cd ..
   - pylint oblivious
   - nosetests
