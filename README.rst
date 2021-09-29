@@ -57,14 +57,14 @@ Built-in Python operators are overloaded to support point operations (addition, 
     >>> p + q == q + p
     True
 
-Because the classes ``point`` and ``scalar`` are derived from ``bytes``, `all methods and other operators <https://docs.python.org/3/library/stdtypes.html#bytes>`_ supported by ``bytes`` objects are supported by ``point`` and ``scalar`` objects:
+Because the classes ``point`` and ``scalar`` are derived from ``bytes``, `all methods and other operators <https://docs.python.org/3/library/stdtypes.html#bytes>`_ supported by ``bytes`` objects are supported by ``point`` and ``scalar`` objects::
 
     >>> hex = '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
     >>> s = scalar.fromhex(hex)
     >>> s.hex()
     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
 
-In addition, Base64 conversion methods are included to support concise encoding and decoding of ``point`` and ``scalar`` objects.
+In addition, Base64 conversion methods are included to support concise encoding and decoding of ``point`` and ``scalar`` objects::
 
     >>> s.to_base64()
     'NcFB8cLENUPenRiIBaIQq8o805oemGMEmRzt7UKxFwk='
@@ -102,10 +102,10 @@ The operations and class methods exported by the ``oblivious`` module directly (
 1. Under all conditions, the wrapper class ``native`` is defined and encapsulates a pure Python variant of every operation and class method available in the ``oblivious`` module. **As a starting default**, all operations and classes exported directly by the ``oblivious`` module correspond to the pure Python implementations.
 
 2. If a shared/dynamic library instance of  libsodium is found on the system and successfully loaded during one of the attempts below, then the wrapper class ``sodium`` is defined:
-  
-  a. the built-in ``ctypes.util.find_library`` function is able to locate ``'sodium'`` or ``'libsodium'`` and it is loaded successfully;
-  b. a file ``libsodium.so`` or ``libsodium.dll`` in the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH`` environment variables is found and loaded successfully; or
-  c. the compiled subset of libsodium included in the `rbcl <https://pypi.org/project/rbcl/>`_ package is loaded successfully.
+
+   a. the built-in ``ctypes.util.find_library`` function is able to locate ``'sodium'`` or ``'libsodium'`` and it is loaded successfully;
+   b. a file ``libsodium.so`` or ``libsodium.dll`` in the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH`` environment variables is found and loaded successfully; or
+   c. the compiled subset of libsodium included in the `rbcl <https://pypi.org/project/rbcl/>`_ package is loaded successfully.
 
 3. If ``sodium`` is **not** ``None``, then the ``sodium`` class encapsulates libsodium wrappers for every operation and class supported by the ``oblivious`` module. Furthermore, **those operations and classes exported directly by the library are redefined** to use the bindings available in the loaded instance of libsodium. The ``native`` class is still exported, as well, and all operations and class methods encapsulated within ``native`` remain as-is (*i.e.*, pure Python implementations).
 
