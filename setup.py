@@ -3,10 +3,14 @@ from setuptools import setup
 with open("README.rst", "r") as fh:
     long_description = fh.read()
 
+# The lines below are parsed by `docs/conf.py`.
+name = "oblivious"
+version = "4.0.0"
+
 setup(
-    name="oblivious",
-    version="4.0.0",
-    packages=["oblivious",],
+    name=name,
+    version=version,
+    packages=[name,],
     install_requires=[
         "fe25519~=0.2.0",
         "ge25519~=0.2.0",

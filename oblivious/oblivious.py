@@ -713,7 +713,7 @@ try:
            the `rbcl <https://pypi.org/project/rbcl/>`_ package.
 
         If all of the above fail, then :obj:`sodium` is assigned
-        the value `None` and all functions and class methods exported by
+        the value ``None`` and all functions and class methods exported by
         this module default to their pure Python variants (*i.e.*, those
         encapsulated within :obj:`native <native>`). One way to confirm
         that a dynamic/shared library *has not been found* when this module
