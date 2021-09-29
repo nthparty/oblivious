@@ -594,8 +594,12 @@ class scalar(bytes):
         >>> p = point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=')
         >>> (s * s).hex()
         'd4aecf034f60edc5cb32cdd5a4be6d069959aa9fd133c51c9dcfd960ee865e0f'
+        >>> isinstance(s * s, scalar)
+        True
         >>> (s * p).hex()
         '2208082412921a67f42ea399748190d2b889228372509f2f2d9929813d074e1b'
+        >>> isinstance(s * p, point)
+        True
         """
         if isinstance(other, native.scalar) or\
            (sodium is not None and isinstance(other, sodium.scalar)):
@@ -1162,8 +1166,12 @@ try:
             >>> p = point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=')
             >>> (s * s).hex()
             'd4aecf034f60edc5cb32cdd5a4be6d069959aa9fd133c51c9dcfd960ee865e0f'
+            >>> isinstance(s * s, scalar)
+            True
             >>> (s * p).hex()
             '2208082412921a67f42ea399748190d2b889228372509f2f2d9929813d074e1b'
+            >>> isinstance(s * p, point)
+            True
             """
             if isinstance(other, (native.scalar, sodium.scalar)):
                 return sodium.scalar(sodium.smu(self, other))
