@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 # The lines below are parsed by `docs/conf.py`.
 name = "oblivious"
-version = "4.0.0"
+version = "4.0.1"
 
 setup(
     name=name,

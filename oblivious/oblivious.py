@@ -374,9 +374,9 @@ class point(bytes):
         """
         Return point object obtained by transforming supplied bytes-like object.
 
-        >>> p = point.bytes('123'.encode())
-        >>> isinstance(p, point)
-        True
+        >>> p = point.bytes(hashlib.sha512('123'.encode()).digest())
+        >>> p.hex()
+        '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
         """
         return bytes.__new__(cls, native.pnt(bs))
 
@@ -398,8 +398,6 @@ class point(bytes):
 
         >>> point.base(scalar.hash('123'.encode())).hex()
         '4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005'
-        >>> point.base(bytes([0] * 32)) is None
-        True
         """
         p = native.bas(s)
         return None if _zero(p) else bytes.__new__(cls, p)
@@ -948,9 +946,9 @@ try:
             """
             Return point object obtained by transforming supplied bytes-like object.
 
-            >>> p = point.bytes('123'.encode())
-            >>> isinstance(p, point)
-            True
+            >>> p = point.bytes(hashlib.sha512('123'.encode()).digest())
+            >>> p.hex()
+            '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
             """
             return bytes.__new__(cls, sodium.pnt(bs))
 
@@ -972,8 +970,6 @@ try:
 
             >>> point.base(scalar.hash('123'.encode())).hex()
             '4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005'
-            >>> point.base(bytes([0] * 32)) is None
-            True
             """
             p = sodium.bas(s)
             return None if _zero(p) else bytes.__new__(cls, p)
