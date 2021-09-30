@@ -23,7 +23,6 @@ encapsulate pure Python and shared/dynamic library variants of the above.
   the variants defined by :obj:`sodium` if a dynamic/shared library is
   loaded. Otherwise, they correspond to the variants defined by
   :obj:`native`.
-
 """
 from __future__ import annotations
 from typing import Union, Optional
@@ -659,27 +658,30 @@ try:
             return function(x)
         return function()
 
+    _sodium = None
     _call_variant = _call_variant_unwrapped
 
-    try:
-        xdll = ctypes.cdll if platform.system() != 'Windows' else ctypes.windll
-        libf = ctypes.util.find_library('sodium') or ctypes.util.find_library('libsodium')
-        if libf is not None:
-            _sodium = xdll.LoadLibrary(libf)
-        else: # pragma: no cover
-            # Perform explicit search in case `ld` is not present in environment.
-            libf = 'libsodium.so' if platform.system() != 'Windows' else 'libsodium.dll'
-            for var in ['PATH', 'LD_LIBRARY_PATH']:
-                if var in os.environ:
-                    for path in os.environ[var].split(os.pathsep):
-                        try:
-                            _sodium = ctypes.cdll.LoadLibrary(path + os.path.sep + libf)
-                            break
-                        except:
-                            continue
-    except: # pragma: no cover
-        _sodium = rbcl.bindings
-        _call_variant = _call_variant_wrapped
+    # Attempt to load libsodium shared/dynamic library file.
+    xdll = ctypes.cdll if platform.system() != 'Windows' else ctypes.windll
+    libf = ctypes.util.find_library('sodium') or ctypes.util.find_library('libsodium')
+    if libf is not None:
+        _sodium = xdll.LoadLibrary(libf)
+    else: # pragma: no cover
+        # Perform explicit search in case `ld` is not present in environment.
+        libf = 'libsodium.so' if platform.system() != 'Windows' else 'libsodium.dll'
+        for var in ['PATH', 'LD_LIBRARY_PATH']:
+            if var in os.environ:
+                for path in os.environ[var].split(os.pathsep):
+                    try:
+                        _sodium = ctypes.cdll.LoadLibrary(path + os.path.sep + libf)
+                        break
+                    except:
+                        continue
+
+        # Default to bindings exported by the rbcl library if the above attempts failed.
+        if _sodium is None: # pragma: no cover
+            _sodium = rbcl.bindings
+            _call_variant = _call_variant_wrapped
 
     # Ensure the chosen version of libsodium (or its substitute) has the necessary primitives.
     assert hasattr(_sodium, 'crypto_core_ristretto255_bytes')
