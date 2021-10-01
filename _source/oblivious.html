@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>oblivious module &mdash; oblivious 4.0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="oblivious" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> oblivious
+          </a>
+              <div class="version">
+                4.0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">oblivious module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">oblivious</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>oblivious module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_source/oblivious.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-oblivious.oblivious">
+<span id="oblivious-module"></span><h1>oblivious module<a class="headerlink" href="#module-oblivious.oblivious" title="Permalink to this headline"></a></h1>
+<p>Python library that serves as an API for common cryptographic primitives
+used to implement OPRF, OT, and PSI protocols.</p>
+<p>This library exports a collection of primitive operations for working
+with elliptic curve points and scalars, classes for representing points,
+classes for representing scalars, and two wrapper classes/namespaces that
+encapsulate pure Python and shared/dynamic library variants of the above.</p>
+<ul class="simple">
+<li><p>Under all conditions, the wrapper class <a class="reference internal" href="#oblivious.oblivious.native" title="oblivious.oblivious.native"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native</span></code></a> is defined and
+exports a pure Python variant of every operation and class method
+exported by this module as a whole.</p></li>
+<li><p>If a shared/dynamic library instance of the
+<a class="reference external" href="https://doc.libsodium.org/">libsodium</a> library is found on the
+system and successfully loaded at the time this module is imported,
+then the wrapper class <a class="reference internal" href="#oblivious.oblivious.sodium" title="oblivious.oblivious.sodium"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium</span></code></a> is defined and exports a wrapper
+(around the appropriate function in the dynamic/shared library) for
+every operation and class method exported by this module as a whole.
+Otherwise, the exported variable <code class="docutils literal notranslate"><span class="pre">sodium</span></code> is assigned <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p>All operations and class methods exported by this module correspond to
+the variants defined by <a class="reference internal" href="#oblivious.oblivious.sodium" title="oblivious.oblivious.sodium"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium</span></code></a> if a dynamic/shared library is
+loaded. Otherwise, they correspond to the variants defined by
+<a class="reference internal" href="#oblivious.oblivious.native" title="oblivious.oblivious.native"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native</span></code></a>.</p></li>
+</ul>
+<dl class="py class">
+<dt class="sig sig-object py" id="oblivious.oblivious.native">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">native</span></span><a class="headerlink" href="#oblivious.oblivious.native" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper class for native Python implementations of
+primitive operations.</p>
+<p>This class encapsulates pure Python variants of all
+primitive operations and classes exported by this module:
+<a class="reference internal" href="#oblivious.oblivious.scl" title="oblivious.oblivious.scl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.scl</span></code></a>, <a class="reference internal" href="#oblivious.oblivious.rnd" title="oblivious.oblivious.rnd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.rnd</span></code></a>,
+<a class="reference internal" href="#oblivious.oblivious.inv" title="oblivious.oblivious.inv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.inv</span></code></a>, <a class="reference internal" href="#oblivious.oblivious.smu" title="oblivious.oblivious.smu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.smu</span></code></a>,
+<a class="reference internal" href="#oblivious.oblivious.pnt" title="oblivious.oblivious.pnt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.pnt</span></code></a>, <a class="reference internal" href="#oblivious.oblivious.bas" title="oblivious.oblivious.bas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.bas</span></code></a>,
+<a class="reference internal" href="#oblivious.oblivious.mul" title="oblivious.oblivious.mul"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.mul</span></code></a>, <a class="reference internal" href="#oblivious.oblivious.add" title="oblivious.oblivious.add"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.add</span></code></a>,
+<a class="reference internal" href="#oblivious.oblivious.sub" title="oblivious.oblivious.sub"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.sub</span></code></a>, <a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.point</span></code></a>,
+and <a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.scalar</span></code></a>.
+For example, you can perform addition of points using
+the pure Python point addition implementation.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">native</span><span class="o">.</span><span class="n">pnt</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">native</span><span class="o">.</span><span class="n">pnt</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">native</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span> <span class="o">==</span> <span class="n">native</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Pure Python variants of the <a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.point</span></code></a>
+and <a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native.scalar</span></code></a> classes will always
+employ pure Python implementations of operations when
+their methods are invoked.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">native</span><span class="o">.</span><span class="n">point</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">native</span><span class="o">.</span><span class="n">point</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">+</span> <span class="n">q</span> <span class="o">==</span> <span class="n">q</span> <span class="o">+</span> <span class="n">p</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Nevertheless, all bytes-like objects, <a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">point</span></code></a> objects,
+and <a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar</span></code></a> objects accepted and emitted by the various
+operations and class methods in <a class="reference internal" href="#oblivious.oblivious.native" title="oblivious.oblivious.native"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native</span></code></a> and compatible
+with those accepted and emitted by the operations and class
+methods in <a class="reference internal" href="#oblivious.oblivious.sodium" title="oblivious.oblivious.sodium"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="oblivious.oblivious.sodium">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">sodium</span></span><a class="headerlink" href="#oblivious.oblivious.sodium" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper class for binary implementations of primitive
+operations.</p>
+<p>When this module is imported, it makes a number of attempts
+to locate an instance of the shared/dynamic library file of the
+<a class="reference external" href="https://doc.libsodium.org/">libsodium</a> library on the host
+system. The sequence of attempts is listed below, in order.</p>
+<ol class="arabic simple">
+<li><p>It uses <code class="docutils literal notranslate"><span class="pre">ctypes.util.find_library</span></code> to look for <code class="docutils literal notranslate"><span class="pre">'sodium'</span></code>
+or <code class="docutils literal notranslate"><span class="pre">'libsodium'</span></code>.</p></li>
+<li><p>It attempts to find a file <code class="docutils literal notranslate"><span class="pre">libsodium.so</span></code> or <code class="docutils literal notranslate"><span class="pre">libsodium.dll</span></code>
+in the paths specified by the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> and <code class="docutils literal notranslate"><span class="pre">LD_LIBRARY_PATH</span></code>
+environment variables.</p></li>
+<li><p>It reverts to the compiled subset of libsodium included in
+the <a class="reference external" href="https://pypi.org/project/rbcl/">rbcl</a> package.</p></li>
+</ol>
+<p>If all of the above fail, then <a class="reference internal" href="#oblivious.oblivious.sodium" title="oblivious.oblivious.sodium"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium</span></code></a> is assigned
+the value <code class="docutils literal notranslate"><span class="pre">None</span></code> and all functions and class methods exported by
+this module default to their pure Python variants (<em>i.e.</em>, those
+encapsulated within <a class="reference internal" href="#oblivious.oblivious.native" title="oblivious.oblivious.native"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native</span></code></a>). One way to confirm
+that a dynamic/shared library <em>has not been found</em> when this module
+is imported is to evaluate <cite>sodium is None</cite>.</p>
+<p>If a shared/dynamic library file has been loaded successfully,
+this class encapsulates shared/dynamic library variants of all
+primitive operations and classes exported by this module:
+<a class="reference internal" href="#oblivious.oblivious.scl" title="oblivious.oblivious.scl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium.scl</span></code></a>, <a class="reference internal" href="#oblivious.oblivious.rnd" title="oblivious.oblivious.rnd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium.rnd</span></code></a>,
+<a class="reference internal" href="#oblivious.oblivious.inv" title="oblivious.oblivious.inv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium.inv</span></code></a>, <a class="reference internal" href="#oblivious.oblivious.smu" title="oblivious.oblivious.smu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium.smu</span></code></a>,
+<a class="reference internal" href="#oblivious.oblivious.pnt" title="oblivious.oblivious.pnt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium.pnt</span></code></a>, <a class="reference internal" href="#oblivious.oblivious.bas" title="oblivious.oblivious.bas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium.bas</span></code></a>,
+<a class="reference internal" href="#oblivious.oblivious.mul" title="oblivious.oblivious.mul"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium.mul</span></code></a>, <a class="reference internal" href="#oblivious.oblivious.add" title="oblivious.oblivious.add"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium.add</span></code></a>,
+<a class="reference internal" href="#oblivious.oblivious.sub" title="oblivious.oblivious.sub"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium.sub</span></code></a>, <a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium.point</span></code></a>,
+and <a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium.scalar</span></code></a>.
+For example, you can perform addition of points using
+the point addition implementation found in the libsodium
+shared/dynamic library found on the host system.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">sodium</span><span class="o">.</span><span class="n">pnt</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">sodium</span><span class="o">.</span><span class="n">pnt</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sodium</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span> <span class="o">==</span> <span class="n">sodium</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Methods found in the shared/dynamic library variants of the
+<a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">point</span></code></a> and <a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar</span></code></a> classes are wrappers for the
+shared/dynamic library implementations of the underlying
+operations.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">sodium</span><span class="o">.</span><span class="n">point</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">sodium</span><span class="o">.</span><span class="n">point</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">+</span> <span class="n">q</span> <span class="o">==</span> <span class="n">q</span> <span class="o">+</span> <span class="n">p</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Nevertheless, all bytes-like objects, <a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">point</span></code></a> objects,
+and <a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar</span></code></a> objects accepted and emitted by the various
+operations and class methods in <a class="reference internal" href="#oblivious.oblivious.sodium" title="oblivious.oblivious.sodium"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium</span></code></a> and compatible
+with those accepted and emitted by the operations and class
+methods in <a class="reference internal" href="#oblivious.oblivious.native" title="oblivious.oblivious.native"><code class="xref py py-obj docutils literal notranslate"><span class="pre">native</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="oblivious.oblivious.scl">
+<span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">scl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#oblivious.oblivious.scl" title="Permalink to this definition"></a></dt>
+<dd><p>Return supplied byte vector if it is a valid scalar; otherwise, return
+<cite>None</cite>. If no byte vector is supplied, return a random scalar.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scl</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">scl</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">==</span> <span class="n">t</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scl</span><span class="p">(</span><span class="nb">bytes</span><span class="p">([</span><span class="mi">255</span><span class="p">]</span> <span class="o">*</span> <span class="mi">32</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="oblivious.oblivious.rnd">
+<span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">rnd</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#oblivious.oblivious.rnd" title="Permalink to this definition"></a></dt>
+<dd><p>Return random non-zero scalar.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">rnd</span><span class="p">())</span>
+<span class="go">32</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="oblivious.oblivious.inv">
+<span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">inv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#oblivious.oblivious.inv" title="Permalink to this definition"></a></dt>
+<dd><p>Return inverse of scalar modulo
+<code class="docutils literal notranslate"><span class="pre">2**252</span> <span class="pre">+</span> <span class="pre">27742317777372353535851937790883648493</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scl</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">pnt</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mul</span><span class="p">(</span><span class="n">inv</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">mul</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span> <span class="o">==</span> <span class="n">p</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="oblivious.oblivious.smu">
+<span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">smu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#oblivious.oblivious.smu" title="Permalink to this definition"></a></dt>
+<dd><p>Return scalar multiplied by another scalar.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scl</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">scl</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">smu</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="o">==</span> <span class="n">smu</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="oblivious.oblivious.pnt">
+<span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">pnt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#oblivious.oblivious.pnt" title="Permalink to this definition"></a></dt>
+<dd><p>Return point from 64-byte vector (normally obtained via hashing).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">pnt</span><span class="p">(</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">digest</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="oblivious.oblivious.bas">
+<span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">bas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#oblivious.oblivious.bas" title="Permalink to this definition"></a></dt>
+<dd><p>Return base point multiplied by supplied scalar.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bas</span><span class="p">(</span><span class="n">scalar</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">()))</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="oblivious.oblivious.mul">
+<span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">mul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#oblivious.oblivious.mul" title="Permalink to this definition"></a></dt>
+<dd><p>Multiply the point by the supplied scalar and return the result.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">pnt</span><span class="p">(</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">digest</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scl</span><span class="p">(</span><span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s1">&#39;35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709&#39;</span>
+<span class="gp">... </span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mul</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;183a06e0fe6af5d7913afb40baefc4dd52ae718fee77a3a0af8777c89fe16210&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="oblivious.oblivious.add">
+<span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#oblivious.oblivious.add" title="Permalink to this definition"></a></dt>
+<dd><p>Return sum of the supplied points.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;456&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">add</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;7076739c9df665d416e68b9512f5513bf1d0181a2aacefdeb1b7244528a4dd77&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="oblivious.oblivious.sub">
+<span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">sub</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#oblivious.oblivious.sub" title="Permalink to this definition"></a></dt>
+<dd><p>Return result of subtracting second point from first point.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;456&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="p">)</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;1a3199ca7debfe31a90171696d8bab91b99eb23a541b822a7061b09776e1046c&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="oblivious.oblivious.point">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#oblivious.oblivious.point" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#oblivious.oblivious.point.bytes" title="oblivious.oblivious.point.bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></p>
+<p>Wrapper class for a bytes-like object that corresponds
+to a point.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.point.random">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">random</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a></span></span><a class="headerlink" href="#oblivious.oblivious.point.random" title="Permalink to this definition"></a></dt>
+<dd><p>Return random point object.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">random</span><span class="p">())</span>
+<span class="go">32</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.point.bytes">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#oblivious.oblivious.point.bytes" title="oblivious.oblivious.point.bytes"><span class="pre">bytes</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a></span></span><a class="headerlink" href="#oblivious.oblivious.point.bytes" title="Permalink to this definition"></a></dt>
+<dd><p>Return point object obtained by transforming supplied bytes-like object.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">bytes</span><span class="p">(</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">digest</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.point.hash">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#oblivious.oblivious.point.bytes" title="oblivious.oblivious.point.bytes"><span class="pre">bytes</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a></span></span><a class="headerlink" href="#oblivious.oblivious.point.hash" title="Permalink to this definition"></a></dt>
+<dd><p>Return point object by hashing supplied bytes-like object.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.point.base">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><span class="pre">oblivious.oblivious.scalar</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#oblivious.oblivious.point.base" title="Permalink to this definition"></a></dt>
+<dd><p>Return base point multiplied by supplied scalar
+if the scalar is valid; otherwise, return <cite>None</cite>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span><span class="o">.</span><span class="n">base</span><span class="p">(</span><span class="n">scalar</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">()))</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.point.from_base64">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a></span></span><a class="headerlink" href="#oblivious.oblivious.point.from_base64" title="Permalink to this definition"></a></dt>
+<dd><p>Convert Base64 UTF-8 string representation of a point to a point instance.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span><span class="o">.</span><span class="n">from_base64</span><span class="p">(</span><span class="s1">&#39;hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;86855a2aade8225c449dd3f636abf745d6e68aee228a7644e88c28fa470a0229&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.point.__new__">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#oblivious.oblivious.point.bytes" title="oblivious.oblivious.point.bytes"><span class="pre">bytes</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a></span></span><a class="headerlink" href="#oblivious.oblivious.point.__new__" title="Permalink to this definition"></a></dt>
+<dd><p>If a bytes-like object is supplied, return a point object
+corresponding to the supplied bytes-like object (no checking
+is performed to confirm that the bytes-like object is a valid
+point). If no argument is supplied, return a random point
+object.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bs</span> <span class="o">=</span> <span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s1">&#39;86855a2aade8225c449dd3f636abf745d6e68aee228a7644e88c28fa470a0229&#39;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">point</span><span class="p">(</span><span class="n">bs</span><span class="p">)</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;86855a2aade8225c449dd3f636abf745d6e68aee228a7644e88c28fa470a0229&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="p">())</span>
+<span class="go">32</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.point.__mul__">
+<span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#oblivious.oblivious.point.__mul__" title="Permalink to this definition"></a></dt>
+<dd><p>Use of this method is not permitted. A point cannot be a left-hand argument.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span><span class="p">()</span> <span class="o">*</span> <span class="n">scalar</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">point must be on right-hand side of multiplication operator</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.point.__rmul__">
+<span class="sig-name descname"><span class="pre">__rmul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><span class="pre">oblivious.oblivious.scalar</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#oblivious.oblivious.point.__rmul__" title="Permalink to this definition"></a></dt>
+<dd><p>Multiply this point by the supplied scalar and return the result.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scalar</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;456&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;f61b377aa86050aaa88c90f4a4a0f1e36b0000cf46f6a34232c2f1da7a799f16&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.point.__add__">
+<span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#oblivious.oblivious.point.__add__" title="Permalink to this definition"></a></dt>
+<dd><p>Return sum of this point and another point.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;456&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">p</span> <span class="o">+</span> <span class="n">q</span><span class="p">)</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;7076739c9df665d416e68b9512f5513bf1d0181a2aacefdeb1b7244528a4dd77&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.point.__sub__">
+<span class="sig-name descname"><span class="pre">__sub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#oblivious.oblivious.point.__sub__" title="Permalink to this definition"></a></dt>
+<dd><p>Return the result of subtracting another point from this point.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;456&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">q</span><span class="p">)</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;1a3199ca7debfe31a90171696d8bab91b99eb23a541b822a7061b09776e1046c&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.point.to_base64">
+<span class="sig-name descname"><span class="pre">to_base64</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#oblivious.oblivious.point.to_base64" title="Permalink to this definition"></a></dt>
+<dd><p>Convert to equivalent Base64 UTF-8 string representation.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">from_base64</span><span class="p">(</span><span class="s1">&#39;hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">to_base64</span><span class="p">()</span>
+<span class="go">&#39;hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="oblivious.oblivious.scalar">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">oblivious.oblivious.</span></span><span class="sig-name descname"><span class="pre">scalar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#oblivious.oblivious.scalar" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#oblivious.oblivious.scalar.bytes" title="oblivious.oblivious.scalar.bytes"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></p>
+<p>Wrapper class for a bytes-like object that corresponds
+to a scalar.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.scalar.random">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">random</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><span class="pre">oblivious.oblivious.scalar</span></a></span></span><a class="headerlink" href="#oblivious.oblivious.scalar.random" title="Permalink to this definition"></a></dt>
+<dd><p>Return random non-zero scalar object.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">scalar</span><span class="o">.</span><span class="n">random</span><span class="p">())</span>
+<span class="go">32</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.scalar.bytes">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#oblivious.oblivious.scalar.bytes" title="oblivious.oblivious.scalar.bytes"><span class="pre">bytes</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><span class="pre">oblivious.oblivious.scalar</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#oblivious.oblivious.scalar.bytes" title="Permalink to this definition"></a></dt>
+<dd><p>Return scalar object obtained by transforming supplied bytes-like
+object if it is possible to do; otherwise, return <cite>None</cite>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scl</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">scalar</span><span class="o">.</span><span class="n">bytes</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span> <span class="o">==</span> <span class="n">t</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.scalar.hash">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#oblivious.oblivious.scalar.bytes" title="oblivious.oblivious.scalar.bytes"><span class="pre">bytes</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><span class="pre">oblivious.oblivious.scalar</span></a></span></span><a class="headerlink" href="#oblivious.oblivious.scalar.hash" title="Permalink to this definition"></a></dt>
+<dd><p>Return scalar object by hashing supplied bytes-like object.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">scalar</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27a03&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.scalar.from_base64">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><span class="pre">oblivious.oblivious.scalar</span></a></span></span><a class="headerlink" href="#oblivious.oblivious.scalar.from_base64" title="Permalink to this definition"></a></dt>
+<dd><p>Convert Base64 UTF-8 string representation of a scalar to a scalar instance.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">scalar</span><span class="o">.</span><span class="n">from_base64</span><span class="p">(</span><span class="s1">&#39;MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;312d0c9130f69153bec9f5d0386a95135eb45eebf130af5f1fed1c6ed15f2500&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.scalar.__new__">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#oblivious.oblivious.scalar.bytes" title="oblivious.oblivious.scalar.bytes"><span class="pre">bytes</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><span class="pre">oblivious.oblivious.scalar</span></a></span></span><a class="headerlink" href="#oblivious.oblivious.scalar.__new__" title="Permalink to this definition"></a></dt>
+<dd><p>If a bytes-like object is supplied, return a scalar object
+corresponding to the supplied bytes-like object (no checking
+is performed to confirm that the bytes-like object is a valid
+scalar). If no argument is supplied, return a random scalar
+object.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scl</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">scalar</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span> <span class="o">==</span> <span class="n">t</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">scalar</span><span class="p">())</span>
+<span class="go">32</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.scalar.__invert__">
+<span class="sig-name descname"><span class="pre">__invert__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><span class="pre">oblivious.oblivious.scalar</span></a></span></span><a class="headerlink" href="#oblivious.oblivious.scalar.__invert__" title="Permalink to this definition"></a></dt>
+<dd><p>Return inverse of scalar modulo
+<code class="docutils literal notranslate"><span class="pre">2**252</span> <span class="pre">+</span> <span class="pre">27742317777372353535851937790883648493</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scalar</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">point</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">((</span><span class="o">~</span><span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">p</span><span class="p">))</span> <span class="o">==</span> <span class="n">p</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.scalar.inverse">
+<span class="sig-name descname"><span class="pre">inverse</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><span class="pre">oblivious.oblivious.scalar</span></a></span></span><a class="headerlink" href="#oblivious.oblivious.scalar.inverse" title="Permalink to this definition"></a></dt>
+<dd><p>Return inverse of scalar modulo
+<code class="docutils literal notranslate"><span class="pre">2**252</span> <span class="pre">+</span> <span class="pre">27742317777372353535851937790883648493</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scalar</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">point</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">((</span><span class="n">s</span><span class="o">.</span><span class="n">inverse</span><span class="p">())</span> <span class="o">*</span> <span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">p</span><span class="p">))</span> <span class="o">==</span> <span class="n">p</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.scalar.__mul__">
+<span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><span class="pre">oblivious.oblivious.scalar</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><span class="pre">oblivious.oblivious.scalar</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#oblivious.oblivious.scalar.__mul__" title="Permalink to this definition"></a></dt>
+<dd><p>Multiply supplied scalar or point by this scalar.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scalar</span><span class="o">.</span><span class="n">from_base64</span><span class="p">(</span><span class="s1">&#39;MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">from_base64</span><span class="p">(</span><span class="s1">&#39;hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;d4aecf034f60edc5cb32cdd5a4be6d069959aa9fd133c51c9dcfd960ee865e0f&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">s</span><span class="p">,</span> <span class="n">scalar</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;2208082412921a67f42ea399748190d2b889228372509f2f2d9929813d074e1b&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">p</span><span class="p">,</span> <span class="n">point</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.scalar.__rmul__">
+<span class="sig-name descname"><span class="pre">__rmul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#oblivious.oblivious.scalar" title="oblivious.oblivious.scalar"><span class="pre">oblivious.oblivious.scalar</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#oblivious.oblivious.point" title="oblivious.oblivious.point"><span class="pre">oblivious.oblivious.point</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#oblivious.oblivious.scalar.__rmul__" title="Permalink to this definition"></a></dt>
+<dd><p>A scalar cannot be on the right-hand side of a non-scalar.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">point</span><span class="p">()</span> <span class="o">*</span> <span class="n">scalar</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">point must be on right-hand side of multiplication operator</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="oblivious.oblivious.scalar.to_base64">
+<span class="sig-name descname"><span class="pre">to_base64</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#oblivious.oblivious.scalar.to_base64" title="Permalink to this definition"></a></dt>
+<dd><p>Convert to equivalent Base64 UTF-8 string representation.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scalar</span><span class="o">.</span><span class="n">from_base64</span><span class="p">(</span><span class="s1">&#39;MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">to_base64</span><span class="p">()</span>
+<span class="go">&#39;MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="oblivious" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Nth Party, Ltd.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

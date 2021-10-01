@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>oblivious &mdash; oblivious 4.0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="oblivious module" href="_source/oblivious.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="#" class="icon icon-home"> oblivious
+          </a>
+              <div class="version">
+                4.0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="_source/oblivious.html">oblivious module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">oblivious</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li>oblivious</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="oblivious">
+<h1>oblivious<a class="headerlink" href="#oblivious" title="Permalink to this headline"></a></h1>
+<p>Python library that serves as an API for common cryptographic primitives used to implement OPRF, OT, and PSI protocols.</p>
+<p><a class="reference external" href="https://badge.fury.io/py/oblivious"><img alt="PyPI version and link." src="https://badge.fury.io/py/oblivious.svg" /></a> <a class="reference external" href="https://oblivious.readthedocs.io/en/latest/?badge=latest"><img alt="Read the Docs documentation status." src="https://readthedocs.org/projects/oblivious/badge/?version=latest" /></a> <a class="reference external" href="https://app.travis-ci.com/nthparty/oblivious"><img alt="Travis CI build status." src="https://app.travis-ci.com/nthparty/oblivious.svg?branch=main" /></a> <a class="reference external" href="https://coveralls.io/github/nthparty/oblivious?branch=main"><img alt="Coveralls test coverage summary." src="https://coveralls.io/repos/github/nthparty/oblivious/badge.svg?branch=main" /></a></p>
+<section id="purpose">
+<h2>Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline"></a></h2>
+<p>This library provides native Python implementations, Python <a class="reference external" href="https://github.com/jedisct1/libsodium">libsodium</a> wrappers, and additional utility methods for cryptographic primitives that are often used to implement <a class="reference external" href="https://en.wikipedia.org/wiki/Pseudorandom_function_family">oblivious pseudorandom function (OPRF)</a>, <a class="reference external" href="https://en.wikipedia.org/wiki/Oblivious_transfer">oblivious transfer (OT)</a>, and <a class="reference external" href="https://en.wikipedia.org/wiki/Private_set_intersection">private set intersection (PSI)</a> protocols.</p>
+<p>For more information and background about the underlying mathematical structures and primitives, consult materials about <a class="reference external" href="https://cr.yp.to/ecdh.html">Curve25519</a>, the <a class="reference external" href="https://ristretto.group/">Ristretto</a> group, and the related <a class="reference external" href="https://ed25519.cr.yp.to/">Ed25519</a> system.</p>
+</section>
+<section id="package-installation-and-usage">
+<h2>Package Installation and Usage<a class="headerlink" href="#package-installation-and-usage" title="Permalink to this headline"></a></h2>
+<p>The package is available on <a class="reference external" href="https://pypi.org/project/oblivious/">PyPI</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">oblivious</span>
+</pre></div>
+</div>
+<p>The library can be imported in the usual ways:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">oblivious</span>
+<span class="kn">from</span> <span class="nn">oblivious</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline"></a></h3>
+<p>This library supports concise construction of elliptic curve points and scalars:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">oblivious</span> <span class="kn">import</span> <span class="n">point</span><span class="p">,</span> <span class="n">scalar</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;abc&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span> <span class="c1"># Point derived from a hash of a string.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scalar</span><span class="p">()</span> <span class="c1"># Random scalar.</span>
+</pre></div>
+</div>
+<p>Built-in Python operators are overloaded to support point operations (addition, subtraction, negation, and equality) and scalar operations (multiplication by a scalar and inversion of scalars):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">s</span> <span class="o">*</span> <span class="n">p</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">==</span> <span class="p">(</span><span class="o">~</span><span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="n">q</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">==</span> <span class="p">(((</span><span class="o">~</span><span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span><span class="p">))</span> <span class="o">*</span> <span class="n">p</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">+</span> <span class="n">q</span> <span class="o">==</span> <span class="n">q</span> <span class="o">+</span> <span class="n">p</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Because the classes <code class="docutils literal notranslate"><span class="pre">point</span></code> and <code class="docutils literal notranslate"><span class="pre">scalar</span></code> are derived from <code class="docutils literal notranslate"><span class="pre">bytes</span></code>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes">all methods and other operators</a> supported by <code class="docutils literal notranslate"><span class="pre">bytes</span></code> objects are supported by <code class="docutils literal notranslate"><span class="pre">point</span></code> and <code class="docutils literal notranslate"><span class="pre">scalar</span></code> objects:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">hex</span> <span class="o">=</span> <span class="s1">&#39;35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">scalar</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="nb">hex</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span>
+<span class="go">&#39;35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709&#39;</span>
+</pre></div>
+</div>
+<p>In addition, Base64 conversion methods are included to support concise encoding and decoding of <code class="docutils literal notranslate"><span class="pre">point</span></code> and <code class="docutils literal notranslate"><span class="pre">scalar</span></code> objects:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">to_base64</span><span class="p">()</span>
+<span class="go">&#39;NcFB8cLENUPenRiIBaIQq8o805oemGMEmRzt7UKxFwk=&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">==</span> <span class="n">scalar</span><span class="o">.</span><span class="n">from_base64</span><span class="p">(</span><span class="s1">&#39;NcFB8cLENUPenRiIBaIQq8o805oemGMEmRzt7UKxFwk=&#39;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</section>
+<section id="using-native-python-or-shared-dynamic-library">
+<h3>Using Native Python or Shared/Dynamic Library<a class="headerlink" href="#using-native-python-or-shared-dynamic-library" title="Permalink to this headline"></a></h3>
+<p>In addition to the operations and classes exported by this library, two wrapper classes/namespaces are also exported: <code class="docutils literal notranslate"><span class="pre">native</span></code> and <code class="docutils literal notranslate"><span class="pre">sodium</span></code>. These encapsulate pure Python implementations and shared/dynamic library (<em>i.e.</em>, libsodium) wrappers, respectively, of all operations and classes available in the <code class="docutils literal notranslate"><span class="pre">oblivious</span></code> module. This makes it possible to explicitly choose whether an operation requires only Python or also requires the presence of a compiled copy of libsodium on the host system.</p>
+<p>The example below uses native Python implementations of the scalar multiplication operation (relying on the <a class="reference external" href="https://pypi.org/project/ge25519">ge25519</a> library):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">oblivious</span> <span class="kn">import</span> <span class="n">native</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">native</span><span class="o">.</span><span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;abc&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">native</span><span class="o">.</span><span class="n">scalar</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">to_base64</span><span class="p">()</span>
+<span class="go">&#39;SrC7vA9sSR5f4E27ALxk14MPotTYR6B33B4ZN+mQXFA=&#39;</span>
+</pre></div>
+</div>
+<p>To check whether an instance of the libsodium shared/dynamic library has been loaded successfully, the check below can be performed:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">oblivious</span> <span class="kn">import</span> <span class="n">sodium</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sodium</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="c1"># Was the dynamic/shared library loaded?</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>In the example below, the scalar multiplication operation invokes a binding for the <code class="docutils literal notranslate"><span class="pre">crypto_scalarmult_ristretto255</span></code> function <a class="reference external" href="https://libsodium.gitbook.io/doc/advanced/point-arithmetic/ristretto">exported by libsodium</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">sodium</span><span class="o">.</span><span class="n">point</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;abc&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">sodium</span><span class="o">.</span><span class="n">scalar</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="s1">&#39;123&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">to_base64</span><span class="p">()</span>
+<span class="go">&#39;SrC7vA9sSR5f4E27ALxk14MPotTYR6B33B4ZN+mQXFA=&#39;</span>
+</pre></div>
+</div>
+<p>The operations and class methods exported by the <code class="docutils literal notranslate"><span class="pre">oblivious</span></code> module directly (<em>e.g.</em>, the method <code class="docutils literal notranslate"><span class="pre">__add__</span></code> within the class <code class="docutils literal notranslate"><span class="pre">point</span></code> that is imported via the statement <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">oblivious</span> <span class="pre">import</span> <span class="pre">point</span></code>) correspond either (A) to libsodium wrappers if an instance of libsodium is found and loaded or (B) to pure Python implementations if all attempts to load a working instances of libsodium fail. The ordered list below summarizes what definitions are exported under various conditions and the ordered sequence of attempts to locate and load an instance of libsodium.</p>
+<ol class="arabic simple">
+<li><p>Under all conditions, the wrapper class <code class="docutils literal notranslate"><span class="pre">native</span></code> is defined and encapsulates a pure Python variant of every operation and class method available in the <code class="docutils literal notranslate"><span class="pre">oblivious</span></code> module. <strong>As a starting default</strong>, all operations and classes exported directly by the <code class="docutils literal notranslate"><span class="pre">oblivious</span></code> module correspond to the pure Python implementations.</p></li>
+<li><p>If a shared/dynamic library instance of  libsodium is found on the system and successfully loaded during one of the attempts below, then the wrapper class <code class="docutils literal notranslate"><span class="pre">sodium</span></code> is defined:</p>
+<ol class="loweralpha simple">
+<li><p>the built-in <code class="docutils literal notranslate"><span class="pre">ctypes.util.find_library</span></code> function is able to locate <code class="docutils literal notranslate"><span class="pre">'sodium'</span></code> or <code class="docutils literal notranslate"><span class="pre">'libsodium'</span></code> and it is loaded successfully;</p></li>
+<li><p>a file <code class="docutils literal notranslate"><span class="pre">libsodium.so</span></code> or <code class="docutils literal notranslate"><span class="pre">libsodium.dll</span></code> in the paths specified by the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> and <code class="docutils literal notranslate"><span class="pre">LD_LIBRARY_PATH</span></code> environment variables is found and loaded successfully; or</p></li>
+<li><p>the compiled subset of libsodium included in the <a class="reference external" href="https://pypi.org/project/rbcl/">rbcl</a> package is loaded successfully.</p></li>
+</ol>
+</li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">sodium</span></code> is <strong>not</strong> <code class="docutils literal notranslate"><span class="pre">None</span></code>, then the <code class="docutils literal notranslate"><span class="pre">sodium</span></code> class encapsulates libsodium wrappers for every operation and class supported by the <code class="docutils literal notranslate"><span class="pre">oblivious</span></code> module. Furthermore, <strong>those operations and classes exported directly by the library are redefined</strong> to use the bindings available in the loaded instance of libsodium. The <code class="docutils literal notranslate"><span class="pre">native</span></code> class is still exported, as well, and all operations and class methods encapsulated within <code class="docutils literal notranslate"><span class="pre">native</span></code> remain as-is (<em>i.e.</em>, pure Python implementations).</p></li>
+</ol>
+</section>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline"></a></h2>
+<p>The library contains one module:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="_source/oblivious.html">oblivious module</a></li>
+</ul>
+</div>
+<p>The documentation can be generated automatically from the source files using <a class="reference external" href="https://www.sphinx-doc.org/">Sphinx</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">docs</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<span class="n">sphinx</span><span class="o">-</span><span class="n">apidoc</span> <span class="o">-</span><span class="n">f</span> <span class="o">-</span><span class="n">E</span> <span class="o">--</span><span class="n">templatedir</span><span class="o">=</span><span class="n">_templates</span> <span class="o">-</span><span class="n">o</span> <span class="n">_source</span> <span class="o">..</span> <span class="o">../</span><span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="o">&amp;&amp;</span> <span class="n">make</span> <span class="n">html</span>
+</pre></div>
+</div>
+</section>
+<section id="testing-and-conventions">
+<h2>Testing and Conventions<a class="headerlink" href="#testing-and-conventions" title="Permalink to this headline"></a></h2>
+<p>All unit tests are executed and their coverage is measured when using <a class="reference external" href="https://nose.readthedocs.io/">nose</a> (see <code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code> for configuration details):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">nose</span> <span class="n">coverage</span>
+<span class="n">nosetests</span>
+</pre></div>
+</div>
+<p>Concise unit tests are implemented with the help of <a class="reference external" href="https://pypi.org/project/fountains/">fountains</a>; new reference specifications for these tests can be generated by running the testing module directly:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">test</span><span class="o">/</span><span class="n">test_oblivious</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>Style conventions are enforced using <a class="reference external" href="https://www.pylint.org/">Pylint</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">pylint</span>
+<span class="n">pylint</span> <span class="n">oblivious</span> <span class="n">test</span><span class="o">/</span><span class="n">test_oblivious</span>
+</pre></div>
+</div>
+</section>
+<section id="contributions">
+<h2>Contributions<a class="headerlink" href="#contributions" title="Permalink to this headline"></a></h2>
+<p>In order to contribute to the source code, open an issue or submit a pull request on the <a class="reference external" href="https://github.com/nthparty/oblivious">GitHub page</a> for this library.</p>
+</section>
+<section id="versioning">
+<h2>Versioning<a class="headerlink" href="#versioning" title="Permalink to this headline"></a></h2>
+<p>Beginning with version 0.1.0, the version number format for this library and the changes to the library associated with version number increments conform with <a class="reference external" href="https://semver.org/#semantic-versioning-200">Semantic Versioning 2.0.0</a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="_source/oblivious.html" class="btn btn-neutral float-right" title="oblivious module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Nth Party, Ltd.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
