@@ -35,18 +35,18 @@ import ctypes.util
 import secrets
 import base64
 import ge25519
-import rbcl.bindings
+import rbcl
 
 # Add synonyms to deal with variations in capitalization of function names.
 setattr(
-    rbcl.bindings,
+    rbcl,
     'crypto_core_ristretto255_scalarbytes',
-    lambda: rbcl.bindings.crypto_core_ristretto255_SCALARBYTES
+    lambda: rbcl.crypto_core_ristretto255_SCALARBYTES
 )
 setattr(
-    rbcl.bindings,
+    rbcl,
     'crypto_core_ristretto255_bytes',
-    lambda: rbcl.bindings.crypto_core_ristretto255_BYTES
+    lambda: rbcl.crypto_core_ristretto255_BYTES
 )
 
 #
@@ -678,7 +678,7 @@ try:
 
         # Default to bindings exported by the rbcl library if the above attempts failed.
         if _sodium is None: # pragma: no cover
-            _sodium = rbcl.bindings
+            _sodium = rbcl
             _call_variant = _call_variant_wrapped
 
     # Ensure the chosen version of libsodium (or its substitute) has the necessary primitives.

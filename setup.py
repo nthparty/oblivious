@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 # The lines below are parsed by `docs/conf.py`.
 name = "oblivious"
-version = "4.0.1"
+version = "4.1.0"
 
 setup(
     name=name,
@@ -19,7 +19,7 @@ setup(
         "ge25519~=1.0.0",
         "six~=1.16.0",
         "cffi~=1.14.6",
-        "rbcl~=0.1.3"
+        "rbcl~=0.2.0"
     ],
     license="MIT",
     url="https://github.com/nthparty/oblivious",

@@ -8,7 +8,7 @@ primitives.
 from importlib import import_module
 import base64
 from bitlist import bitlist
-import rbcl.bindings
+import rbcl
 from fountains import fountains
 from unittest import TestCase # pylint: disable=C0411
 
@@ -89,7 +89,7 @@ def sodium_hidden_and_fallback(hidden=False, fallback=False):
         oblivious.sodium = None
     elif fallback:
         oblivious.sodium = sodium_restore
-        oblivious.sodium._lib = rbcl.bindings
+        oblivious.sodium._lib = rbcl
         oblivious.sodium._call = oblivious.sodium._call_wrapped
     else:
         oblivious.sodium = sodium_restore
