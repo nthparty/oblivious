@@ -182,7 +182,8 @@ version = "4.1.0"
 setup(
     name=name,
     version=version,
-    packages=[name,],
+    packages=[name],
+    ext_package=name,
     install_requires=[
         "parts~=1.1.2",
         "bitlist~=0.5.1",
@@ -197,11 +198,17 @@ setup(
     url="https://github.com/nthparty/oblivious",
     author="Andrei Lapets",
     author_email="a@lapets.io",
-    description="Python library that serves as an API for common "+\
-                "cryptographic primitives used to implement OPRF, OT, "+\
+    description="Python library that serves as an API for common " +
+                "cryptographic primitives used to implement OPRF, OT, " +
                 "and PSI protocols.",
     long_description=long_description,
     long_description_content_type="text/x-rst",
     test_suite="nose.collector",
     tests_require=["nose"],
+    cmdclass={
+        "build_clib": build_clib,
+        "build_ext": build_ext,
+    },
+    distclass=Distribution,
+    zip_safe=False
 )
