@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.7', '3.8', '3.9']
+        python-version: ['3.7', '3.8', '3.9', '3.10']
     name: "Python ${{ matrix.python-version }}"
     steps:
       - uses: actions/checkout@v2
@@ -18,9 +18,9 @@ jobs:
           architecture: x64
       - name: Lint and test module.
         run: |
-          pip install -U pylint coverage nose .
-          python -m pylint oblivious test/oblivious # Check against linting rules.
-          python -m nose --cover-erase # Test using nose.
+          pip install -U pylint pytest pytest-cov .
+          python -m pylint oblivious ./test/test_oblivious.py # Check against linting rules.
+          python -m pytest # Run tests.
       - name: Publish coverage results.
         run: |
           pip install -U pylint coveralls

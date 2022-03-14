@@ -8,21 +8,21 @@ with open("README.rst", "r") as fh:
 
 # The lines below are parsed by `docs/conf.py`.
 name = "oblivious"
-version = "4.1.0"
+version = "5.0.0"
 
 setup(
     name=name,
     version=version,
     packages=[name,],
     install_requires=[
-        "parts~=1.1.2",
-        "bitlist~=0.5.1",
-        "fountains~=1.1.1",
-        "fe25519~=1.0.0",
-        "ge25519~=1.0.0",
-        "six~=1.16.0",
-        "cffi~=1.14.6",
-        "rbcl~=0.2.0"
+        "parts~=1.3",
+        "bitlist~=0.7",
+        "fountains~=1.3",
+        "fe25519~=1.2",
+        "ge25519~=1.2",
+        "six~=1.16",
+        "cffi~=1.15",
+        "rbcl~=0.2"
     ],
     license="MIT",
     url="https://github.com/nthparty/oblivious",
@@ -33,6 +33,4 @@ setup(
                 "and PSI protocols.",
     long_description=long_description,
     long_description_content_type="text/x-rst",
-    test_suite="nose.collector",
-    tests_require=["nose"],
 )
