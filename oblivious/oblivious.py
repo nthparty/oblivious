@@ -13,10 +13,11 @@ encapsulate pure Python and shared/dynamic library variants of the above.
 
 * If a shared/dynamic library instance of the
   `libsodium <https://doc.libsodium.org/>`_ library is found on the
-  system and successfully loaded at the time this module is imported,
-  then the wrapper class :obj:`sodium` is defined and exports a wrapper
-  (around the appropriate function in the dynamic/shared library) for
-  every operation and class method exported by this module as a whole.
+  system (and successfully loaded at the time this module is imported) or
+  the optional `rbcl <https://pypi.org/project/rbcl/>`_ package is
+  installed, then the wrapper class :obj:`sodium` is defined and exports
+  a wrapper around the appropriate function in the dynamic/shared library
+  for every operation and class method exported by this module as a whole.
   Otherwise, the exported variable ``sodium`` is assigned ``None``.
 
 * All operations and class methods exported by this module correspond to
@@ -35,19 +36,29 @@ import ctypes.util
 import secrets
 import base64
 import ge25519
-import rbcl
 
-# Add synonyms to deal with variations in capitalization of function names.
-setattr(
-    rbcl,
-    'crypto_core_ristretto255_scalarbytes',
-    lambda: rbcl.crypto_core_ristretto255_SCALARBYTES
-)
-setattr(
-    rbcl,
-    'crypto_core_ristretto255_bytes',
-    lambda: rbcl.crypto_core_ristretto255_BYTES
-)
+#
+# Attempt to load rbcl. If no local libsodium shared/dynamic library file
+# is found, only native Python implementations of the functions and methods
+# will be available.
+#
+
+try: # pragma: no cover
+    import rbcl # pylint: disable=E0401
+
+    # Add synonyms to deal with variations in capitalization of function names.
+    setattr(
+        rbcl,
+        'crypto_core_ristretto255_scalarbytes',
+        lambda: rbcl.crypto_core_ristretto255_SCALARBYTES
+    )
+    setattr(
+        rbcl,
+        'crypto_core_ristretto255_bytes',
+        lambda: rbcl.crypto_core_ristretto255_BYTES
+    )
+except: # pragma: no cover
+    rbcl = None
 
 #
 # Use native Python implementations of primitives by default.
@@ -646,7 +657,7 @@ try:
             function(buf)
         return buf.raw
 
-    def _call_variant_wrapped(length, function, x=None, y=None): # pylint: disable=W0613
+    def _call_variant_wrapped(_, function, x=None, y=None): # pragma: no cover
         """
         Wrapper to invoke external (wrapped) function.
         """
@@ -676,8 +687,9 @@ try:
                     except:
                         continue
 
-        # Default to bindings exported by the rbcl library if the above attempts failed.
-        if _sodium is None: # pragma: no cover
+        # Default to bindings exported by the rbcl library if the above attempts
+        # failed and rbcl is available.
+        if _sodium is None and rbcl is not None: # pragma: no cover
             _sodium = rbcl
             _call_variant = _call_variant_wrapped
 
@@ -711,8 +723,9 @@ try:
            in the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH``
            environment variables.
 
-        3. It reverts to the compiled subset of libsodium included in
-           the `rbcl <https://pypi.org/project/rbcl/>`_ package.
+        3. If the `rbcl <https://pypi.org/project/rbcl/>`_ package is
+           installed, it reverts to the compiled subset of libsodium
+           included in that package.
 
         If all of the above fail, then :obj:`sodium` is assigned
         the value ``None`` and all functions and class methods exported by

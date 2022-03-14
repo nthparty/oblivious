@@ -19,10 +19,7 @@ setup(
         "bitlist~=0.7",
         "fountains~=1.3",
         "fe25519~=1.2",
-        "ge25519~=1.2",
-        "six~=1.16",
-        "cffi~=1.15",
-        "rbcl~=0.2"
+        "ge25519~=1.2"
     ],
     license="MIT",
     url="https://github.com/nthparty/oblivious",

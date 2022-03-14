@@ -8,7 +8,6 @@ primitives.
 from importlib import import_module
 import base64
 from bitlist import bitlist
-import rbcl
 from fountains import fountains
 from unittest import TestCase # pylint: disable=C0411
 
@@ -89,7 +88,7 @@ def sodium_hidden_and_fallback(hidden=False, fallback=False):
         oblivious.sodium = None
     elif fallback:
         oblivious.sodium = sodium_restore
-        oblivious.sodium._lib = rbcl
+        oblivious.sodium._lib = oblivious.rbcl
         oblivious.sodium._call = oblivious.sodium._call_wrapped
     else:
         oblivious.sodium = sodium_restore
@@ -545,14 +544,18 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
     Test_types_native_no_sodium,
     Test_algebra_native_no_sodium
 ) = define_classes(oblivious.native, hidden=True)
-(
-    Test_primitives_sodium_rbcl_no_sodium,
-    Test_classes_sodium_rbcl_no_sodium,
-    Test_types_sodium_rbcl_no_sodium,
-    Test_algebra_sodium_rbcl_no_sodium
-) = define_classes(oblivious.sodium, fallback=True)
+
+if oblivious.rbcl is not None:
+    (
+        Test_primitives_sodium_rbcl_no_sodium,
+        Test_classes_sodium_rbcl_no_sodium,
+        Test_types_sodium_rbcl_no_sodium,
+        Test_algebra_sodium_rbcl_no_sodium
+    ) = define_classes(oblivious.sodium, fallback=True)
+
 (Test_primitives_native, Test_classes_native, Test_types_native, Test_algebra_native) =\
     define_classes(oblivious.native)
+
 (Test_primitives_sodium, Test_classes_sodium, Test_types_sodium, Test_algebra_sodium) =\
     define_classes(oblivious.sodium)
 

@@ -101,11 +101,11 @@ The operations and class methods exported by the ``oblivious`` module directly (
 
 1. Under all conditions, the wrapper class ``native`` is defined and encapsulates a pure Python variant of every operation and class method available in the ``oblivious`` module. **As a starting default**, all operations and classes exported directly by the ``oblivious`` module correspond to the pure Python implementations.
 
-2. If a shared/dynamic library instance of  libsodium is found on the system and successfully loaded during one of the attempts below, then the wrapper class ``sodium`` is defined:
+2. If a shared/dynamic library instance of libsodium is found on the system and successfully loaded during one of the attempts below, then the wrapper class ``sodium`` is defined:
 
    a. the built-in ``ctypes.util.find_library`` function is able to locate ``'sodium'`` or ``'libsodium'`` and it is loaded successfully;
    b. a file ``libsodium.so`` or ``libsodium.dll`` in the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH`` environment variables is found and loaded successfully; or
-   c. the compiled subset of libsodium included in the `rbcl <https://pypi.org/project/rbcl/>`_ package is loaded successfully.
+   c. the optional `rbcl <https://pypi.org/project/rbcl/>`_ package is installed and the compiled subset of libsodium included in that package is loaded successfully.
 
 3. If ``sodium`` is **not** ``None``, then the ``sodium`` class encapsulates libsodium wrappers for every operation and class supported by the ``oblivious`` module. Furthermore, **those operations and classes exported directly by the library are redefined** to use the bindings available in the loaded instance of libsodium. The ``native`` class is still exported, as well, and all operations and class methods encapsulated within ``native`` remain as-is (*i.e.*, pure Python implementations).
 
@@ -121,7 +121,7 @@ The documentation can be generated automatically from the source files using `Sp
 
 Testing and Conventions
 -----------------------
-All unit tests are executed and their coverage is measured when using `pytest <https://docs.pytest.org/>`_ (see ``setup.cfg`` for configuration details)::
+All unit tests are executed and their coverage is measured when using `pytest <https://docs.pytest.org/>`_ (see ``setup.cfg`` for configuration details, and note that unit tests that require `rbcl <https://pypi.org/project/rbcl/>`_ are skipped if that optional package is not installed)::
 
     python -m pip install pytest pytest-cov
     python -m pytest
