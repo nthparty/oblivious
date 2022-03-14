@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>oblivious module &mdash; oblivious 4.0.1 documentation</title>
+  <title>oblivious module &mdash; oblivious 5.0.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -29,7 +29,7 @@
             <a href="../index.html" class="icon icon-home"> oblivious
           </a>
               <div class="version">
-                4.0.1
+                5.0.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -81,10 +81,11 @@ exports a pure Python variant of every operation and class method
 exported by this module as a whole.</p></li>
 <li><p>If a shared/dynamic library instance of the
 <a class="reference external" href="https://doc.libsodium.org/">libsodium</a> library is found on the
-system and successfully loaded at the time this module is imported,
-then the wrapper class <a class="reference internal" href="#oblivious.oblivious.sodium" title="oblivious.oblivious.sodium"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium</span></code></a> is defined and exports a wrapper
-(around the appropriate function in the dynamic/shared library) for
-every operation and class method exported by this module as a whole.
+system (and successfully loaded at the time this module is imported) or
+the optional <a class="reference external" href="https://pypi.org/project/rbcl/">rbcl</a> package is
+installed, then the wrapper class <a class="reference internal" href="#oblivious.oblivious.sodium" title="oblivious.oblivious.sodium"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium</span></code></a> is defined and exports
+a wrapper around the appropriate function in the dynamic/shared library
+for every operation and class method exported by this module as a whole.
 Otherwise, the exported variable <code class="docutils literal notranslate"><span class="pre">sodium</span></code> is assigned <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 <li><p>All operations and class methods exported by this module correspond to
 the variants defined by <a class="reference internal" href="#oblivious.oblivious.sodium" title="oblivious.oblivious.sodium"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium</span></code></a> if a dynamic/shared library is
@@ -146,8 +147,9 @@ or <code class="docutils literal notranslate"><span class="pre">'libsodium'</spa
 <li><p>It attempts to find a file <code class="docutils literal notranslate"><span class="pre">libsodium.so</span></code> or <code class="docutils literal notranslate"><span class="pre">libsodium.dll</span></code>
 in the paths specified by the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> and <code class="docutils literal notranslate"><span class="pre">LD_LIBRARY_PATH</span></code>
 environment variables.</p></li>
-<li><p>It reverts to the compiled subset of libsodium included in
-the <a class="reference external" href="https://pypi.org/project/rbcl/">rbcl</a> package.</p></li>
+<li><p>If the <a class="reference external" href="https://pypi.org/project/rbcl/">rbcl</a> package is
+installed, it reverts to the compiled subset of libsodium
+included in that package.</p></li>
 </ol>
 <p>If all of the above fail, then <a class="reference internal" href="#oblivious.oblivious.sodium" title="oblivious.oblivious.sodium"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sodium</span></code></a> is assigned
 the value <code class="docutils literal notranslate"><span class="pre">None</span></code> and all functions and class methods exported by
