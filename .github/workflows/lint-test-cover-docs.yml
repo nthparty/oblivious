@@ -30,7 +30,7 @@ jobs:
         run: |
           pip install -U pylint coveralls
           python -m coveralls --service=github # Submit to coveralls.
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8' && matrix.rbcl == 'install'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Test auto-generation of documentation.
