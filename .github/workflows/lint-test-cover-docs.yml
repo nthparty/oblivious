@@ -24,7 +24,7 @@ jobs:
       - name: Lint and test module.
         run: |
           pip install -U pylint pytest pytest-cov .
-          python -m pylint oblivious ./test/test_oblivious.py # Check against linting rules.
+          python -m pylint oblivious ./test/test_ristretto.py # Check against linting rules.
           python -m pytest # Run tests.
       - name: Publish coverage results.
         run: |

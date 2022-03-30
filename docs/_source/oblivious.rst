@@ -2,7 +2,7 @@ oblivious module
 ================
 
 
-.. automodule:: oblivious.oblivious
+.. automodule:: oblivious.ristretto
    :members:
    :undoc-members:
    :show-inheritance:

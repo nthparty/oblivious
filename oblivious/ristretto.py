@@ -1,8 +1,7 @@
 """
-Python library that serves as an API for common cryptographic primitives
-used to implement OPRF, OT, and PSI protocols.
+.. module:: ristretto
 
-This library exports a collection of primitive operations for working
+This module exports a collection of primitive operations for working
 with elliptic curve points and scalars, classes for representing points,
 classes for representing scalars, and two wrapper classes/namespaces that
 encapsulate pure Python and shared/dynamic library variants of the above.

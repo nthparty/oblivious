@@ -37,13 +37,13 @@ The package is available on `PyPI <https://pypi.org/project/oblivious/>`_::
 The library can be imported in the usual ways::
 
     import oblivious
-    from oblivious import *
+    from oblivious import ristretto
 
 Examples
 ^^^^^^^^
 This library supports concise construction of elliptic curve points and scalars::
 
-    >>> from oblivious import point, scalar
+    >>> from oblivious.ristretto import point, scalar
     >>> p = point.hash('abc'.encode()) # Point derived from a hash of a string.
     >>> s = scalar() # Random scalar.
 
@@ -74,11 +74,11 @@ In addition, Base64 conversion methods are included to support concise encoding 
 Using Native Python or Shared/Dynamic Library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In addition to the operations and classes exported by this library, two wrapper classes/namespaces are also exported: ``native`` and ``sodium``. These encapsulate pure Python implementations and shared/dynamic library (*i.e.*, libsodium) wrappers, respectively, of all operations and classes available in the ``oblivious`` module. This makes it possible to explicitly choose whether an operation requires only Python or also requires the presence of a compiled copy of libsodium on the host system.
+In addition to the operations and classes exported by each library module, two wrapper classes/namespaces are also exported: ``native`` and ``sodium``. These encapsulate pure Python implementations and shared/dynamic library (*i.e.*, libsodium) wrappers, respectively, of all operations and classes available in the ``ristretto`` module. This makes it possible to explicitly choose whether an operation requires only Python or also requires the presence of a compiled copy of libsodium on the host system.
 
 The example below uses native Python implementations of the scalar multiplication operation (relying on the `ge25519 <https://pypi.org/project/ge25519>`_ library)::
 
-    >>> from oblivious import native
+    >>> from oblivious.ristretto import native
     >>> p = native.point.hash('abc'.encode())
     >>> s = native.scalar.hash('123'.encode())
     >>> (s * p).to_base64()
@@ -86,7 +86,7 @@ The example below uses native Python implementations of the scalar multiplicatio
 
 To check whether an instance of the libsodium shared/dynamic library has been loaded successfully, the check below can be performed::
 
-    >>> from oblivious import sodium
+    >>> from oblivious.ristretto import sodium
     >>> sodium is not None # Was the dynamic/shared library loaded?
     True
 
@@ -97,9 +97,9 @@ In the example below, the scalar multiplication operation invokes a binding for 
     >>> (s * p).to_base64()
     'SrC7vA9sSR5f4E27ALxk14MPotTYR6B33B4ZN+mQXFA='
 
-The operations and class methods exported by the ``oblivious`` module directly (*e.g.*, the method ``__add__`` within the class ``point`` that is imported via the statement ``from oblivious import point``) correspond either (A) to libsodium wrappers if an instance of libsodium is found and loaded or (B) to pure Python implementations if all attempts to load a working instances of libsodium fail. The ordered list below summarizes what definitions are exported under various conditions and the ordered sequence of attempts to locate and load an instance of libsodium.
+The operations and class methods exported by the ``ristretto`` module directly (*e.g.*, the method ``__add__`` within the class ``point`` that is imported via the statement ``from oblivious.ristretto import point``) correspond either (A) to libsodium wrappers if an instance of libsodium is found and loaded or (B) to pure Python implementations if all attempts to load a working instances of libsodium fail. The ordered list below summarizes what definitions are exported under various conditions and the ordered sequence of attempts to locate and load an instance of libsodium.
 
-1. Under all conditions, the wrapper class ``native`` is defined and encapsulates a pure Python variant of every operation and class method available in the ``oblivious`` module. **As a starting default**, all operations and classes exported directly by the ``oblivious`` module correspond to the pure Python implementations.
+1. Under all conditions, the wrapper class ``native`` is defined and encapsulates a pure Python variant of every operation and class method available in the ``ristretto`` module. **As a starting default**, all operations and classes exported directly by the ``ristretto`` module correspond to the pure Python implementations.
 
 2. If a shared/dynamic library instance of libsodium is found on the system and successfully loaded during one of the attempts below, then the wrapper class ``sodium`` is defined:
 
@@ -107,7 +107,7 @@ The operations and class methods exported by the ``oblivious`` module directly (
    b. a file ``libsodium.so`` or ``libsodium.dll`` in the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH`` environment variables is found and loaded successfully; or
    c. the optional `rbcl <https://pypi.org/project/rbcl/>`_ package is installed and the compiled subset of libsodium included in that package is loaded successfully.
 
-3. If ``sodium`` is **not** ``None``, then the ``sodium`` class encapsulates libsodium wrappers for every operation and class supported by the ``oblivious`` module. Furthermore, **those operations and classes exported directly by the library are redefined** to use the bindings available in the loaded instance of libsodium. The ``native`` class is still exported, as well, and all operations and class methods encapsulated within ``native`` remain as-is (*i.e.*, pure Python implementations).
+3. If ``sodium`` is **not** ``None``, then the ``sodium`` class encapsulates libsodium wrappers for every operation and class supported by the ``ristretto`` module. Furthermore, **those operations and classes exported directly by the library are redefined** to use the bindings available in the loaded instance of libsodium. The ``native`` class is still exported, as well, and all operations and class methods encapsulated within ``native`` remain as-is (*i.e.*, pure Python implementations).
 
 Documentation
 -------------
@@ -128,12 +128,12 @@ All unit tests are executed and their coverage is measured when using `pytest <h
 
 Concise unit tests are implemented with the help of `fountains <https://pypi.org/project/fountains/>`_; new reference specifications for these tests can be generated by running the testing module directly::
 
-    python test/test_oblivious.py
+    python test/test_ristretto.py
 
 Style conventions are enforced using `Pylint <https://www.pylint.org/>`_::
 
     python -m pip install pylint
-    python -m pylint oblivious ./test/test_oblivious.py
+    python -m pylint oblivious ./test/test_ristretto.py
 
 Contributions
 -------------

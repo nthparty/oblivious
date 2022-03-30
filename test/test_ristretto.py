@@ -11,16 +11,21 @@ from bitlist import bitlist
 from fountains import fountains
 from unittest import TestCase # pylint: disable=C0411
 
-from oblivious import oblivious
+try:
+    from oblivious import ristretto
+except: # To support generation of reference specifications for unit tests.
+    import sys
+    sys.path.append('./oblivious')
+    import ristretto
 
 # Constant for the number of input-output pairs to include in each test.
 TRIALS_PER_TEST = 16
 
 # To simulate an environment in which sodium is absent, some tests set
-# `oblivious.sodium` to `None` or modify `oblivious.sodium._sodium`;
+# `ristretto.sodium` to `None` or modify `ristretto.sodium._sodium`;
 # the references below are used for restoration.
-sodium_lib_restore = oblivious.sodium._lib # pylint: disable=W0212
-sodium_restore = oblivious.sodium
+sodium_lib_restore = ristretto.sodium._lib # pylint: disable=W0212
+sodium_restore = ristretto.sodium
 
 def api_methods():
     """
@@ -40,22 +45,20 @@ class Test_namespace(TestCase):
 
     def test_init(self):
         init = import_module('oblivious.__init__')
-        self.assertTrue('native' in init.__dict__)
-        self.assertTrue('sodium' in init.__dict__)
-        self.assertTrue(api_methods().issubset(init.__dict__.keys()))
+        self.assertTrue('ristretto' in init.__dict__)
 
-    def test_module(self):
-        module = import_module('oblivious.oblivious')
+    def test_modules(self):
+        module = import_module('oblivious.ristretto')
         self.assertTrue('native' in module.__dict__)
         self.assertTrue('sodium' in module.__dict__)
         self.assertTrue(api_methods().issubset(module.__dict__.keys()))
 
     def test_native(self):
-        self.assertTrue(api_methods().issubset(set(dir(oblivious.native))))
+        self.assertTrue(api_methods().issubset(set(dir(ristretto.native))))
 
     def test_sodium(self):
-        if oblivious.sodium is not None:
-            self.assertTrue(api_methods().issubset(set(dir(oblivious.sodium))))
+        if ristretto.sodium is not None:
+            self.assertTrue(api_methods().issubset(set(dir(ristretto.sodium))))
 
 def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R1710
     """
@@ -85,15 +88,15 @@ def sodium_hidden_and_fallback(hidden=False, fallback=False):
     """
     # pylint: disable=W0212
     if hidden:
-        oblivious.sodium = None
+        ristretto.sodium = None
     elif fallback:
-        oblivious.sodium = sodium_restore
-        oblivious.sodium._lib = oblivious.rbcl
-        oblivious.sodium._call = oblivious.sodium._call_wrapped
+        ristretto.sodium = sodium_restore
+        ristretto.sodium._lib = ristretto.rbcl
+        ristretto.sodium._call = ristretto.sodium._call_wrapped
     else:
-        oblivious.sodium = sodium_restore
-        oblivious.sodium._lib = sodium_lib_restore
-        oblivious.sodium._call = oblivious.sodium._call_unwrapped
+        ristretto.sodium = sodium_restore
+        ristretto.sodium._lib = sodium_lib_restore
+        ristretto.sodium._call = ristretto.sodium._call_unwrapped
 
 def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
     """
@@ -543,21 +546,21 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
     Test_classes_native_no_sodium,
     Test_types_native_no_sodium,
     Test_algebra_native_no_sodium
-) = define_classes(oblivious.native, hidden=True)
+) = define_classes(ristretto.native, hidden=True)
 
-if oblivious.rbcl is not None:
+if ristretto.rbcl is not None:
     (
         Test_primitives_sodium_rbcl_no_sodium,
         Test_classes_sodium_rbcl_no_sodium,
         Test_types_sodium_rbcl_no_sodium,
         Test_algebra_sodium_rbcl_no_sodium
-    ) = define_classes(oblivious.sodium, fallback=True)
+    ) = define_classes(ristretto.sodium, fallback=True)
 
 (Test_primitives_native, Test_classes_native, Test_types_native, Test_algebra_native) =\
-    define_classes(oblivious.native)
+    define_classes(ristretto.native)
 
 (Test_primitives_sodium, Test_classes_sodium, Test_types_sodium, Test_algebra_sodium) =\
-    define_classes(oblivious.sodium)
+    define_classes(ristretto.sodium)
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.

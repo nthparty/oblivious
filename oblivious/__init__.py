@@ -1,6 +1,8 @@
-"""Gives users direct access to classes and functions."""
-from oblivious.oblivious import\
-    native, sodium,\
-    point, scalar,\
-    scl, rnd, inv, smu,\
-    pnt, bas, mul, add, sub
+"""
+Python library that serves as an API for common cryptographic primitives
+used to implement OPRF, OT, and PSI protocols.
+
+This module gives users direct access to the individual modules, each of
+which is dedicated to a specific curve and its associated classes/methods.
+"""
+from oblivious import ristretto
