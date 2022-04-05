@@ -38,6 +38,7 @@ The library can be imported in the usual ways::
 
     import oblivious
     from oblivious import ristretto
+    from oblivious import bn254
 
 Examples
 ^^^^^^^^
@@ -46,6 +47,12 @@ This library supports concise construction of elliptic curve points and scalars:
     >>> from oblivious.ristretto import point, scalar
     >>> p = point.hash('abc'.encode()) # Point derived from a hash of a string.
     >>> s = scalar() # Random scalar.
+
+    >>> from oblivious import bn254 as obn
+    >>> s = obn.scalar.random()
+    >>> p = obn.point.random()
+    >>> q = obn.point.base(s)
+    >>> p * q
 
 Built-in Python operators are overloaded to support point operations (addition, subtraction, negation, and equality) and scalar operations (multiplication by a scalar and inversion of scalars)::
 
