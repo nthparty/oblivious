@@ -48,10 +48,10 @@ This library supports concise construction of elliptic curve points and scalars:
     >>> p = point.hash('abc'.encode()) # Point derived from a hash of a string.
     >>> s = scalar() # Random scalar.
 
-    >>> from oblivious import bn254 as obn
-    >>> s = obn.scalar.random()
-    >>> p = obn.point.random()
-    >>> q = obn.point.base(s)
+    >>> from oblivious.bn254 import point, scalar
+    >>> s = scalar.random()
+    >>> p = point.random()
+    >>> q = point.base(s)
     >>> p * q
 
 Built-in Python operators are overloaded to support point operations (addition, subtraction, negation, and equality) and scalar operations (multiplication by a scalar and inversion of scalars)::
