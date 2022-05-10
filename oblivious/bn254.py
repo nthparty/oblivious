@@ -16,12 +16,7 @@ encapsulate pure Python and shared/dynamic library variants of the above.
 from __future__ import annotations
 from typing import Union, Optional
 import doctest
-import platform
-import os
 import hashlib
-import ctypes
-import ctypes.util
-import secrets
 import base64
 
 from bn254.ecp2 import generator as get_base
@@ -37,6 +32,35 @@ from bn254.curve import r
 #
 
 class native:
+    """
+    Wrapper class for native Python implementations of
+    primitive operations.
+
+    This class encapsulates pure Python variants of all
+    primitive operations and classes exported by this module:
+    :obj:`native.scl <scl>`, :obj:`native.rnd <rnd>`,
+    :obj:`native.inv <inv>`, :obj:`native.smu <smu>`,
+    :obj:`native.pnt <pnt>`, :obj:`native.bas <bas>`,
+    :obj:`native.mul <mul>`, :obj:`native.point <point>`,
+    and :obj:`native.scalar <scalar>`.
+    For example, you can perform addition of points using
+    the pure Python point addition implementation.
+
+    >>> p = native.pnt()
+    >>> q = native.pnt()
+    >>> native.add(p, q) == native.add(q, p)
+    True
+
+    Pure Python variants of the :obj:`native.point <point>`
+    and :obj:`native.scalar <scalar>` classes always employ pure
+    Python implementations of operations when their methods are
+    invoked.
+
+    >>> p = native.point()
+    >>> q = native.point()
+    >>> p + q == q + p
+    True
+    """
     @classmethod
     def scl(cls, s: bytes = None) -> Optional[bytes]:
         """
@@ -170,8 +194,6 @@ smu = native.smu
 pnt = native.pnt
 bas = native.bas
 mul = native.mul
-# add = native.add
-# sub = native.sub
 par = native.par
 _zero = lambda bs : bs == bytes([0]*32) or bs == bytes([0]*31+[1]+[0]*(384-32))
 
@@ -276,30 +298,6 @@ class point(bytes):
         'f61b377aa86050aaa88c90f4a4a0f1e36b0000cf46f6a34232c2f1da7a799f16'
         """
         p = native.mul(other, self)
-        return None if _zero(p) else native.point(p)
-
-    def __add__(self: point, other: point) -> Optional[point]:
-        """
-        Return sum of this point and another point.
-
-        >>> p = point.hash('123'.encode())
-        >>> q = point.hash('456'.encode())
-        >>> (p + q).hex()
-        '7076739c9df665d416e68b9512f5513bf1d0181a2aacefdeb1b7244528a4dd77'
-        """
-        p = native.add(self, other)
-        return None if _zero(p) else native.point(p)
-
-    def __sub__(self: point, other: point) -> Optional[point]:
-        """
-        Return the result of subtracting another point from this point.
-
-        >>> p = point.hash('123'.encode())
-        >>> q = point.hash('456'.encode())
-        >>> (p - q).hex()
-        '1a3199ca7debfe31a90171696d8bab91b99eb23a541b822a7061b09776e1046c'
-        """
-        p = native.sub(self, other)
         return None if _zero(p) else native.point(p)
 
     def to_base64(self: point) -> str:

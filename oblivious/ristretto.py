@@ -186,9 +186,9 @@ class native:
     True
 
     Pure Python variants of the :obj:`native.point <point>`
-    and :obj:`native.scalar <scalar>` classes will always
-    employ pure Python implementations of operations when
-    their methods are invoked.
+    and :obj:`native.scalar <scalar>` classes always employ pure
+    Python implementations of operations when their methods are
+    invoked.
 
     >>> p = native.point()
     >>> q = native.point()
