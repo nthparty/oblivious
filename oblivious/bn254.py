@@ -274,17 +274,16 @@ class point(bytes):
         """
         return bytes.__new__(cls, bs) if bs is not None else cls.random()
 
-    def __mul__(self: point, other: point) -> Optional[point]:
+    def __mul__(self: point, other):
         """
-        Pair this point with a point in the complementary group and return the result.
+        Use of this method is not permitted. A point cannot be a left-hand argument.
 
-        >>> p = point.hash('123'.encode())
-        >>> s = scalar.hash('456'.encode())
-        >>> (s * p).hex()
-        'f61b377aa86050aaa88c90f4a4a0f1e36b0000cf46f6a34232c2f1da7a799f16'
+        >>> point() * scalar()
+        Traceback (most recent call last):
+          ...
+        TypeError: point must be on right-hand side of multiplication operator
         """
-        p = native.par(other, self)
-        return None if _zero(p) else native.point(p)
+        raise TypeError('point must be on right-hand side of multiplication operator')
 
     def __rmul__(self: point, other: scalar) -> Optional[point]:
         """
@@ -296,6 +295,18 @@ class point(bytes):
         'f61b377aa86050aaa88c90f4a4a0f1e36b0000cf46f6a34232c2f1da7a799f16'
         """
         p = native.mul(other, self)
+        return None if _zero(p) else native.point(p)
+
+    def __matmul__(self: point, other: point) -> Optional[point]:
+        """
+        Pair this point with a point in the complementary group and return the result.
+
+        >>> p = point.hash('123'.encode())
+        >>> q = point.hash('456'.encode())
+        >>> (p @ q).hex()[::9]
+        '15693752a60e3fb006e4965d87fb8527cf981a4a70f1801599945524dba0790d17bd1e9b296f4c515b9cb0'
+        """
+        p = native.par(other, self)
         return None if _zero(p) else native.point(p)
 
     def to_base64(self: point) -> str:
@@ -423,17 +434,6 @@ class scalar(bytes):
         p = native.mul(self, other)
         # return None if _zero(p) else native.point(p)
         return native.point(p)
-
-    # def __rmul__(self: scalar, other: point):
-    #     """
-    #     Use of this method is not permitted. A point cannot be a left-hand argument.
-
-    #     >>> point() * scalar()
-    #     Traceback (most recent call last):
-    #       ...
-    #     TypeError: point must be on right-hand side of multiplication operator
-    #     """
-    #     raise TypeError('point must be on right-hand side of multiplication operator')
 
     def __rmul__(self: scalar, other: Union[scalar, point]):
         """
