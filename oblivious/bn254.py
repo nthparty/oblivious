@@ -43,12 +43,12 @@ class native:
     :obj:`native.pnt <pnt>`, :obj:`native.bas <bas>`,
     :obj:`native.mul <mul>`, :obj:`native.point <point>`,
     and :obj:`native.scalar <scalar>`.
-    For example, you can perform addition of points using
-    the pure Python point addition implementation.
+    For example, you can perform multiplication of scalars
+    using the pure Python scalar multiplication implementation.
 
-    >>> p = native.pnt()
-    >>> q = native.pnt()
-    >>> native.add(p, q) == native.add(q, p)
+    >>> s = native.scl()
+    >>> t = native.scl()
+    >>> native.smu(s, t) == native.smu(t, s)
     True
 
     Pure Python variants of the :obj:`native.point <point>`
@@ -56,9 +56,9 @@ class native:
     Python implementations of operations when their methods are
     invoked.
 
-    >>> p = native.point()
-    >>> q = native.point()
-    >>> p + q == q + p
+    >>> p = native.scalar()
+    >>> q = native.scalar()
+    >>> p * q == q * p
     True
     """
     @classmethod
@@ -210,8 +210,8 @@ class point(bytes):
         """
         Return random point object.
 
-        >>> len(point.random())
-        32
+        >>> isinstance(point.random(), point)
+        True
         """
         return bytes.__new__(cls, native.pnt())
 
@@ -271,8 +271,6 @@ class point(bytes):
         ... )
         >>> point(bs).hex()
         '86855a2aade8225c449dd3f636abf745d6e68aee228a7644e88c28fa470a0229'
-        >>> len(point())
-        32
         """
         return bytes.__new__(cls, bs) if bs is not None else cls.random()
 
