@@ -69,7 +69,8 @@ def autodoc_skip_member_handler(app, what, name, obj, skip, options):
           'scl', 'rnd', 'inv', 'smu', 'pnt', 'bas', 'mul', 'add', 'sub',
           'point', 'scalar'
         ]:
-            delattr(obj, method)
+            if hasattr(obj, method):
+                delattr(obj, method)
 
     return skip
 

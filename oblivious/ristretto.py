@@ -1,6 +1,9 @@
 """
 .. module:: ristretto
 
+ristretto module
+================
+
 This module exports a collection of primitive operations for working
 with elliptic curve points and scalars, classes for representing points,
 classes for representing scalars, and two wrapper classes/namespaces that

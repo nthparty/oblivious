@@ -124,7 +124,7 @@ The documentation can be generated automatically from the source files using `Sp
 
     cd docs
     python -m pip install -r requirements.txt
-    sphinx-apidoc -f -E --templatedir=_templates -o _source .. ../setup.py && make html
+    sphinx-apidoc -f -e -E --templatedir=_templates -o _source .. ../setup.py && make html
 
 Testing and Conventions
 -----------------------
