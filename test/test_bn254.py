@@ -88,7 +88,6 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         """
         Direct tests of primitive operators that operate on bytes-like objects.
         """
-
         def test_rnd(self):
             shared_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
@@ -126,10 +125,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             shared_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
-                return\
-                    cls.smu(s1, s2)\
-                    if s1 is not None and s2 is not None else\
-                    bytes([0])
+                return cls.smu(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
 
         def test_pnt_none(self):
@@ -160,18 +156,14 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             ):
             shared_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
-                return\
-                    cls.mul(s2, cls.bas(s1))\
-                    if s1 is not None and s2 is not None else\
-                    bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
+                (s, p) = (cls.scl(bs[:SCALAR_LEN]), cls.pnt(bs[SCALAR_LEN:]))
+                return cls.mul(s, p) if (s is not None and p is not None) else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_LEN], bits)
 
     class Test_classes(TestCase):
         """
         Tests of point and scalar wrapper classes and their methods.
         """
-
         def test_point_random(self):
             shared_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
@@ -216,31 +208,25 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_point_rmul(
                 self,
-                bits='0206'
+                bits='0208'
             ):
             shared_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                (s1, s2) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.scalar.hash(bs[SCALAR_LEN:]))
-                return\
-                    cls.point.base(s2).__rmul__(s1)\
-                    if s1 is not None and s2 is not None else\
-                    bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
+                (s, p) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.point.bytes(bs[SCALAR_LEN:]))
+                return p.__rmul__(s) if (s is not None and p is not None) else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_LEN], bits)
 
         def test_point_scalar_mul_op(
                 self,
-                bits='0206'
+                bits='0208'
             ):
             shared_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                (s1, s2) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.scalar.hash(bs[SCALAR_LEN:]))
-                # Below, `*` invokes `scalar.__mul__`, which delegates to `mul`
+                (s, p) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.point.bytes(bs[SCALAR_LEN:]))
+                # Below, ``*`` invokes :obj:`scalar.__mul__`, which delegates to :obj:`mul`
                 # due to the type of the second argument.
-                return\
-                    s1 * cls.point.base(s2)\
-                    if s1 is not None and s2 is not None else\
-                    bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
+                return s * p if (s is not None and p is not None) else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_LEN], bits)
 
         def test_scalar_random(self):
             shared_hidden_and_fallback(hidden, fallback)
@@ -304,10 +290,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             shared_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 (s1, s2) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.scalar.hash(bs[SCALAR_LEN:]))
-                return\
-                    s1 * s2\
-                    if s1 is not None and s2 is not None else\
-                    bytes([0])
+                return s1 * s2 if (s1 is not None and s2 is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
 
     class Test_types(TestCase):
@@ -371,13 +354,11 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_types_scalar_mul_point(self):
             shared_hidden_and_fallback(hidden, fallback)
-            (bs,) = fountains(SCALAR_LEN + POINT_LEN, limit=1)
-            (s, p) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.point.hash(bs[SCALAR_LEN:]))
-            self.assertTrue(isinstance(s * p, cls.point))
+            self.assertTrue(isinstance(cls.scalar() * cls.point(), cls.point))
 
     class Test_algebra(TestCase):
         """
-        Tests of algebraic properties of primitive operators.
+        Tests of algebraic properties of primitive operations and class methods.
         """
         def test_algebra_scalar_inverse_identity(self):
             shared_hidden_and_fallback(hidden, fallback)
@@ -389,9 +370,9 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_algebra_scalar_inverse_mul_cancel(self):
             shared_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + POINT_LEN, limit=TRIALS_PER_TEST):
-                (s0, p0) = (cls.scl(bs[:SCALAR_LEN]), cls.pnt(bs[SCALAR_LEN:]))
-                if s0 is not None:
-                    self.assertEqual(cls.mul(cls.inv(s0), cls.mul(s0, p0)), p0)
+                (s, p) = (cls.scl(bs[:SCALAR_LEN]), cls.pnt(bs[SCALAR_LEN:]))
+                if s is not None:
+                    self.assertEqual(cls.mul(cls.inv(s), cls.mul(s, p)), p)
 
         def test_algebra_scalar_mul_commute(self):
             shared_hidden_and_fallback(hidden, fallback)
