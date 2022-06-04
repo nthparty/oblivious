@@ -137,7 +137,7 @@ class native:
 
         >>> p = pnt(hashlib.sha512('123'.encode()).digest())
         >>> p.hex()
-        '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
+        '021ddaa9a0e20d7f86dbc2d1cfef9b7b372193d28275c405736ad796c8a161f081'
         """
         h = hashlib.sha512(native.rnd()).digest() if h is None else h
         x = bn.from_bytes(h)
@@ -156,7 +156,7 @@ class native:
         ...     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
         ... ))
         >>> mul(s, p).hex()
-        '183a06e0fe6af5d7913afb40baefc4dd52ae718fee77a3a0af8777c89fe16210'
+        '031e80738179553a6c9183c9bcad07a815b194b70b69207748f428c518ad94f134'
         """
         s = int.from_bytes(s, byteorder='little')
         q = ECp()
@@ -170,7 +170,7 @@ class native:
         Return base point multiplied by supplied scalar.
 
         >>> bas(scalar.hash('123'.encode())).hex()
-        '4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005'
+        '020141a7039488ce94c7465cd16a0c2e03ab626c63007af2069cfefce0e92713a3'
         """
 
         return cls.mul(s, bytes(get_base().toBytes(1)))
@@ -222,7 +222,7 @@ class point(bytes):
 
         >>> p = point.bytes(hashlib.sha512('123'.encode()).digest())
         >>> p.hex()
-        '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
+        '021ddaa9a0e20d7f86dbc2d1cfef9b7b372193d28275c405736ad796c8a161f081'
         """
         return bytes.__new__(cls, native.pnt(bs))
 
@@ -232,7 +232,7 @@ class point(bytes):
         Return point object by hashing supplied bytes-like object.
 
         >>> point.hash('123'.encode()).hex()
-        '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
+        '021ddaa9a0e20d7f86dbc2d1cfef9b7b372193d28275c405736ad796c8a161f081'
         """
         return bytes.__new__(cls, native.pnt(hashlib.sha512(bs).digest()))
 
@@ -243,7 +243,7 @@ class point(bytes):
         if the scalar is valid; otherwise, return `None`.
 
         >>> point.base(scalar.hash('123'.encode())).hex()
-        '4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005'
+        '020141a7039488ce94c7465cd16a0c2e03ab626c63007af2069cfefce0e92713a3'
         """
         p = native.bas(s)
         return None if _zero(p) else bytes.__new__(cls, p)
@@ -292,7 +292,7 @@ class point(bytes):
         >>> p = point.hash('123'.encode())
         >>> s = scalar.hash('456'.encode())
         >>> (s * p).hex()
-        'f61b377aa86050aaa88c90f4a4a0f1e36b0000cf46f6a34232c2f1da7a799f16'
+        '030b0445cd96461c80a3acd7b28183b61971f995c79716203146dc523801c48965'
         """
         p = native.mul(other, self)
         return None if _zero(p) else native.point(p)
@@ -353,7 +353,7 @@ class scalar(bytes):
         Return scalar object by hashing supplied bytes-like object.
 
         >>> scalar.hash('123'.encode()).hex()
-        'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27a03'
+        '93d829354cb3592743174133104b5405ba6992b67bb219fbde3e394d70505913'
         """
         h = hashlib.sha256(bs).digest()
         s = native.scl(h)
@@ -420,11 +420,11 @@ class scalar(bytes):
         >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
         >>> p = point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=')
         >>> (s * s).hex()
-        'd4aecf034f60edc5cb32cdd5a4be6d069959aa9fd133c51c9dcfd960ee865e0f'
+        '5435c4667d60491122e1e47044890e8fa8aaa2e40b0e1380b6e918af25fcc21a'
         >>> isinstance(s * s, scalar)
         True
         >>> (s * p).hex()
-        '2208082412921a67f42ea399748190d2b889228372509f2f2d9929813d074e1b'
+        '020000000000000000000000000000000000000000000000000000000000000000'
         >>> isinstance(s * p, point)
         True
         """
