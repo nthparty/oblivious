@@ -1,7 +1,7 @@
 """
 Test suite containing functional unit tests for the exported primitives and
-classes, as well as unit tests confirming algebraic relationships among
-primitives.
+classes in the :obj:`oblivious.bn254` module, as well as unit tests
+confirming algebraic relationships among primitives.
 """
 # pylint: disable=C0103,C0116
 from unittest import TestCase
@@ -139,10 +139,10 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_pnt(
                 self,
-                bits='0211'
+                bits='0213'
             ):
             shared_hidden_and_fallback(hidden, fallback)
-            return check_or_generate_operation(self, cls.pnt, [POINT_LEN * 2], bits)
+            return check_or_generate_operation(self, cls.pnt, [POINT_LEN], bits)
 
         def test_bas(
                 self,
