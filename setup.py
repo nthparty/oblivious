@@ -8,7 +8,7 @@ with open("README.rst", "r") as fh:
 
 # The lines below are parsed by `docs/conf.py`.
 name = "oblivious"
-version = "5.0.0"
+version = "6.0.0"
 
 setup(
     name=name,
@@ -19,7 +19,8 @@ setup(
         "bitlist~=0.7",
         "fountains~=1.3",
         "fe25519~=1.2",
-        "ge25519~=1.2"
+        "ge25519~=1.2",
+        "bn254~=0.1"
     ],
     license="MIT",
     url="https://github.com/nthparty/oblivious",
