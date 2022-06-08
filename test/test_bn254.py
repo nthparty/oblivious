@@ -12,7 +12,8 @@ from fountains import fountains
 
 try:
     from oblivious import bn254
-except: # To support generation of reference specifications for unit tests.
+except: # pylint: disable=W0702
+    # To support generation of reference specifications for unit tests.
     spec = importlib.util.spec_from_file_location("bn254", "oblivious/bn254.py")
     bn254 = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(bn254)
@@ -105,7 +106,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bits='0080'
             ):
             shared_hidden_and_fallback(hidden, fallback)
-            fun = lambda bs: bitlist([1 if cls.scl(bs) is not None else 0])
+            fun = lambda bs: bitlist([1 if cls.scl(bs) is not None else 0]) # pylint: disable=C3001
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
         def test_inv(
@@ -213,6 +214,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             shared_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 (s, p) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.point.bytes(bs[SCALAR_LEN:]))
+                # pylint: disable=C2801 # Overriding overloaded method for :obj:`scalar`.
                 return p.__rmul__(s) if (s is not None and p is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_LEN], bits)
 
@@ -239,6 +241,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bits='0080'
             ):
             shared_hidden_and_fallback(hidden, fallback)
+            # pylint: disable=C3001
             fun = lambda bs: bitlist([1 if cls.scalar.bytes(bs) is not None else 0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 

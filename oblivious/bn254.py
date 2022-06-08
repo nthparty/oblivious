@@ -180,6 +180,7 @@ class native:
         """
         Pair a point with another point
         """
+        # pylint: disable=C3002 # Lambdas used for variable reuse.
         q = (lambda x : (lambda y : (ECp.fromBytes(y, bytes(x)), y))(ECp())[1])(q)
         p = (lambda x : (lambda y : (ECp2.fromBytes(y, bytes(x)), y))(ECp2())[1])(p)
         return bytes(e(p, q).toBytes())
@@ -195,6 +196,8 @@ pnt = native.pnt
 bas = native.bas
 mul = native.mul
 par = native.par
+
+# pylint: disable=C3001
 _zero = lambda bs : bs == bytes([0]*32) or bs == bytes([0]*31+[1]+[0]*(384-32))
 
 #

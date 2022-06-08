@@ -59,7 +59,7 @@ try: # pragma: no cover
         'crypto_core_ristretto255_bytes',
         lambda: rbcl.crypto_core_ristretto255_BYTES
     )
-except: # pragma: no cover
+except: # pylint: disable=W0702 # pragma: no cover
     rbcl = None
 
 #
@@ -686,7 +686,7 @@ try:
                     try:
                         _sodium = ctypes.cdll.LoadLibrary(path + os.path.sep + libf)
                         break
-                    except:
+                    except: # pylint: disable=W0702
                         continue
 
         # Default to bindings exported by the rbcl library if the above attempts
@@ -941,7 +941,7 @@ try:
     # Dedicated point and scalar data structures derived from `bytes`.
     #
 
-    class point(bytes):
+    class point(bytes): # pylint: disable=E0102
         """
         Wrapper class for a bytes-like object that corresponds
         to a point.
@@ -1074,7 +1074,7 @@ try:
             """
             return base64.standard_b64encode(self).decode('utf-8')
 
-    class scalar(bytes):
+    class scalar(bytes): # pylint: disable=E0102
         """
         Wrapper class for a bytes-like object that corresponds
         to a scalar.
@@ -1214,7 +1214,7 @@ try:
     sodium.point = point
     sodium.scalar = scalar
 
-except: # pragma: no cover
+except: # pylint: disable=W0702 # pragma: no cover
     # Exported symbol.
     sodium = None # pragma: no cover
 
