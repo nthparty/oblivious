@@ -140,7 +140,7 @@ Concise unit tests are implemented with the help of `fountains <https://pypi.org
 
 Style conventions are enforced using `Pylint <https://www.pylint.org/>`_::
 
-    python -m pip install pylint
+    python -m pip install pylint~=2.14
     python -m pylint oblivious ./test/test_ristretto.py ./test/test_bn254.py
 
 Contributions

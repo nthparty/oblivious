@@ -23,12 +23,12 @@ jobs:
         if: matrix.rbcl == 'install'
       - name: Lint and test module.
         run: |
-          pip install -U pylint pytest pytest-cov .
+          pip install -U pylint~=2.14 pytest pytest-cov .
           python -m pylint oblivious ./test/test_ristretto.py ./test/test_bn254.py # Check against linting rules.
           python -m pytest # Run tests.
       - name: Publish coverage results.
         run: |
-          pip install -U pylint coveralls
+          pip install -U coveralls
           python -m coveralls --service=github # Submit to coveralls.
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8' && matrix.rbcl == 'install'
         env:
