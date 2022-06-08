@@ -23,7 +23,7 @@ jobs:
         if: matrix.rbcl == 'install'
       - name: Lint and test module.
         run: |
-          pip install -U pylint~=2.14 pytest pytest-cov .
+          pip install -U pylint~=2.14.0 pytest~=7.0 pytest-cov~=3.0 .
           python -m pylint oblivious ./test/test_ristretto.py ./test/test_bn254.py # Check against linting rules.
           python -m pytest # Run tests.
       - name: Publish coverage results.
