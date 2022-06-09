@@ -185,8 +185,6 @@ class native:
         p = (lambda x : (lambda y : (ECp2.fromBytes(y, bytes(x)), y))(ECp2())[1])(p)
         return bytes(e(p, q).toBytes())
 
-
-
 # Top-level best-effort synonyms.
 scl = native.scl
 rnd = native.rnd

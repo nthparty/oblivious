@@ -83,7 +83,7 @@ def shared_hidden_and_fallback(hidden=False, fallback=False): # pylint: disable=
 def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
     """
     Define and return four classes of unit tests given a wrapper
-    class (`native` or `sodium`) for primitive operations.
+    class (*e.g.*, :obj:`native`) for primitive operations.
     """
     class Test_primitives(TestCase):
         """
@@ -161,6 +161,16 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 return cls.mul(s, p) if (s is not None and p is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_LEN], bits)
 
+        def test_par(
+                self,
+                bits='0200'
+            ):
+            shared_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                (p1, p2) = (cls.pnt(bs[:POINT_LEN]), cls.pnt(bs[POINT_LEN:]))
+                return cls.par(p1, p2) if (p1 is not None and p2 is not None) else bytes([0])
+            return check_or_generate_operation(self, fun, [POINT_LEN, POINT_LEN], bits)
+
     class Test_classes(TestCase):
         """
         Tests of point and scalar wrapper classes and their methods.
@@ -217,6 +227,17 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 # pylint: disable=C2801 # Overriding overloaded method for :obj:`scalar`.
                 return p.__rmul__(s) if (s is not None and p is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_LEN], bits)
+
+        def test_point_pair(
+                self,
+                bits='0618'
+            ):
+            shared_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                (p0, p1) = (cls.point.bytes(bs[:POINT_LEN]), cls.point.bytes(bs[POINT_LEN:]))
+                p2 = p0 @ p1 if (p0 is not None and p1 is not None) else bytes([0])
+                return p2 if p2 is not None else bytes([0])
+            return check_or_generate_operation(self, fun, [POINT_LEN, POINT_LEN], bits)
 
         def test_point_scalar_mul_op(
                 self,
