@@ -20,8 +20,8 @@ sys.path.insert(0, os.path.abspath('..'))
 # The name and version are retrieved from `setup.py` in the root directory.
 with open('../setup.py') as package_file:
     package = package_file.read()
-project = package.split('name = "')[1].split('"')[0]
-version = package.split('version = "')[1].split('"')[0]
+project = package.split("name = '")[1].split("'")[0]
+version = package.split("version = '")[1].split("'")[0]
 release = version
 
 author = 'Nth Party, Ltd.'
