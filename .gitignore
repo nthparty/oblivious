@@ -132,9 +132,6 @@ dmypy.json
 # Coverage reports
 cover/
 
-# Requirements file is auto-generated
-requirements.txt
-
 # Manually added
 sandbox/
 .idea
