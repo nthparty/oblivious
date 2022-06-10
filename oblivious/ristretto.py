@@ -14,9 +14,9 @@ encapsulate pure Python and shared/dynamic library variants of the above.
   exported by this module as a whole.
 
 * If a shared/dynamic library instance of the
-  `libsodium <https://doc.libsodium.org/>`_ library is found on the
+  `libsodium <https://doc.libsodium.org>`__ library is found on the
   system (and successfully loaded at the time this module is imported) or
-  the optional `rbcl <https://pypi.org/project/rbcl/>`_ package is
+  the optional `rbcl <https://pypi.org/project/rbcl>`__ package is
   installed, then the wrapper class :obj:`sodium` is defined and exports
   a wrapper around the appropriate function in the dynamic/shared library
   for every operation and class method exported by this module as a whole.
@@ -715,7 +715,7 @@ try:
 
         When this module is imported, it makes a number of attempts
         to locate an instance of the shared/dynamic library file of the
-        `libsodium <https://doc.libsodium.org/>`_ library on the host
+        `libsodium <https://doc.libsodium.org>`__ library on the host
         system. The sequence of attempts is listed below, in order.
 
         1. It uses ``ctypes.util.find_library`` to look for ``'sodium'``
@@ -725,7 +725,7 @@ try:
            in the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH``
            environment variables.
 
-        3. If the `rbcl <https://pypi.org/project/rbcl/>`_ package is
+        3. If the `rbcl <https://pypi.org/project/rbcl>`__ package is
            installed, it reverts to the compiled subset of libsodium
            included in that package.
 

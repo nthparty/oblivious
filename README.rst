@@ -24,13 +24,13 @@ Python library that serves as an API for common cryptographic primitives used to
 
 Purpose
 -------
-This library provides native Python implementations, Python `libsodium <https://github.com/jedisct1/libsodium>`_ wrappers, and additional utility methods for cryptographic primitives that are often used to implement `oblivious pseudorandom function (OPRF) <https://en.wikipedia.org/wiki/Pseudorandom_function_family>`_, `oblivious transfer (OT) <https://en.wikipedia.org/wiki/Oblivious_transfer>`_, and `private set intersection (PSI) <https://en.wikipedia.org/wiki/Private_set_intersection>`_ protocols.
+This library provides native Python implementations, Python `libsodium <https://github.com/jedisct1/libsodium>`__ wrappers, and additional utility methods for cryptographic primitives that are often used to implement `oblivious pseudorandom function (OPRF) <https://en.wikipedia.org/wiki/Pseudorandom_function_family>`__, `oblivious transfer (OT) <https://en.wikipedia.org/wiki/Oblivious_transfer>`__, and `private set intersection (PSI) <https://en.wikipedia.org/wiki/Private_set_intersection>`__ protocols.
 
-For more information and background about the underlying mathematical structures and primitives, consult materials about `Curve25519 <https://cr.yp.to/ecdh.html>`_, the `Ristretto <https://ristretto.group/>`_ group, and the related `Ed25519 <https://ed25519.cr.yp.to/>`_ system.
+For more information and background about the underlying mathematical structures and primitives, consult materials about `Curve25519 <https://cr.yp.to/ecdh.html>`__, the `Ristretto <https://ristretto.group>`__ group, and the related `Ed25519 <https://ed25519.cr.yp.to>`__ system.
 
 Installation and Usage
 ----------------------
-The package is available on `PyPI <https://pypi.org/project/oblivious>`__::
+The package is available as a `package on PyPI <https://pypi.org/project/oblivious>`__::
 
     python -m pip install oblivious
 
@@ -64,7 +64,7 @@ Built-in Python operators are overloaded to support point operations (addition, 
     >>> p + q == q + p
     True
 
-Because the classes ``point`` and ``scalar`` are derived from ``bytes``, `all methods and other operators <https://docs.python.org/3/library/stdtypes.html#bytes>`_ supported by ``bytes`` objects are supported by ``point`` and ``scalar`` objects::
+Because the classes ``point`` and ``scalar`` are derived from ``bytes``, `all methods and other operators <https://docs.python.org/3/library/stdtypes.html#bytes>`__ supported by ``bytes`` objects are supported by ``point`` and ``scalar`` objects::
 
     >>> hex = '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
     >>> s = scalar.fromhex(hex)
@@ -83,7 +83,7 @@ Using Native Python or Shared/Dynamic Library
 
 In addition to the operations and classes exported by each library module, two wrapper classes/namespaces are also exported: ``native`` and ``sodium``. These encapsulate pure Python implementations and shared/dynamic library (*i.e.*, libsodium) wrappers, respectively, of all operations and classes available in the ``ristretto`` module. This makes it possible to explicitly choose whether an operation requires only Python or also requires the presence of a compiled copy of libsodium on the host system.
 
-The example below uses native Python implementations of the scalar multiplication operation (relying on the `ge25519 <https://pypi.org/project/ge25519>`_ library)::
+The example below uses native Python implementations of the scalar multiplication operation (relying on the `ge25519 <https://pypi.org/project/ge25519>`__ library)::
 
     >>> from oblivious.ristretto import native
     >>> p = native.point.hash('abc'.encode())
@@ -97,7 +97,7 @@ To check whether an instance of the libsodium shared/dynamic library has been lo
     >>> sodium is not None # Was the dynamic/shared library loaded?
     True
 
-In the example below, the scalar multiplication operation invokes a binding for the ``crypto_scalarmult_ristretto255`` function `exported by libsodium <https://libsodium.gitbook.io/doc/advanced/point-arithmetic/ristretto>`_::
+In the example below, the scalar multiplication operation invokes a binding for the ``crypto_scalarmult_ristretto255`` function `exported by libsodium <https://libsodium.gitbook.io/doc/advanced/point-arithmetic/ristretto>`__::
 
     >>> p = sodium.point.hash('abc'.encode())
     >>> s = sodium.scalar.hash('123'.encode())
@@ -112,7 +112,7 @@ The operations and class methods exported by the ``ristretto`` module directly (
 
    a. the built-in ``ctypes.util.find_library`` function is able to locate ``'sodium'`` or ``'libsodium'`` and it is loaded successfully;
    b. a file ``libsodium.so`` or ``libsodium.dll`` in the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH`` environment variables is found and loaded successfully; or
-   c. the optional `rbcl <https://pypi.org/project/rbcl/>`_ package is installed and the compiled subset of libsodium included in that package is loaded successfully.
+   c. the optional `rbcl <https://pypi.org/project/rbcl>`__ package is installed and the compiled subset of libsodium included in that package is loaded successfully.
 
 3. If ``sodium`` is **not** ``None``, then the ``sodium`` class encapsulates libsodium wrappers for every operation and class supported by the ``ristretto`` module. Furthermore, **those operations and classes exported directly by the library are redefined** to use the bindings available in the loaded instance of libsodium. The ``native`` class is still exported, as well, and all operations and class methods encapsulated within ``native`` remain as-is (*i.e.*, pure Python implementations).
 
@@ -126,7 +126,7 @@ Documentation
 ^^^^^^^^^^^^^
 .. include:: toc.rst
 
-The documentation can be generated automatically from the source files using `Sphinx <https://www.sphinx-doc.org/>`_::
+The documentation can be generated automatically from the source files using `Sphinx <https://www.sphinx-doc.org>`__::
 
     python -m pip install .[docs]
     cd docs
@@ -134,40 +134,40 @@ The documentation can be generated automatically from the source files using `Sp
 
 Testing and Conventions
 ^^^^^^^^^^^^^^^^^^^^^^^
-All unit tests are executed and their coverage is measured when using `pytest <https://docs.pytest.org/>`_ (see ``setup.cfg`` for configuration details, and note that unit tests that require `rbcl <https://pypi.org/project/rbcl/>`_ are skipped if that optional package is not installed)::
+All unit tests are executed and their coverage is measured when using `pytest <https://docs.pytest.org>`__ (see ``setup.cfg`` for configuration details, and note that unit tests that require `rbcl <https://pypi.org/project/rbcl>`__ are skipped if that optional package is not installed)::
 
     python -m pip install .[test]
     python -m pytest
 
-Concise unit tests are implemented with the help of `fountains <https://pypi.org/project/fountains/>`_; new reference specifications for the tests in a given testing module can be generated by running that testing module directly::
+Concise unit tests are implemented with the help of `fountains <https://pypi.org/project/fountains>`__; new reference specifications for the tests in a given testing module can be generated by running that testing module directly::
 
     python test/test_ristretto.py
     python test/test_bn254.py
 
-Style conventions are enforced using `Pylint <https://www.pylint.org/>`_::
+Style conventions are enforced using `Pylint <https://www.pylint.org>`__::
 
     python -m pip install .[lint]
     python -m pylint oblivious ./test/test_ristretto.py ./test/test_bn254.py
 
 Contributions
 ^^^^^^^^^^^^^
-In order to contribute to the source code, open an issue or submit a pull request on the `GitHub page <https://github.com/nthparty/oblivious>`_ for this library.
+In order to contribute to the source code, open an issue or submit a pull request on the `GitHub page <https://github.com/nthparty/oblivious>`__ for this library.
 
 Versioning
 ^^^^^^^^^^
-Beginning with version 0.1.0, the version number format for this library and the changes to the library associated with version number increments conform with `Semantic Versioning 2.0.0 <https://semver.org/#semantic-versioning-200>`_.
+Beginning with version 0.1.0, the version number format for this library and the changes to the library associated with version number increments conform with `Semantic Versioning 2.0.0 <https://semver.org/#semantic-versioning-200>`__.
 
 Publishing
 ^^^^^^^^^^
-This library can be published as a `package on PyPI <https://pypi.org/project/oblivious/>`_ by a package maintainer. First, install the dependencies required for packaging and publishing::
+This library can be published as a `package on PyPI <https://pypi.org/project/oblivious>`__ by a package maintainer. First, install the dependencies required for packaging and publishing::
 
     python -m pip install .[publish]
 
-Remove any old build/distribution files. Then, package the source into a distribution archive using the `wheel <https://pypi.org/project/wheel/>`_ package::
+Remove any old build/distribution files. Then, package the source into a distribution archive using the `wheel <https://pypi.org/project/wheel>`__ package::
 
     rm -rf dist *.egg-info
     python setup.py sdist bdist_wheel
 
-Finally, upload the package distribution archive to `PyPI <https://pypi.org/>`__ using the `twine <https://pypi.org/project/twine/>`_ package::
+Finally, upload the package distribution archive to `PyPI <https://pypi.org>`__ using the `twine <https://pypi.org/project/twine>`__ package::
 
     python -m twine upload dist/*
