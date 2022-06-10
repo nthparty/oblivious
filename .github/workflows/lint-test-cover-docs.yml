@@ -23,17 +23,17 @@ jobs:
         if: matrix.rbcl == 'install'
       - name: Lint and test module.
         run: |
-          pip install -U pylint~=2.14.0 pytest~=7.0 pytest-cov~=3.0 .
+          python setup.py requirements lint test && pip install -U . -r requirements.txt
           python -m pylint oblivious ./test/test_ristretto.py ./test/test_bn254.py # Check against linting rules.
           python -m pytest # Run tests.
       - name: Publish coverage results.
         run: |
-          pip install -U coveralls
+          python setup.py requirements coveralls && pip install -U -r requirements.txt
           python -m coveralls --service=github # Submit to coveralls.
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8' && matrix.rbcl == 'install'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Test auto-generation of documentation.
         run: |
-          pip install -U -r docs/requirements.txt
+          python setup.py requirements docs && pip install -U -r requirements.txt
           cd docs && sphinx-apidoc -f -E --templatedir=_templates -o _source .. ../setup.py && make html && cd ..
