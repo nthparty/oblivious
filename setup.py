@@ -24,6 +24,10 @@ setup(
             'cffi~=1.15',
             'rbcl~=0.2'
         ],
+        'mcl': [
+            # Look Dad, no CFFI!
+            'mclbn256~=0.7'
+        ],
         'docs': [
             'sphinx~=4.2.0',
             'sphinx-rtd-theme~=1.0.0'
