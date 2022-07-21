@@ -655,7 +655,7 @@ try:
             return Fr.__new__(scalar, Fr().randomize())
 
         @classmethod
-        def scl(cls, s: bytes = None) -> Optional[Fr]:
+        def scl(cls, s: bytes = None) -> Optional[scalar]:
             """
             Return supplied byte vector if it is a valid scalar; otherwise, return
             `None`. If no byte vector is supplied, return a random scalar.
@@ -743,6 +743,17 @@ try:
             return s * G1.base_point()
 
         @staticmethod
+        def bs2(s: scalar) -> point:
+            """
+            Return base point multiplied by supplied scalar.
+
+            >>> bas(scalar.hash('123'.encode())).hex()
+            'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
+            """
+            # return s * G2.base_point()
+            return G2.__new__(point, G2.__mul__(G2.base_point(), s))
+
+        @staticmethod
         def mul(s: scalar, p: point) -> point:
             """
             Multiply the point by the supplied scalar and return the result.
@@ -757,6 +768,8 @@ try:
             # return s * p
             # return point(Fr(s) * G1(p))
             # return G1.__mul__(p, s)
+            # return p.__class__.__bases__.__new__(point, G1.__mul__(p, s))
+            # return super(mcl, point).__new__(point, G1.__mul__(p, s))
             return G1.__new__(point, G1.__mul__(p, s))
 
         @staticmethod
@@ -802,7 +815,7 @@ try:
     # Dedicated point and scalar data structures derived from `bytes`.
     #
 
-    class point(G1): # pylint: disable=E0102
+    class point(G1, G2): # pylint: disable=E0102
         """
         Wrapper class for a bytes-like object that corresponds
         to a point.
@@ -849,6 +862,18 @@ try:
             """
             p = mcl.bas(s)
             return None if p.zero() else p
+
+        @classmethod
+        def base2(cls, s: scalar) -> Optional[point]:
+            """
+            Return base point multiplied by supplied scalar
+            if the scalar is valid; otherwise, return `None`.
+
+            >>> point.base(scalar.hash('123'.encode())).hex()
+            'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
+            """
+            q = mcl.bs2(s)
+            return q#None if s.zero() else q
 
         @classmethod
         def from_base64(cls, s: str) -> point:
@@ -990,7 +1015,7 @@ try:
             object if it is possible to do; otherwise, return `None`.
 
             >>> s = scl()
-            >>> t = scalar.bytes(s)
+            >>> t = scalar.bytes(bytes(s))
             >>> s.hex() == t.hex()
             True
             """
@@ -1023,7 +1048,7 @@ try:
             return Fr.__new__(cls, base64.standard_b64decode(s))
 
         @classmethod
-        def from_hex(cls, s: str) -> point:
+        def from_hex(cls, s: str) -> scalar:
             """
             Convert the hexadecimal UTF-8 string representation of a scalar to a scalar instance.
 
@@ -1033,7 +1058,7 @@ try:
             return Fr.__new__(cls, Fr.deserialize(bytes.fromhex(s)))
 
         @classmethod
-        def from_int(cls, i: int) -> point:
+        def from_int(cls, i: int) -> scalar:
             """
             Convert an integer/residue representation of a scalar to a scalar instance.
 
@@ -1181,6 +1206,18 @@ if __name__ == "__main__":
     # sp = s * p
     #
     # assert -((~s) * (s * p)) - p == scalar(Fr(-2)) * p
+    #
+    # g1 = point.base(scalar.from_int(1))
+    # # g2 = point.base2(scalar.from_int(1))
+    # # print(g1 @ g2)
+    #
+    # # print(G2.base_point(), Fr(1))
+    # g2g2 = G2.deserialize(b'+\xfb\x03\xc8$B\xee\x91\r\xbf\x98H\xbb\x8bd\xa4\xb6\xeda\x8c~\x8c\x8d\xeb/\xb6\x9eQ\xbb\x10\x1a\x06\xf3L\xd5\xe7\xc14\x8c\r\xb7\x847\xaektM\x1f[\xaa\x82Y\x8c\xa7\n13xs\xba\xf9\xaa\x16\x05')
+    # g2 = G2.__new__(point, g2g2)
+    # print(g2)
+    # del g2, g2g2
+    # print("---")
+    # # print(g1 @ (G2().base_point() * Fr(1)))
 
 
     doctest.testmod() # pragma: no cover
