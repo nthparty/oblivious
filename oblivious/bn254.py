@@ -784,12 +784,34 @@ try:
             @staticmethod
             def par(p: Union[point, point2], q: Union[point, point2]) -> scalar2:
                 """
-                Return result of pairing the first point with the second point.
+                Compute the pairing function on two points.
 
                 >>> p = point.hash('123'.encode())
                 >>> q = point.base2(scalar.from_int(456))
                 >>> par(p, q).hex()[700:]
                 '2c06d2c375ab659e4f02bdc780fd6786ceed1c3c55c7fb6269e1846abd611a057412'
+
+                The pairing function is bilinear
+                >>> p = point.random()
+                >>> s = scalar.random()
+
+                >>> t = scalar.random()
+                >>> q = point2.random()
+                >>> -((~s) * (s * p)) - p == scalar.from_int(-2) * p
+                True
+                >>> s*t*p @ q == s*p @ (t*q)
+                True
+
+                >>> x = y = p
+
+                For two points, one multiplied by the scalar `s`, and the other
+                multiplied by the scalar `t`, we can test if they are equal by
+                using a balancing point, g^(~s*t).  If the pairing of tx with g
+                is the same as the pairing with sy and g^(~s*t), then x equals y.
+                >>> g = point.base2(scalar.from_int(1))
+                >>> b = point.base2(~s*t)
+                >>> t*x @ g == s*y @ b
+                True
                 """
                 # return p @ q
                 # return G.__matmul__(p, q)
@@ -1020,12 +1042,34 @@ try:
 
             def __matmul__(self: point, other: point2) -> Optional[scalar2]:
                 """
-                Return the result of subtracting another point from this point.
+                Return the result of pairing another point with this point.
 
                 >>> p = point.hash('123'.encode())
                 >>> q = point.base2(scalar.from_int(456))
                 >>> (p @ q).hex()[700:]
                 '2c06d2c375ab659e4f02bdc780fd6786ceed1c3c55c7fb6269e1846abd611a057412'
+
+                The pairing function is bilinear
+                >>> p = point.random()
+                >>> s = scalar.random()
+
+                >>> t = scalar.random()
+                >>> q = point2.random()
+                >>> -((~s) * (s * p)) - p == scalar.from_int(-2) * p
+                True
+                >>> s*t*p @ q == s*p @ (t*q)
+                True
+
+                >>> x = y = p
+
+                For two points, one multiplied by the scalar `s`, and the other
+                multiplied by the scalar `t`, we can test if they are equal by
+                using a balancing point, g^(~s*t).  If the pairing of tx with g
+                is the same as the pairing with sy and g^(~s*t), then x equals y.
+                >>> g = point.base2(scalar.from_int(1))
+                >>> b = point.base2(~s*t)
+                >>> t*x @ g == s*y @ b
+                True
                 """
                 s = self.__class__._mcl.par(self, other)
                 return s
@@ -1039,7 +1083,8 @@ try:
                 >>> (p + q).hex()
                 'f9ac419116dd1c0dafa081ec147a263a0a9564f5ab70c92269ca4dc06cbf3684'
                 """
-                return None if p.zero() else G.__new__(self.__class__, G.__neg__(self))
+                p = G.__new__(self.__class__, G.__neg__(self))
+                return None if p.zero() else p
 
             def __len__(self):
                 return bytes(self).__len__()
@@ -1239,12 +1284,13 @@ try:
                 >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
                 >>> (s + s).hex()
                 '625a182261ec23a77c93eba171d42a27bc68bdd6e3615ebf3eda39dca2bf4a00'
-                >>> isinstance(s * s, scalar)
+                >>> isinstance(s + s, scalar)
                 True
+
                 >>> z = point.base(s) @ point.base2(s)
                 >>> (z + z).hex()[700:]
                 '0318fa6a428def47eb38709deaa8f843c3916e30e932bb5ce0f70c8ca3a1112f9305'
-                >>> isinstance(s * p, point)
+                >>> isinstance(z + z, scalar2)
                 True
                 """
                 return F.__new__(self.__class__, F.__add__(self, other))
@@ -1274,39 +1320,4 @@ except: # pylint: disable=W0702 # pragma: no cover
     mcl = None # pragma: no cover
 
 if __name__ == "__main__":
-    # print(mcl)
-    #
-    # p = point.random()
-    # q = point2.random()
-    # # p = G1.__new__(point, 'safdsf')
-    #
-    # print(p.hex())
-    # print(p.serialize())
-    #
-    #
-    # s = scalar.random()
-    #
-    # print(s.hex())
-    # print(s.serialize())
-    #
-    # sp = s * p
-    #
-    # #assert -((~s) * (s * p)) - p == scalar.from_int(-2) * p
-    #
-    # g1 = point.base(scalar.from_int(1))
-    # g2 = point.base2(scalar.from_int(1))
-    # # g2 = point2.base(scalar.from_int(1))
-    # print(g1 @ g2)
-    #
-    # # # print(G2.base_point(), Fr(1))
-    # # g2g2 = G2.deserialize(b'+\xfb\x03\xc8$B\xee\x91\r\xbf\x98H\xbb\x8bd\xa4\xb6\xeda\x8c~\x8c\x8d\xeb/\xb6\x9eQ\xbb\x10\x1a\x06\xf3L\xd5\xe7\xc14\x8c\r\xb7\x847\xaektM\x1f[\xaa\x82Y\x8c\xa7\n13xs\xba\xf9\xaa\x16\x05')
-    # # g2 = G2.__new__(point, g2g2)
-    # # print(g2)
-    # # del g2, g2g2
-    # # print("---")
-    # # # print(g1 @ (G2().base_point() * Fr(1)))
-    # s * s
-    # s + s
-
-    doctest.testmod()#verbose=True) # pragma: no cover
-    # pass
+    doctest.testmod()  # pragma: no cover
