@@ -71,6 +71,7 @@ import sys, os; sys.path = [p for p in sys.path if not os.path.abspath('.') == p
 #     import mclbn256 # pylint: disable=E0401
 # except: # pylint: disable=W0702 # pragma: no cover
 #     mclbn256 = None
+mclbn256 = False
 #     print('failed to load mclbn256')
 # import mclbn256
 
@@ -875,7 +876,7 @@ try:
             add = mcl.add
             sub = mcl.sub
 
-            global mclbn256
+            global mclbn256 # pylint: disable=W0603
             mclbn256 = True
 
 
