@@ -581,7 +581,8 @@ if bn254.mclbn256 is not None:
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.
-    for tests in [Test_primitives_native_no_shared(), Test_classes_native_no_shared()]:
+    for tests in [Test_primitives_mcl(), Test_classes_mcl(), Test_types_mcl(), Test_algebra_mcl()]:
+        #[Test_primitives_native_no_shared(), Test_classes_native_no_shared()]:
         print('\nUnit test reference bit vectors for ' + tests.__class__.__name__ + ' methods...')
         for m in [m for m in dir(tests) if m.startswith('test_')]:
             method = getattr(tests, m)
