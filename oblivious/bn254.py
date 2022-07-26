@@ -953,7 +953,7 @@ try:
                 >>> point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=').hex()
                 'e5f2d353ef5ab4a3fef75644656735a97ea6cec988dfd9052aa4a5462622671a'
                 """
-                return G.__new__(cls, base64.standard_b64decode(s))
+                return G.__new__(cls, G.deserialize(base64.standard_b64decode(s)))
 
             @classmethod
             def from_hex(cls, s: str) -> point:
@@ -1157,7 +1157,7 @@ try:
                 >>> scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=').hex()
                 '312d0c9130f69153bec9f5d0386a95135eb45eebf130af5f1fed1c6ed15f2500'
                 """
-                return F.__new__(cls, base64.standard_b64decode(s))
+                return F.__new__(cls, F.deserialize(base64.standard_b64decode(s)))
 
             @classmethod
             def from_hex(cls, s: str) -> scalar:
