@@ -951,8 +951,8 @@ try:
                 """
                 Convert the Base64 UTF-8 string representation of a point to a point instance.
 
-                >>> point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=').hex()
-                'e5f2d353ef5ab4a3fef75644656735a97ea6cec988dfd9052aa4a5462622671a'
+                >>> point.from_base64('hoVmn8Pi6U9Gx8L/cJxHHYTjwrl0bKMNNPMjoxXqGJI=').hex()
+                '8685669fc3e2e94f46c7c2ff709c471d84e3c2b9746ca30d34f323a315ea1892'
                 """
                 return G.__new__(cls, G.deserialize(base64.standard_b64decode(s)))
 
@@ -987,14 +987,14 @@ try:
                 object.
 
                 >>> bs = bytes.fromhex(
-                ...     '86855a2aade8225c449dd3f636abf745d6e68aee228a7644e88c28fa470a0229'
+                ...     '8685ccc91090023235e7789f3e90e5e7377c87c974619fa28af83e0c6b7fd5a4'
                 ... )
                 >>> point(bs).hex()
-                'e5f2d353ef5ab4a3fef75644656735a97ea6cec988dfd9052aa4a5462622671a'
+                '2d0d473ea96b9e143e3e4f14fbbd55a7d9db9e75a185e460e5f6b830765f9e05'
                 >>> len(point())
                 32
                 """
-                return G.__new__(cls, bs) if bs is not None else cls.random()
+                return G.__new__(cls, G.deserialize(bs)) if bs is not None else cls.random()
 
             def __mul__(self: point, other):
                 """
@@ -1098,7 +1098,7 @@ try:
 
                 >>> p = point.from_base64('5fLTU+9atKP+91ZEZWc1qX6mzsmI39kFKqSlRiYiZxo=')
                 >>> p.to_base64()
-                '0lRYKjECvDB/4/s9Baz8dHmfX9pHT6wodQ+rfL3ExZ8='
+                '5fLTU+9atKP+91ZEZWc1qX6mzsmI39kFKqSlRiYiZxo='
                 """
                 return base64.standard_b64encode(bytes(self)).decode('utf-8')
 
@@ -1259,13 +1259,13 @@ try:
                 Multiply supplied scalar or point by this scalar.
 
                 >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
-                >>> p = point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=')
+                >>> p = point.from_base64('hoVmn8Pi6U9Gx8L/cJxHHYTjwrl0bKMNNPMjoxXqGJI=')
                 >>> (s * s).hex()
                 '5435c4667d60491122e1e47044890e8fa8aaa2e40b0e1380b6e918af25fcc21a'
                 >>> isinstance(s * s, scalar)
                 True
                 >>> (s * p).hex()
-                'bb9fa8c30f6bd64b006084fb6e3e43637984459425bf85b365629b7553117613'
+                '34624e581a5f8e76dd10badc62c587d4aae20b8cef45975677e1ebdba52b2e99'
                 >>> isinstance(s * p, point)
                 True
                 """
