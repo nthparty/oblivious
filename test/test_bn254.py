@@ -11,7 +11,7 @@ from bitlist import bitlist
 from fountains import fountains
 
 try:
-    from oblivious import bn254
+    from oblivious import bn254 #pylint: disable=E0611# allows PyLint to fail the try block's import
 except: # pylint: disable=W0702
     # To support generation of reference specifications for unit tests.
     spec = importlib.util.spec_from_file_location("bn254", "oblivious/bn254.py")
