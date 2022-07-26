@@ -25,41 +25,41 @@ encapsulate pure Python and shared/dynamic library variants of the above.
   :obj:`native`.
 """
 from __future__ import annotations
-from typing import Union, Optional, Generic, TypeVar
+from typing import Union, Optional
 import doctest
 import hashlib
 import base64
 
 # Disable local imports in order to allow loading PyPI's `bn254` module from ./bn254.py (this file).
-import sys, os; sys.path = [p for p in sys.path if not os.path.abspath('.') == p]
+import sys, os; sys.path = [p for p in sys.path if not os.path.abspath('.') == p]  # pylint: disable=C0410, C0321, C0301
 
-from bn254.ecp2 import generator as get_base
-from bn254.pair import e
-# from bn254.bls import BLS_H as hash_to_point
-from bn254 import big as bn
-from bn254.ecp import ECp as ECp_
-from bn254.ecp2 import ECp2 as ECp2_
-from bn254.curve import r
-
-class ECp(ECp_):
-    def __init__(self, p):
-        super(ECp_, self).__init__(p)
-    def serialize(self) -> bytes:
-        return bytes((lambda x, y:
-               (lambda xs:
-                (lambda ret,_: ret)(
-                    xs, xs.append(xs.pop() ^ ((y % 2) << 7))
-                ))(
-                   list(x.to_bytes(32, 'little'))
-               ))(
-            *self.get()
-        ))
-    def hex(self):
-        return self.serialize().hex()
-
-class ECp2(ECp2_):
-    def hex(self):
-        return self.toBytes(1).hex()
+# from bn254.ecp2 import generator as get_base
+# from bn254.pair import e
+# # from bn254.bls import BLS_H as hash_to_point
+# from bn254 import big as bn
+# from bn254.ecp import ECp as ECp_
+# from bn254.ecp2 import ECp2 as ECp2_
+# from bn254.curve import r
+#
+# class ECp(ECp_):
+#     def __init__(self, p):
+#         super(ECp_, self).__init__(p)
+#     def serialize(self) -> bytes:
+#         return bytes((lambda x, y:
+#                (lambda xs:
+#                 (lambda ret,_: ret)(
+#                     xs, xs.append(xs.pop() ^ ((y % 2) << 7))
+#                 ))(
+#                    list(x.to_bytes(32, 'little'))
+#                ))(
+#             *self.get()
+#         ))
+#     def hex(self):
+#         return self.serialize().hex()
+#
+# class ECp2(ECp2_):
+#     def hex(self):
+#         return self.toBytes(1).hex()
 
 #
 # Attempt to load mclbn256. If no local mclbn256 shared/dynamic library file
@@ -72,7 +72,7 @@ class ECp2(ECp2_):
 # except: # pylint: disable=W0702 # pragma: no cover
 #     mclbn256 = None
 #     print('failed to load mclbn256')
-import mclbn256
+# import mclbn256
 
 #
 # Use native Python implementations of primitives by default.
@@ -580,10 +580,12 @@ try:
     # Ensure the chosen version of mclbn256 (or its substitute) has the necessary primitives.
     #mclbn256.mclbn256.assert_compatible()
 
-    # Exported symbol.
-    # G = TypeVar('G')#PointSubgroup = TypeVar('PointSubgroup')
-    # S = TypeVar('S')#ScalarGroup
+    # pylint: disable=C0103
     def make_mcl(G, F, global_scope=True):
+        """
+        Factory to make the exported symbols.
+        """
+        # pylint: disable=C2801,W0621
         class mcl:
             """
             Wrapper class for binary implementations of primitive
@@ -684,21 +686,14 @@ try:
                     return F.__new__(scalar, s)
                     # Locked to Fr for the field.    self.__class__ === scalar
 
-                # if not s == 0 \
-                #   and \
-                #   not s > 8399054365507916142470402071115866954879789801702376374514189432082785107974 \
-                #   and \
-                #   not s < -8399054365507916142470402071115866954879789801702376374514189432082785107974:
-                #     return F.__new__(scalar, Fr(s))
-
-                # return None
+                return None
 
             @staticmethod
             def inv(s: scalar) -> scalar:
                 """
                 Return inverse of scalar modulo
-                ``r = 16798108731015832284940804142231733909759579603404752749028378864165570215949``
-                in the prime field F*_r.
+                ``r=16798108731015832284940804142231733909759579603404752749028378864165570215949``
+                in the prime field `F*_r`.
 
                 >>> s = scl()
                 >>> p = pnt()
@@ -707,7 +702,7 @@ try:
                 """
                 # return ~s
                 # return F.__invert__(s)
-                return F.__new__(s.__class__, F.__invert__(s))
+                return F.__new__(s.__class__, F.__invert__(s))#slower: F.__new__(s.__class__, ~F(s))
 
             @staticmethod
             def smu(s: scalar, t: scalar) -> scalar:
@@ -866,7 +861,7 @@ try:
                 return p.G.__new__(p.__class__, p.G.__sub__(p, q))
 
         if global_scope:
-            global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub
+            global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub  # pylint: disable=W0601
             # Top-level best-effort synonyms.
             scl = mcl.scl
             rnd = mcl.rnd
@@ -880,11 +875,15 @@ try:
             add = mcl.add
             sub = mcl.sub
 
+            global mclbn256
+            mclbn256 = True
+
+
         _G = G
         #
         # Dedicated point and scalar data structures derived from `bytes`.
         #
-        class point(G):#, G2): # pylint: disable=E0102
+        class point(G):  # pylint: disable=W0621,E0102
             """
             Wrapper class for a bytes-like object that corresponds
             to a point.
@@ -969,7 +968,10 @@ try:
                 return G.__new__(cls, G.deserialize(bytes.fromhex(s)))
 
             def hex(self):
-                return self.serialize().hex()  # hex(self) doesn't work, even though there is G.__hex__
+                """
+                Generates hexadecimal representation of the point instance.
+                """
+                return self.serialize().hex()  # `hex(self)` fails, even though there is `G.__hex__`
 
             def __repr__(self):
                 print(bytes(self), end='', flush=True)
@@ -1160,9 +1162,12 @@ try:
             @classmethod
             def from_hex(cls, s: str) -> scalar:
                 """
-                Convert the hexadecimal UTF-8 string representation of a scalar to a scalar instance.
+                Convert the hexadecimal UTF-8 string representation of a scalar to a scalar
+                instance.
 
-                >>> scalar.from_hex('3ab45f5b1c9339f1d25b878cce1c053b5492b4dc1affe689cbe141769f655e1e').hex()
+                >>> scalar.from_hex(
+                ...     '3ab45f5b1c9339f1d25b878cce1c053b5492b4dc1affe689cbe141769f655e1e'
+                ... ).hex()
                 '3ab45f5b1c9339f1d25b878cce1c053b5492b4dc1affe689cbe141769f655e1e'
                 """
                 return F.__new__(cls, F.deserialize(bytes.fromhex(s)))
@@ -1174,20 +1179,20 @@ try:
 
                 The integer can be from the range
                 `-16798108731015832284940804142231733909759579603404752749028378864165570215948`
-                to `16798108731015832284940804142231733909759579603404752749028378864165570215948` or
-                the equivilant in
+                to `16798108731015832284940804142231733909759579603404752749028378864165570215948`
+                or the equivilant in
                 `-8399054365507916142470402071115866954879789801702376374514189432082785107974`
-                to `8399054365507916142470402071115866954879789801702376374514189432082785107974` scalar
-                values.  Any values larger or smaller will not be reduced, and may be truncated or
-                simply affect a ``ValueError``.  Zero-valued scalars are technically allowed, but can't
-                be used for point-scalar multiplication.
+                to `8399054365507916142470402071115866954879789801702376374514189432082785107974`
+                scalar values.  Any values larger or smaller will not be reduced, and may be
+                truncated or simply affect a ``ValueError``.  Zero-valued scalars are technically
+                allowed, but can't be used for point-scalar multiplication.
 
                 >>> int(scalar.from_int(
-                ...     16798108731015832284940804142231733909759579603404752749028378864165570215948
+                ...    16798108731015832284940804142231733909759579603404752749028378864165570215948
                 ... ))
                 -1
                 >>> int(scalar.from_int(
-                ...     -8399054365507916142470402071115866954879789801702376374514189432082785107974
+                ...    -8399054365507916142470402071115866954879789801702376374514189432082785107974
                 ... ))
                 -8399054365507916142470402071115866954879789801702376374514189432082785107974
                 >>> int(scalar.from_int(
@@ -1198,7 +1203,10 @@ try:
                 return F.__new__(cls, i)
 
             def hex(self):
-                return self.serialize().hex()  # hex(self) doesn't work, even though there is F.__hex__
+                """
+                Generates hexadecimal representation of the point instance.
+                """
+                return self.serialize().hex()  # `hex(self)` fails, even though there is `F.__hex__`
 
             def __repr__(self):
                 print(bytes(self), end='', flush=True)
@@ -1243,7 +1251,7 @@ try:
                 >>> ((s.inverse()) * (s * p)) == p
                 True
                 """
-                return self.__class__._mcl.inv(self)
+                return ~self
 
             def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point, None]:
                 """
@@ -1260,7 +1268,7 @@ try:
                 >>> isinstance(s * p, point)
                 True
                 """
-                if isinstance(other, (self.__class__._mcl.scalar)):#
+                if isinstance(other, (self.__class__._mcl.scalar)):
                 # if isinstance(other, (native.scalar, self.__class__._mcl.scalar)):#
                     return self.__class__._mcl.smu(self, other)
                 p = self.__class__._mcl.mul(self, other)#other.__mul__(self)
