@@ -54,6 +54,43 @@ import sys, os; sys.path = [p for p in sys.path if not os.path.abspath('.') == p
 #                ))(
 #             *self.get()
 #         ))
+#     @classmethod
+#     def mapfrom(self, bs):
+#         p_mod = (lambda x: x * (x * (x * (36 * x - 36) + 24) - 6) + 1)(2 ** 62 + 2 ** 55 + 1)
+#         x = int.from_bytes(bs, 'little') % p_mod
+#         y = None
+#         while True:
+#             x3_2 = (pow(x, 3, p_mod) + 2) % p_mod
+#             if pow(x3_2, (p_mod-1)//2, p_mod) == 1:
+#                 s = (p_mod-1)//2
+#                 n = 2
+#                 while pow(n, (p_mod-1)//2, p_mod) == -1 % p_mod:
+#                     n += 1
+#                 y = pow(x3_2, (s+1)//2, p_mod)
+#                 b = pow(x3_2, s, p_mod)
+#                 g = pow(n, s, p_mod)
+#                 r = 1
+#                 while True:
+#                     t = b
+#                     m = 0
+#                     for m in range(r):
+#                         if t == 1:
+#                             break
+#                         t = pow(t, 2, p_mod)
+#                     if m == 0:
+#                         break
+#                     gs = pow(g, 2**(r-m-1), p_mod)
+#                     g = (gs * gs) % p_mod
+#                     y = (y * gs) % p_mod
+#                     b = (b * g) % p_mod
+#                     r = m
+#             if y != None:
+#                 if y % 2 == 1: y = -y
+#                 break
+#             x += 1
+#         p = ECp_()
+#         p.setxy(x, y)
+#         return p
 #     def hex(self):
 #         return self.serialize().hex()
 #
