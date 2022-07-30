@@ -1068,7 +1068,7 @@ try:
                 For two points, one multiplied by the scalar `s`, and the other
                 multiplied by the scalar `t`, we can test if they are equal by
                 using a balancing point, g^(~s*t).  If the pairing of tx with g
-                is the same as the pairing with sy and g^(~s*t), then x equals y.
+                is the same as the pairing of sy with g^(~s*t), then x equals y.
                 >>> g = point.base2(scalar.from_int(1))
                 >>> b = point.base2(~s*t)
                 >>> t*x @ g == s*y @ b
