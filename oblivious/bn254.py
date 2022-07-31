@@ -612,7 +612,7 @@ def _zero(n: bytes) -> bool:
 #
 
 try:
-    # Attempt to load mclbn256 shared/dynamic library file.
+    # Attempt to load mclbn256 with its (bundled) shared/dynamic library file.
     from mclbn256 import Fr, G1, G2, GT
 
     # Ensure the chosen version of mclbn256 (or its substitute) has the necessary primitives.
@@ -720,7 +720,6 @@ try:
                     return None
 
                 if not s.is_zero():
-                    # return s
                     return F.__new__(scalar, s)
                     # Locked to Fr for the field.    self.__class__ === scalar
 
@@ -738,8 +737,6 @@ try:
                 >>> mul(inv(s), mul(s, p)) == p
                 True
                 """
-                # return ~s
-                # return F.__invert__(s)
                 return F.__new__(s.__class__, F.__invert__(s))#slower: F.__new__(s.__class__, ~F(s))
 
             @staticmethod
@@ -752,8 +749,6 @@ try:
                 >>> smu(s, t) == smu(t, s)
                 True
                 """
-                # return s * t
-                # return F.__mul__(s, t)
                 return F.__new__(s.__class__, F.__mul__(s, t))
 
             # @staticmethod
@@ -779,9 +774,6 @@ try:
                 >>> p.hex()
                 '6e0af685f1f93c035a65796b9a87f2a41849743b50279fda0d36d546b51b5392'
                 """
-                # return G.fromhash(
-                #     bytes(mcl.rnd()) if h is None else h
-                # )
                 return G.__new__(point, G.fromhash(bytes(mcl.rnd()) if h is None else h))
                 # Locked to G1 for the group.    self.__class__ === point
 
@@ -793,13 +785,6 @@ try:
                 >>> bytes(bas(scalar.hash('123'.encode()))).hex()
                 'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
                 """
-                # # # return s * G.base_point()
-                # # # return s * G.__new__(cls, G.base_point())
-                # # return s * G.__new__(point, G.base_point())
-                # # # return G.__new__(point, G.__mul__(G.base_point(), s))
-                # return s * G.__new__(point, G.base_point())
-                # # Locked to G1 for the group.
-
                 return s * G1.__new__(point, G1.base_point())
                 # return G1.base_point() * s
 
@@ -846,9 +831,6 @@ try:
                 >>> t*x @ g == s*y @ b
                 True
                 """
-                # return p @ q
-                # return G.__matmul__(p, q)
-                # return GT.__new__(p.__class__, p.pairing(q))
                 return GT.__new__(scalar2, p.G.__matmul__(p, q))
 
             @staticmethod
@@ -863,11 +845,6 @@ try:
                 >>> mul(s, p).hex()
                 'aa9350ac963f88211a6ae30bc865c1e98c824deee100e64ab599ba25fe875909'
                 """
-                # return s * p
-                # return point(Fr(s) * G(p))
-                # return G.__mul__(p, s)
-                # return p.__class__.__bases__.__new__(point, G.__mul__(p, s))
-                # return super(mcl, point).__new__(point, G.__mul__(p, s))
                 return p.G.__new__(p.__class__, p.G.__mul__(p, s))
 
             @staticmethod
@@ -880,8 +857,6 @@ try:
                 >>> add(p, q).hex()
                 'f9ac419116dd1c0dafa081ec147a263a0a9564f5ab70c92269ca4dc06cbf3684'
                 """
-                # return p + q
-                # return G.__add__(p, q)
                 return p.G.__new__(p.__class__, p.G.__add__(p, q))
 
             @staticmethod
@@ -894,8 +869,6 @@ try:
                 >>> sub(p, q).hex()
                 '5ffbd62661795122709a9a15cf7eac1a173ecadba0644bf56ccb87dd26b9ca9b'
                 """
-                # return p - q
-                # return G.__sub__(p, q)
                 return p.G.__new__(p.__class__, p.G.__sub__(p, q))
 
         if global_scope:
