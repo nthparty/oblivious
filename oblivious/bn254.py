@@ -771,10 +771,9 @@ try:
 
                 >>> p = pnt(hashlib.sha512('123'.encode()).digest())
                 >>> p.hex()
-                '6e0af685f1f93c035a65796b9a87f2a41849743b50279fda0d36d546b51b5392'
+                '9c6f2b3917ac249b3a43b3df3399ff54cd185be714a24541782b142a7ccb3423'
                 """
-                return G.__new__(point, G.fromhash(bytes(mcl.rnd()) if h is None else h))
-                # Locked to G1 for the group.    self.__class__ === point
+                return G.__new__(point, G.random() if h is None else G.mapfrom(h))
 
             @staticmethod
             def bas(s: scalar) -> point:#G1:
@@ -806,14 +805,14 @@ try:
                 >>> p = point.hash('123'.encode())
                 >>> q = point.base2(scalar.from_int(456))
                 >>> par(p, q).hex()[700:]
-                '2c06d2c375ab659e4f02bdc780fd6786ceed1c3c55c7fb6269e1846abd611a057412'
+                '3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'
 
                 The pairing function is bilinear
                 >>> p = point.random()
                 >>> s = scalar.random()
 
                 >>> t = scalar.random()
-                >>> q = point2.random()
+                >>> q = point2.random()  # -or- point.base2(scalar.random())
                 >>> -((~s) * (s * p)) - p == scalar.from_int(-2) * p
                 True
                 >>> s*t*p @ q == s*p @ (t*q)
@@ -842,7 +841,7 @@ try:
                 ...     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
                 ... ))
                 >>> mul(s, p).hex()
-                'aa9350ac963f88211a6ae30bc865c1e98c824deee100e64ab599ba25fe875909'
+                'a7f9b967b2d85e2b18e93717d1aac438ce660017023a1207a080f45b42c6b19f'
                 """
                 return p.G.__new__(p.__class__, p.G.__mul__(p, s))
 
@@ -854,7 +853,7 @@ try:
                 >>> p = point.hash('123'.encode())
                 >>> q = point.hash('456'.encode())
                 >>> add(p, q).hex()
-                'f9ac419116dd1c0dafa081ec147a263a0a9564f5ab70c92269ca4dc06cbf3684'
+                '1a78bb2f044b38e84a82b6eb7bbc2d339132481a98d635aca3b78c899095b68b'
                 """
                 return p.G.__new__(p.__class__, p.G.__add__(p, q))
 
@@ -866,7 +865,7 @@ try:
                 >>> p = point.hash('123'.encode())
                 >>> q = point.hash('456'.encode())
                 >>> sub(p, q).hex()
-                '5ffbd62661795122709a9a15cf7eac1a173ecadba0644bf56ccb87dd26b9ca9b'
+                '7dad51d4465bcd77bebf243c466726192a411d527dbd5ab8124a98ab0ccc8922'
                 """
                 return p.G.__new__(p.__class__, p.G.__sub__(p, q))
 
@@ -918,7 +917,7 @@ try:
 
                 >>> p = point.bytes(hashlib.sha512('123'.encode()).digest())
                 >>> p.hex()
-                '6e0af685f1f93c035a65796b9a87f2a41849743b50279fda0d36d546b51b5392'
+                '9c6f2b3917ac249b3a43b3df3399ff54cd185be714a24541782b142a7ccb3423'
                 """
                 return cls._mcl.pnt(bs)
 
@@ -928,9 +927,9 @@ try:
                 Return point object by hashing supplied bytes-like object.
 
                 >>> point.hash('123'.encode()).hex()
-                '6e0af685f1f93c035a65796b9a87f2a41849743b50279fda0d36d546b51b5392'
+                'a8884a30f29ca2163f5719b5c4d9707bb94ae44bd54811d44b2c8b78af64c711'
                 """
-                return cls._mcl.pnt(hashlib.sha512(bs).digest())
+                return cls._mcl.pnt(hashlib.sha512(bs).digest()[:32])  # really only need ≥254-bits
 
             @classmethod
             def base(cls, s: scalar) -> Optional[point]:
@@ -1023,7 +1022,7 @@ try:
                 >>> p = point.hash('123'.encode())
                 >>> s = scalar.hash('456'.encode())
                 >>> (s * p).hex()
-                '51fc00cb4802d7e80588020905b772bfb84105e2066ab289e7a65b656ed7140a'
+                '3914c4cf63ce5a5a3dab97e837038959403999221186f5f923328abedd0f151d'
                 """
                 p = self.__class__._mcl.mul(other, self)
                 return None if p.zero() else p
@@ -1035,7 +1034,7 @@ try:
                 >>> p = point.hash('123'.encode())
                 >>> q = point.hash('456'.encode())
                 >>> (p + q).hex()
-                'f9ac419116dd1c0dafa081ec147a263a0a9564f5ab70c92269ca4dc06cbf3684'
+                '1a78bb2f044b38e84a82b6eb7bbc2d339132481a98d635aca3b78c899095b68b'
                 """
                 p = self.__class__._mcl.add(self, other)
                 return None if p.zero() else p
@@ -1047,7 +1046,7 @@ try:
                 >>> p = point.hash('123'.encode())
                 >>> q = point.hash('456'.encode())
                 >>> (p - q).hex()
-                '5ffbd62661795122709a9a15cf7eac1a173ecadba0644bf56ccb87dd26b9ca9b'
+                '7dad51d4465bcd77bebf243c466726192a411d527dbd5ab8124a98ab0ccc8922'
                 """
                 p = self.__class__._mcl.sub(self, other)
                 return None if p.zero() else p
@@ -1059,7 +1058,7 @@ try:
                 >>> p = point.hash('123'.encode())
                 >>> q = point.base2(scalar.from_int(456))
                 >>> (p @ q).hex()[700:]
-                '2c06d2c375ab659e4f02bdc780fd6786ceed1c3c55c7fb6269e1846abd611a057412'
+                '3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'
 
                 The pairing function is bilinear
                 >>> p = point.random()
@@ -1093,7 +1092,7 @@ try:
                 >>> p = point.hash('123'.encode())
                 >>> q = point.hash('456'.encode())
                 >>> (p + q).hex()
-                'f9ac419116dd1c0dafa081ec147a263a0a9564f5ab70c92269ca4dc06cbf3684'
+                '1a78bb2f044b38e84a82b6eb7bbc2d339132481a98d635aca3b78c899095b68b'
                 """
                 p = G.__new__(self.__class__, G.__neg__(self))
                 return None if p.zero() else p
