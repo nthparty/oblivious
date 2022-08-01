@@ -694,7 +694,6 @@ try:
                 >>> len(rnd())
                 32
                 """
-                # return Fr().randomize()
                 return F.__new__(scalar, Fr().randomize())
                 # Locked to Fr for the field.    self.__class__ === scalar
 
