@@ -226,14 +226,14 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_point_bytes(
                 self,
-                bits='67f9'
+                bits='2fb0'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             return check_or_generate_operation(self, cls.point.bytes, [POINT_HASH_LEN], bits)
 
         def test_point_hash(
                 self,
-                bits='d801'
+                bits='ab71'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             return check_or_generate_operation(self, cls.point.hash, [POINT_HASH_LEN], bits)
@@ -264,7 +264,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_point_rmul(
                 self,
-                bits='2004'
+                bits='6205'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
@@ -277,7 +277,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_point_scalar_mul_op(
                 self,
-                bits='2004'
+                bits='6205'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
@@ -291,7 +291,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_point_add(
                 self,
-                bits='7f47'
+                bits='4889'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
@@ -304,7 +304,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_point_sub(
                 self,
-                bits='f5b9'
+                bits='bb6e'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
