@@ -26,7 +26,7 @@ setup(
         ],
         'mcl': [
             # Look Dad, no CFFI!
-            'mclbn256~=0.8'
+            'mclbn256~=0.9'
         ],
         'docs': [
             'sphinx~=4.2.0',
