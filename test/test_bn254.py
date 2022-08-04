@@ -52,12 +52,12 @@ class Test_namespace(TestCase):
 
     def test_modules(self):
         module = importlib.import_module('oblivious.bn254')
-        #self.assertTrue('native' in module.__dict__)
+        self.assertTrue('native' in module.__dict__)
         self.assertTrue('mcl' in module.__dict__)
         self.assertTrue(api_methods().issubset(module.__dict__.keys()))
 
-    #def test_native(self):
-    #    self.assertTrue(api_methods().issubset(set(dir(bn254.native))))
+    def test_native(self):
+       self.assertTrue(api_methods().issubset(set(dir(bn254.native))))
 
     def test_mcl(self):
         if bn254.mcl is not None:
@@ -255,7 +255,8 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 p = cls.point()
                 p_b64 = base64.standard_b64encode(bytes(p)).decode('utf-8')
                 self.assertEqual(p.to_base64(), p_b64)
-                self.assertEqual(cls.point.from_base64(p_b64), p)
+                if p.__class__.G == bn254.G1 or p.__class__.G == bn254.G2:
+                    self.assertEqual(cls.point.from_base64(p_b64), p)
 
         def test_point(self):
             mcl_hidden_and_fallback(hidden, fallback)
@@ -345,7 +346,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 s = cls.scalar()
                 s_b64 = base64.standard_b64encode(bytes(s)).decode('utf-8')
                 self.assertEqual(s.to_base64(), s_b64)
-                self.assertEqual(cls.scalar.from_base64(s_b64), s)
+                self.assertEqual(cls.scalar(cls.scalar.from_base64(s_b64)), s)
 
         def test_scalar(self):
             mcl_hidden_and_fallback(hidden, fallback)
@@ -555,15 +556,15 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         Test_types,
         Test_algebra
     )
-#
-# # The instantiated test classes below are discovered by the testing framework and
-# # executed in alphabetical order.
-# (
-#     Test_primitives_native_no_mcl,
-#     Test_classes_native_no_mcl,
-#     Test_types_native_no_mcl,
-#     Test_algebra_native_no_mcl
-# ) = define_classes(bn254.native, hidden=True)
+
+# The instantiated test classes below are discovered by the testing framework and
+# executed in alphabetical order.
+(
+    Test_primitives_native_no_mcl,
+    Test_classes_native_no_mcl,
+    Test_types_native_no_mcl,
+    Test_algebra_native_no_mcl
+) = define_classes(bn254.native, hidden=True)
 
 if bn254.mclbn256 is not None:
     (
@@ -573,16 +574,16 @@ if bn254.mclbn256 is not None:
         Test_algebra_mcl_mclbn256_no_mcl
     ) = define_classes(bn254.mcl, fallback=True)
 
-# (Test_primitives_native, Test_classes_native, Test_types_native, Test_algebra_native) = \
-#     define_classes(bn254.native)
-#
+(Test_primitives_native, Test_classes_native, Test_types_native, Test_algebra_native) = \
+    define_classes(bn254.native)
+
 (Test_primitives_mcl, Test_classes_mcl, Test_types_mcl, Test_algebra_mcl) = \
     define_classes(bn254.mcl)
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.
-    for tests in [Test_primitives_mcl(), Test_classes_mcl(), Test_types_mcl(), Test_algebra_mcl()]:
-        #[Test_primitives_native_no_shared(), Test_classes_native_no_shared()]:
+    for tests in [Test_primitives_mcl(), Test_classes_mcl(), Test_types_mcl(), Test_algebra_mcl(),
+                  Test_primitives_native(), Test_classes_native(), Test_types_mcl()]:
         print('\nUnit test reference bit vectors for ' + tests.__class__.__name__ + ' methods...')
         for m in [m for m in dir(tests) if m.startswith('test_')]:
             method = getattr(tests, m)
