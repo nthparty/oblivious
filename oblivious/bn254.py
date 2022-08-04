@@ -42,29 +42,15 @@ from bn254.ecp import ECp as ECp_
 from bn254.ecp2 import ECp2 as ECp2_
 from bn254.curve import r
 
-# def wrap_pure_python_type():
 class ECp(ECp_):
     def __new__(cls, *args, **kwargs):
         p = ECp_.__new__(cls)
-        # ECp_.__init__(p)
         ECp.__init__(p, *args, **kwargs)
         return p
     def __init__(self, p=None):
-        # super().__init__()
         super(ECp_, self).__init__()
-        # super(ECp, self).__init__()
-
         if isinstance(p, (ECp_, ECp)):
             self.setxy(*p.get())
-
-        # if type(p) is type(None):#p:# == None:
-        #     pass # self = ECp_()
-        # elif isinstance(p, (ECp_, ECp)):
-        #     self.setxy(*p.get())
-        #     pass
-        #     # self.d = p.d
-        # else:
-        #     pass
     def serialize(self) -> bytes:
         return bytes((lambda x, y:
                (lambda xs:
@@ -826,7 +812,7 @@ def make_native(G, F, global_scope=True):
             return self if self < r/2 else self-r
 
         def __repr__(self):
-            print(int.to_bytes(self, 32, 'little'), end='', flush=True)
+            print(bytes(self), end='', flush=True)
             return ''
 
         def __new__(cls, bs: bytes = None) -> scalar:
@@ -1684,29 +1670,4 @@ except: # pylint: disable=W0702 # pragma: no cover
     mcl = None # pragma: no cover
 
 if __name__ == "__main__":
-    # from mclbn256 import G1
-    # from mclbn256.mclbn256 import G1_to_ECp, ECp_to_G1, assert_compatible
-    # assert_compatible()
-    #
-    # p = point.random()
-    # x, y = p.get()
-    # print(x, y)
-    # a = ECp()
-    # a.setxy(x, y)
-    #
-    # print(a)
-    #
-    # pp = p.copy().add(p)
-    # print(p.serialize())
-    # print(pp.serialize())
-    # P = G1.deserialize(p.serialize())
-    # print(P.serialize())
-    # print(P.__add__(P).serialize())
-    # print()
-
-
-    # print(len(rnd()))
-    # print(int(scalar.from_int(16798108731015832284940804142231733909759579603404752749028378864165570215948)))
-
     doctest.testmod()  # pragma: no cover
-    pass
