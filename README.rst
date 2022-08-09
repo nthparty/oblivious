@@ -65,10 +65,10 @@ Built-in Python operators are overloaded to support point operations (addition, 
     True
 
 .. |point| replace:: ``point``
-.. _point: https://oblivious.readthedocs.io/en/latest/_source/oblivious.ristretto.html#oblivious.ristretto.point
+.. _point: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.point
 
 .. |scalar| replace:: ``scalar``
-.. _scalar: https://oblivious.readthedocs.io/en/latest/_source/oblivious.ristretto.html#oblivious.ristretto.scalar
+.. _scalar: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.scalar
 
 .. |bytes| replace:: ``bytes``
 .. _bytes: https://docs.python.org/3/library/stdtypes.html#bytes
@@ -91,13 +91,13 @@ Using Native Python or Shared/Dynamic Library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. |ristretto| replace:: ``ristretto``
-.. _ristretto: https://oblivious.readthedocs.io/en/latest/_source/oblivious.ristretto.html
+.. _ristretto: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html
 
 .. |native| replace:: ``native``
-.. _native: https://oblivious.readthedocs.io/en/latest/_source/oblivious.ristretto.html#oblivious.ristretto.native
+.. _native: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.native
 
 .. |sodium| replace:: ``sodium``
-.. _sodium: https://oblivious.readthedocs.io/en/latest/_source/oblivious.ristretto.html#oblivious.ristretto.sodium
+.. _sodium: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.sodium
 
 In addition to the operations and classes exported by the |ristretto|_ module, two wrapper classes/namespaces are also exported: |native|_ and |sodium|_. These encapsulate pure Python implementations and shared/dynamic library (*i.e.*, libsodium) wrappers, respectively, of all operations and classes available in the |ristretto|_ module. This makes it possible to explicitly choose whether an operation requires only Python or also requires the presence of a compiled copy of libsodium on the host system.
 
@@ -123,7 +123,7 @@ In the example below, the scalar multiplication operation invokes a binding for 
     'SrC7vA9sSR5f4E27ALxk14MPotTYR6B33B4ZN+mQXFA='
 
 .. |add| replace:: ``__add__``
-.. _add: https://oblivious.readthedocs.io/en/latest/_source/oblivious.ristretto.html#oblivious.ristretto.point.__add__
+.. _add: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.point.__add__
 
 The operations and class methods exported by the |ristretto|_ module directly (*e.g.*, the method |add|_ within the class |point|_ that is imported via the statement ``from oblivious.ristretto import point``) correspond either (A) to libsodium wrappers if an instance of libsodium is found and loaded or (B) to pure Python implementations if all attempts to load a working instances of libsodium fail. The ordered list below summarizes what definitions are exported under various conditions and the ordered sequence of attempts to locate and load an instance of libsodium.
 
@@ -183,6 +183,11 @@ Publishing
 This library can be published as a `package on PyPI <https://pypi.org/project/oblivious>`__ by a package maintainer. First, install the dependencies required for packaging and publishing::
 
     python -m pip install .[publish]
+
+Ensure that the correct version number appears in ``pyproject.toml``, and that any links in this README document to the Read the Docs documentation of this package (or its dependencies) have appropriate version numbers. Also ensure that the Read the Docs project for this library has an `automation rule <https://docs.readthedocs.io/en/stable/automation-rules.html>`__ that activates and sets as the default all tagged versions. Create and push a tag for this version (replacing ``?.?.?`` with the version number)::
+
+    git tag ?.?.?
+    git push origin ?.?.?
 
 Remove any old build/distribution files. Then, package the source into a distribution archive::
 
