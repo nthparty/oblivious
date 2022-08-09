@@ -63,7 +63,7 @@ class ECp(ECp_):
         ))
     @classmethod
     def deserialize(self, bs) -> bytes:
-        return ECp(32 * get_base())  # TODO
+        return (1-2*(bs[31]>>7)) * ECp.mapfrom(bs[:31] + bytes([bs[31]&0b01111111]))
     @classmethod
     def random(cls) -> ECp:
         return ECp(int(native.scalar.random()) * get_base())
