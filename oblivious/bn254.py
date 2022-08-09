@@ -350,10 +350,11 @@ def make_native(G, F, global_scope=True):
 
             >>> p = point.hash('123'.encode())
             >>> q = point.base2(scalar.from_int(456))
-            >>> par(p, q).hex()[700:]
-            '3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'
-
-            '150f663b60a9bd1c7263a988765827328bee5c78602648cb82600a4730f4fc183301'
+            >>> z = par(p, q).hex()[700:]
+            >>> z_mcl    = '3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'
+            >>> z_native = '150f663b60a9bd1c7263a988765827328bee5c78602648cb82600a4730f4fc183301'
+            >>> z == z_mcl if mclbn256 else z == z_native
+            True
 
             After the finalexp function: gist.github.com/wyatt-howe/0ca575e99b73dada1f7fb63862a23a71
             from MCl (not implemented in the pure Python library, or here, yet), the result hex. is:
@@ -533,8 +534,6 @@ def make_native(G, F, global_scope=True):
 
             >>> point.from_base64('hoVmn8Pi6U9Gx8L/cJxHHYTjwrl0bKMNNPMjoxXqGJI=').hex()
             '8685669fc3e2e94f46c7c2ff709c471d84e3c2b9746ca30d34f323a315ea1892'
-
-            '80e437b94b704007e4f2fcfabae00df29853a8e027cc85e6328b870b4fd1be8a'
             """
             return G.__new__(cls, G.deserialize(base64.standard_b64decode(s)))
 
@@ -547,8 +546,6 @@ def make_native(G, F, global_scope=True):
             ...     'afa9a593ff45b66b3545fe6e56fa56da0d966fd7a61dec45bf99a45a45ab4d0c'
             ... ).hex()
             'afa9a593ff45b66b3545fe6e56fa56da0d966fd7a61dec45bf99a45a45ab4d0c'
-
-            '80e437b94b704007e4f2fcfabae00df29853a8e027cc85e6328b870b4fd1be8a'
             """
             return G.__new__(cls, G.deserialize(bytes.fromhex(s)))
 
@@ -571,11 +568,9 @@ def make_native(G, F, global_scope=True):
             object.
 
             >>> bs = bytes.fromhex(
-            ...     '8685ccc91090023235e7789f3e90e5e7377c87c974619fa28af83e0c6b7fd5a4'
+            ...     '80e437b94b704007e4f2fcfabae00df29853a8e027cc85e6328b870b4fd1be8a'
             ... )
             >>> point(bs).hex()
-            '2d0d473ea96b9e143e3e4f14fbbd55a7d9db9e75a185e460e5f6b830765f9e05'
-
             '80e437b94b704007e4f2fcfabae00df29853a8e027cc85e6328b870b4fd1be8a'
             >>> len(point())
             32
@@ -635,10 +630,11 @@ def make_native(G, F, global_scope=True):
 
             >>> p = point.hash('123'.encode())
             >>> q = point.base2(scalar.from_int(456))
-            >>> (p @ q).hex()[700:]
-            '3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'
-
-            '150f663b60a9bd1c7263a988765827328bee5c78602648cb82600a4730f4fc183301'
+            >>> z = (p @ q).hex()[700:]
+            >>> z_mcl    = '3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'
+            >>> z_native = '150f663b60a9bd1c7263a988765827328bee5c78602648cb82600a4730f4fc183301'
+            >>> z == z_mcl if mclbn256 else z == z_native
+            True
 
             After the finalexp function: gist.github.com/wyatt-howe/0ca575e99b73dada1f7fb63862a23a71
             from MCl (not implemented in the pure Python library, or here, yet), the result hex. is:
@@ -691,8 +687,6 @@ def make_native(G, F, global_scope=True):
             >>> p = point.from_base64('5fLTU+9atKP+91ZEZWc1qX6mzsmI39kFKqSlRiYiZxo=')
             >>> p.to_base64()
             '5fLTU+9atKP+91ZEZWc1qX6mzsmI39kFKqSlRiYiZxo='
-
-            'gOQ3uUtwQAfk8vz6uuAN8phTqOAnzIXmMouHC0/Rvoo='
             """
             return base64.standard_b64encode(bytes(self)).decode('utf-8')
 
@@ -868,8 +862,6 @@ def make_native(G, F, global_scope=True):
             True
             >>> (s * p).hex()
             '34624e581a5f8e76dd10badc62c587d4aae20b8cef45975677e1ebdba52b2e99'
-
-            '5f1d2d7337edcb351e6e696a8a75d8739fbd6705a91e4ec00127fa5558c9cd1f'
             >>> isinstance(s * p, point)
             True
             """
@@ -901,10 +893,11 @@ def make_native(G, F, global_scope=True):
             True
 
             >>> z = point.base(s) @ point.base2(s)
-            >>> (z + z).hex()[700:]
-            '0318fa6a428def47eb38709deaa8f843c3916e30e932bb5ce0f70c8ca3a1112f9305'
-
-            'a40983c35f6010ec8ba4dc4fd20116064b176728e9f71543990f4e0baf2652abcc00'
+            >>> zz = (z + z).hex()[700:]
+            >>> zz_mcl    = '0318fa6a428def47eb38709deaa8f843c3916e30e932bb5ce0f70c8ca3a1112f9305'
+            >>> zz_native = 'a40983c35f6010ec8ba4dc4fd20116064b176728e9f71543990f4e0baf2652abcc00'
+            >>> zz == zz_mcl if mclbn256 else zz == zz_native
+            True
             >>> isinstance(z + z, scalar2)
             True
             """
@@ -1328,10 +1321,10 @@ try:
                 object.
 
                 >>> bs = bytes.fromhex(
-                ...     '8685ccc91090023235e7789f3e90e5e7377c87c974619fa28af83e0c6b7fd5a4'
+                ...     '8031b72abe00d4c04ab3b920aab8995bc5e87026f152ea1e3a87e1647c44dd19'
                 ... )
                 >>> point(bs).hex()
-                '2d0d473ea96b9e143e3e4f14fbbd55a7d9db9e75a185e460e5f6b830765f9e05'
+                '8031b72abe00d4c04ab3b920aab8995bc5e87026f152ea1e3a87e1647c44dd19'
                 >>> len(point())
                 32
                 """
