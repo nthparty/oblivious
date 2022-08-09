@@ -17,15 +17,23 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-# The name and version are retrieved from `setup.py` in the root directory.
-with open('../setup.py') as package_file:
-    package = package_file.read()
-project = package.split("name = '")[1].split("'")[0]
-version = package.split("version = '")[1].split("'")[0]
+# The name and version are retrieved from ``pyproject.toml`` in the root
+# directory.
+import toml
+with open('../pyproject.toml') as pyproject_file:
+    pyproject_data = toml.load(pyproject_file)
+project = pyproject_data['project']['name']
+version = pyproject_data['project']['version']
 release = version
 
-author = 'Nth Party, Ltd.'
-copyright = '2020, Nth Party, Ltd' # Period omitted; precedes punctuation.
+# The copyright year and holder information is retrieved from the
+# ``LICENSE`` file.
+import re
+with open('../LICENSE', 'r') as license_file:
+    license_string = license_file.read().split('Copyright (c) ')[1]
+year = license_string[:4]
+author = license_string[5:].split('\n')[0]
+copyright = year + ', ' + re.sub(r"\.$", "", author) # Period already in HTML.
 
 
 # -- General configuration ---------------------------------------------------
