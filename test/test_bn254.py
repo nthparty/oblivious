@@ -129,6 +129,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             mcl_hidden_and_fallback(hidden, fallback)
             # pylint: disable=C3001
             def fun(bs):
+                bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
                 # Using `b00011111` would guarantee a valid scalar, as r is between 2^253 and 2^254.
                 r = 0x2523648240000001ba344d8000000007ff9f800000000010a10000000000000d
@@ -143,6 +144,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
+                bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
                 s = cls.scl(bs)
                 return cls.inv(s) if s is not None else bytes([0])
@@ -154,7 +156,8 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
+                bs = bytearray(bs)
+                bs[-1] &= 0b00111111 # Improve chance of testing with a valid (*i.e.*, ``s < r``) scalar.
                 bs[SCALAR_LEN - 1] &= 0b00111111
                 (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
                 return cls.smu(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
@@ -178,6 +181,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
+                bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
                 s = cls.scl(bs)
                 return cls.bas(s) if s is not None else bytes([0])
@@ -189,6 +193,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
+                bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
                 bs[SCALAR_LEN - 1] &= 0b00111111
                 (s, p) = (cls.scl(bs[:SCALAR_LEN]), cls.pnt(bs[SCALAR_LEN:]))
@@ -244,6 +249,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
+                bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
                 s = cls.scalar.bytes(bs)
                 return cls.point.base(s) if s is not None else bytes([0])
@@ -269,6 +275,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
+                bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
                 bs[SCALAR_LEN - 1] &= 0b00111111
                 (s, p) = (cls.scalar.bytes(bs[:SCALAR_LEN]), cls.point.bytes(bs[SCALAR_LEN:]))
@@ -282,6 +289,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
+                bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
                 bs[SCALAR_LEN - 1] &= 0b00111111
                 (s, p) = (cls.scalar.bytes(bs[:SCALAR_LEN]), cls.point.bytes(bs[SCALAR_LEN:]))
@@ -329,6 +337,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             mcl_hidden_and_fallback(hidden, fallback)
             # pylint: disable=C3001
             def fun(bs):
+                bs = bytearray(bs)
                 bs[-1] &= 0b00011111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
                 return bitlist([1 if cls.scalar.bytes(bs) is not None else 0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
@@ -466,6 +475,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_algebra_scalar_inverse_identity(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN, limit=TRIALS_PER_TEST):
+                bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
                 s = cls.scl(bs)
                 if s is not None:
@@ -474,6 +484,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_algebra_scalar_inverse_mul_cancel(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
                 bs[SCALAR_LEN - 1] &= 0b00111111
                 (s, p) = (cls.scl(bs[:SCALAR_LEN]), cls.pnt(bs[SCALAR_LEN:]))
@@ -483,6 +494,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_algebra_scalar_mul_commute(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains((2 * SCALAR_LEN) + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                bs = bytearray(bs)
                 bs[SCALAR_LEN - 1] &= 0b00111111 # Improve chance of testing with a valid scalar.
                 bs[SCALAR_LEN + SCALAR_LEN - 1] &= 0b00111111
                 (s0, s1, p0) = (
@@ -511,6 +523,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_algebra_scalar_mul_point_mul_associate(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + SCALAR_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                bs = bytearray(bs)
                 bs[SCALAR_LEN - 1] &= 0b00111111 # Improve chance of testing with a valid scalar.
                 bs[SCALAR_LEN + SCALAR_LEN - 1] &= 0b00111111
                 (s0, s1, p0) = (
@@ -527,6 +540,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_algebra_scalar_mul_point_add_distribute(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + (2 * POINT_HASH_LEN), limit=TRIALS_PER_TEST):
+                bs = bytearray(bs)
                 bs[SCALAR_LEN - 1] &= 0b00111111  # Improve chance of testing with a valid scalar.
                 (s0, p0, p1) = (
                     cls.scl(bs[:SCALAR_LEN]),
