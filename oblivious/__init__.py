@@ -6,4 +6,6 @@ This module gives users direct access to the individual modules, each of
 which is dedicated to a specific curve and its associated classes/methods.
 """
 from oblivious import ristretto
-from oblivious import bn254
+from oblivious import bn254_ as bn254
+del bn254_
+

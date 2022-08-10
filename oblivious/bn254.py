@@ -33,9 +33,6 @@ import hashlib
 import base64
 import secrets
 
-# Disable local imports in order to load the installed bn254 package in this module.
-sys.path = [p for p in sys.path if not os.path.abspath('.') == p] # pylint: disable=C0410,C0321,C0301
-
 from bn254.ecp import generator as get_base # pylint: disable=wrong-import-position
 from bn254.ecp2 import generator as get_base2 # pylint: disable=wrong-import-position
 from bn254.pair import e # pylint: disable=wrong-import-position
