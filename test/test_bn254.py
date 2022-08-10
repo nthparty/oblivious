@@ -57,7 +57,7 @@ class Test_namespace(TestCase):
         self.assertTrue(api_methods().issubset(module.__dict__.keys()))
 
     def test_native(self):
-       self.assertTrue(api_methods().issubset(set(dir(bn254.native))))
+        self.assertTrue(api_methods().issubset(set(dir(bn254.native))))
 
     def test_mcl(self):
         if bn254.mcl is not None:
@@ -255,7 +255,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 p = cls.point()
                 p_b64 = base64.standard_b64encode(bytes(p)).decode('utf-8')
                 self.assertEqual(p.to_base64(), p_b64)
-                if p.__class__.G == bn254.G1 or p.__class__.G == bn254.G2:
+                if p.__class__.G in (bn254.G1, bn254.G2):
                     self.assertEqual(cls.point.from_base64(p_b64), p)
 
         def test_point(self):

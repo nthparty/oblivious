@@ -26,108 +26,135 @@ encapsulate pure Python and shared/dynamic library variants of the above.
 """
 from __future__ import annotations
 from typing import Union, Optional
+import sys
+import os
 import doctest
 import hashlib
 import base64
 import secrets
 
-# Disable local imports in order to allow loading PyPI's `bn254` module from ./bn254.py (this file).
-import sys, os; sys.path = [p for p in sys.path if not os.path.abspath('.') == p]  # pylint: disable=C0410, C0321, C0301
+# Disable local imports in order to load the installed bn254 package in this module.
+sys.path = [p for p in sys.path if not os.path.abspath('.') == p] # pylint: disable=C0410,C0321,C0301
 
-from bn254.ecp import generator as get_base
-from bn254.ecp2 import generator as get_base2
-from bn254.pair import e
-from bn254 import big as bn, Fp12 as Fp12_
-from bn254.ecp import ECp as ECp_
-from bn254.ecp2 import ECp2 as ECp2_
-from bn254.curve import r
+from bn254.ecp import generator as get_base # pylint: disable=wrong-import-position
+from bn254.ecp2 import generator as get_base2 # pylint: disable=wrong-import-position
+from bn254.pair import e # pylint: disable=wrong-import-position
+from bn254 import big as bn, Fp12 as Fp12_ # pylint: disable=wrong-import-position
+from bn254.ecp import ECp as ECp_ # pylint: disable=wrong-import-position
+from bn254.ecp2 import ECp2 as ECp2_ # pylint: disable=wrong-import-position
+from bn254.curve import r # pylint: disable=wrong-import-position
 
-class ECp(ECp_):
+class ECp(ECp_): # pylint: disable=invalid-name,missing-class-docstring
+    # pylint: disable=missing-function-docstring
     def __new__(cls, *args, **kwargs):
         p = ECp_.__new__(cls)
         ECp.__init__(p, *args, **kwargs)
         return p
+
     def __init__(self, p=None):
-        super(ECp_, self).__init__()
+        super(ECp_, self).__init__() # pylint: disable=bad-super-call
         if isinstance(p, (ECp_, ECp)):
             self.setxy(*p.get())
+
     def serialize(self) -> bytes:
-        return bytes((lambda x, y:
-               (lambda xs:
-                (lambda ret,_: ret)(
-                    xs, xs.append(xs.pop() ^ ((y % 2) << 7))
-                ))(
-                   list(x.to_bytes(32, 'little'))
-               ))(
-            *self.get()#self.x.int(), self.y.int()  # *self.get()
-        ))
+        # pylint: disable=unnecessary-direct-lambda-call
+        return bytes(
+            (lambda x, y:
+                (lambda xs:
+                    (lambda ret,_: ret)(xs, xs.append(xs.pop() ^ ((y % 2) << 7)))
+                )(list(x.to_bytes(32, 'little')))
+            )(*self.get())
+        )
+
     @classmethod
-    def deserialize(self, bs) -> bytes:
-        return (1-2*(bs[31]>>7)) * ECp.mapfrom(bs[:31] + bytes([bs[31]&0b01111111]))
+    def deserialize(cls, bs) -> bytes:
+        return (
+            (1 - 2 * (bs[31] >> 7)) *
+            ECp.mapfrom(bs[:31] + bytes([bs[31] & 0b01111111]))
+        )
     @classmethod
     def random(cls) -> ECp:
         return ECp(int(native.scalar.random()) * get_base())
+
     @classmethod
-    def mapfrom(self, bs) -> ECp:
-        p_mod = (lambda x: x * (x * (x * (36 * x - 36) + 24) - 6) + 1)(2 ** 62 + 2 ** 55 + 1)
+    def mapfrom(cls, bs) -> ECp:
+        # pylint: disable=unnecessary-direct-lambda-call
+        p_mod = (
+            (lambda x: x * (x * (x * ((36 * x) - 36) + 24) - 6) + 1)
+            ((2 ** 62) + (2 ** 55) + 1)
+        )
         while int.from_bytes(bs, 'little') >= p_mod:
             bs = hashlib.sha256(bs).digest()
             bs = bs[:-1] + bytes([bs[-1] & 0b00111111])
+
         x = int.from_bytes(bs, 'little')# % p_mod
         y = None
         while True:
             x3_2 = (pow(x, 3, p_mod) + 2) % p_mod
-            if pow(x3_2, (p_mod-1)//2, p_mod) == 1:
-                s = (p_mod-1)//2
+            if pow(x3_2, (p_mod - 1) // 2, p_mod) == 1:
+                s = (p_mod-1) // 2
                 n = 2
-                while pow(n, (p_mod-1)//2, p_mod) == -1 % p_mod:
+                while pow(n, (p_mod-1) // 2, p_mod) == -1 % p_mod:
                     n += 1
-                y = pow(x3_2, (s+1)//2, p_mod)
+                y = pow(x3_2, (s + 1) // 2, p_mod)
                 b = pow(x3_2, s, p_mod)
                 g = pow(n, s, p_mod)
-                r = 1
+                r_ = 1
                 while True:
                     t = b
                     m = 0
-                    for m in range(r):
+                    for m in range(r_):
                         if t == 1:
                             break
                         t = pow(t, 2, p_mod)
                     if m == 0:
                         break
-                    gs = pow(g, 2**(r-m-1), p_mod)
+                    gs = pow(g, 2**(r_ - m - 1), p_mod)
                     g = (gs * gs) % p_mod
                     y = (y * gs) % p_mod
                     b = (b * g) % p_mod
-                    r = m
-            if y != None:
-                if y % 2 == 1: y = -y
+                    r_ = m
+            if y is not None:
+                # pylint: disable=invalid-unary-operand-type
+                if y % 2 == 1:
+                    y = -y
                 break
             x += 1
+
         p = ECp_()
         p.setxy(x, y)
+
         return p
+
     def hex(self):
         return self.serialize().hex()
+
     def zero(self):
         return self.isinf()
+
     def __bytes__(self):
         return self.serialize()
 
-class ECp2(ECp2_):
+class ECp2(ECp2_): # pylint: disable=invalid-name,missing-class-docstring
+    # pylint: disable=missing-function-docstring
     def __new__(cls, *args, **kwargs):
         q = ECp2_.__new__(cls)
         ECp2.__init__(q, *args, **kwargs)
         return q
+
     def __init__(self, q=None):
-        super(ECp2_, self).__init__()
+        super(ECp2_, self).__init__() # pylint: disable=bad-super-call
         if isinstance(q, (ECp2_, ECp2)):
             self.set(*q.get())
+
     def __hex__(self):
         return self.toBytes(1).hex()
+
     def hex(self):
         return self.toBytes(1).hex()
+
     def serialize(self) -> bytes:
+        # pylint: disable=unnecessary-direct-lambda-call
         return bytes(
             (lambda f, x1, y1, x2, y2: f(x1, y1) + f(x2, y2))(
                 (lambda x, y:
@@ -142,27 +169,35 @@ class ECp2(ECp2_):
                 self.x.b.int(), self.y.b.int()
             )
         )
+
     def __bytes__(self):
         return self.serialize()
+
     def zero(self):
         return self.isinf()
+
     @classmethod
     def random(cls) -> ECp2:
         return ECp2(int(native.scalar.random()) * get_base2())
 
-class Fp12(Fp12_):
+class Fp12(Fp12_): # pylint: disable=invalid-name,missing-class-docstring
+    # pylint: disable=missing-function-docstring
     def __new__(cls, *args, **kwargs):
         q = Fp12_.__new__(cls)
         Fp12.__init__(q, *args, **kwargs)
         return q
+
     def __init__(self, q=None):
-        super(Fp12_, self).__init__()
+        super(Fp12_, self).__init__() # pylint: disable=bad-super-call
         if isinstance(q, (Fp12_, Fp12)):
             self.set(*q.get())
+
     def __hex__(self):
-        return self.toBytes(1).hex()
+        return self.toBytes(1).hex() # pylint: disable=too-many-function-args
+
     def hex(self):
-        return self.toBytes(1).hex()
+        return self.toBytes(1).hex() # pylint: disable=too-many-function-args
+
     def serialize(self) -> bytes:
         return bytes(
             self.a.a.a.int().to_bytes(32, 'little') + self.a.a.b.int().to_bytes(32, 'little') +
@@ -172,10 +207,13 @@ class Fp12(Fp12_):
             self.c.a.a.int().to_bytes(32, 'little') + self.c.a.b.int().to_bytes(32, 'little') +
             self.c.b.a.int().to_bytes(32, 'little') + self.c.b.b.int().to_bytes(32, 'little')
         )
+
     def __bytes__(self):
         return self.serialize()
+
     def zero(self):
-        return self.isinf()
+        return self.isinf() # pylint: disable=no-member
+
     @classmethod
     def random(cls) -> Fp12:
         return Fp12(int(native.scalar.random()) * get_base2())
@@ -197,7 +235,6 @@ mclbn256 = None
 #
 # Use native Python implementations of primitives by default.
 #
-
 
 # pylint: disable=C0103
 def make_native(G, F, global_scope=True):
@@ -395,9 +432,10 @@ def make_native(G, F, global_scope=True):
             _p, _q = (p, q) if (p.G == ECp and q.G == ECp2) else (
                 (q, p) if (q.G == ECp and p.G == ECp2) else (None, None)
             )
-            if type(_p) is type(None): raise TypeError(
-                "Can only pair points of types point/ECp/G1 and point(2)/ECp2/G2 to each other."
-            )
+            if type(_p) is type(None): # pylint: disable=unidiomatic-typecheck
+                raise TypeError(
+                    "can only pair points of types point/ECp/G1 and point(2)/ECp2/G2 to each other"
+                )
             p_ = ECp.__new__(ECp, _p)
             q_ = ECp2.__new__(ECp2, _q)
             z = e(q_, p_)
@@ -802,8 +840,8 @@ def make_native(G, F, global_scope=True):
             """
             Generates hexadecimal representation of the point instance.
             """
-            self = self % r  # assert self < r  # assert int.__new__(int, self) < r
-            return self if self < r/2 else self-r
+            n = self % r  # assert self < r  # assert int.__new__(int, self) < r
+            return n if n < r / 2 else n - r
 
         def __repr__(self):
             print(bytes(self), end='', flush=True)
