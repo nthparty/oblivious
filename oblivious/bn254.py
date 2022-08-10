@@ -7,11 +7,11 @@ bn254 module
 This module exports a collection of primitive operations for working
 with elliptic curve points and scalars, classes for representing points,
 classes for representing scalars, and two wrapper classes/namespaces that
-encapsulate pure Python and shared/dynamic library variants of the above.
+encapsulate pure-Python and shared/dynamic library variants of the above.
 
-* Under all conditions, the wrapper class :obj:`native` is defined and
-  exports a pure Python variant of every operation and class method
-  exported by this module as a whole.
+* Under all conditions, the wrapper class :obj:`~oblivious.bn254.native`
+  is defined and exports a pure-Python variant of every operation and class
+  method exported by this module as a whole.
 
 * If the optional `mclbn256 <https://pypi.org/project/mclbn256>`__ package
   is installed, then the wrapper class :obj:`mcl` is defined and exports
@@ -20,9 +20,9 @@ encapsulate pure Python and shared/dynamic library variants of the above.
   Otherwise, the exported variable ``mcl`` is assigned ``None``.
 
 * All operations and class methods exported by this module correspond to
-  the variants defined by :obj:`mcl` if a dynamic/shared library is
-  loaded. Otherwise, they correspond to the variants defined by
-  :obj:`native`.
+  the variants defined by :obj:`~oblivious.bn254.mcl` if a dynamic/shared
+  library is loaded. Otherwise, they correspond to the variants defined by
+  :obj:`~oblivious.bn254.native`.
 """
 from __future__ import annotations
 from typing import Union, Optional
@@ -44,16 +44,17 @@ from bn254.ecp import ECp as ECp_ # pylint: disable=wrong-import-position
 from bn254.ecp2 import ECp2 as ECp2_ # pylint: disable=wrong-import-position
 from bn254.curve import r # pylint: disable=wrong-import-position
 
-class ECp(ECp_): # pylint: disable=invalid-name,missing-class-docstring
+class _ECp(ECp_): # pylint: disable=invalid-name
+    """Internal class."""
     # pylint: disable=missing-function-docstring
     def __new__(cls, *args, **kwargs):
         p = ECp_.__new__(cls)
-        ECp.__init__(p, *args, **kwargs)
+        _ECp.__init__(p, *args, **kwargs)
         return p
 
     def __init__(self, p=None):
         super(ECp_, self).__init__() # pylint: disable=bad-super-call
-        if isinstance(p, (ECp_, ECp)):
+        if isinstance(p, (ECp_, _ECp)):
             self.setxy(*p.get())
 
     def serialize(self) -> bytes:
@@ -70,14 +71,14 @@ class ECp(ECp_): # pylint: disable=invalid-name,missing-class-docstring
     def deserialize(cls, bs) -> bytes:
         return (
             (1 - 2 * (bs[31] >> 7)) *
-            ECp.mapfrom(bs[:31] + bytes([bs[31] & 0b01111111]))
+            _ECp.mapfrom(bs[:31] + bytes([bs[31] & 0b01111111]))
         )
     @classmethod
-    def random(cls) -> ECp:
-        return ECp(int(native.scalar.random()) * get_base())
+    def random(cls) -> _ECp:
+        return _ECp(int(native.scalar.random()) * get_base())
 
     @classmethod
-    def mapfrom(cls, bs) -> ECp:
+    def mapfrom(cls, bs) -> _ECp:
         # pylint: disable=unnecessary-direct-lambda-call
         p_mod = (
             (lambda x: x * (x * (x * ((36 * x) - 36) + 24) - 6) + 1)
@@ -135,16 +136,17 @@ class ECp(ECp_): # pylint: disable=invalid-name,missing-class-docstring
     def __bytes__(self):
         return self.serialize()
 
-class ECp2(ECp2_): # pylint: disable=invalid-name,missing-class-docstring
+class _ECp2(ECp2_): # pylint: disable=invalid-name
+    """Internal class."""
     # pylint: disable=missing-function-docstring
     def __new__(cls, *args, **kwargs):
-        q = ECp2_.__new__(cls)
-        ECp2.__init__(q, *args, **kwargs)
+        q = _ECp2.__new__(cls)
+        _ECp2.__init__(q, *args, **kwargs)
         return q
 
     def __init__(self, q=None):
         super(ECp2_, self).__init__() # pylint: disable=bad-super-call
-        if isinstance(q, (ECp2_, ECp2)):
+        if isinstance(q, (ECp2_, _ECp2)):
             self.set(*q.get())
 
     def __hex__(self):
@@ -177,19 +179,20 @@ class ECp2(ECp2_): # pylint: disable=invalid-name,missing-class-docstring
         return self.isinf()
 
     @classmethod
-    def random(cls) -> ECp2:
-        return ECp2(int(native.scalar.random()) * get_base2())
+    def random(cls) -> _ECp2:
+        return _ECp2(int(native.scalar.random()) * get_base2())
 
-class Fp12(Fp12_): # pylint: disable=invalid-name,missing-class-docstring
+class _Fp12(Fp12_): # pylint: disable=invalid-name
+    """Internal class."""
     # pylint: disable=missing-function-docstring
     def __new__(cls, *args, **kwargs):
         q = Fp12_.__new__(cls)
-        Fp12.__init__(q, *args, **kwargs)
+        _Fp12.__init__(q, *args, **kwargs)
         return q
 
     def __init__(self, q=None):
         super(Fp12_, self).__init__() # pylint: disable=bad-super-call
-        if isinstance(q, (Fp12_, Fp12)):
+        if isinstance(q, (Fp12_, _Fp12)):
             self.set(*q.get())
 
     def __hex__(self):
@@ -215,8 +218,8 @@ class Fp12(Fp12_): # pylint: disable=invalid-name,missing-class-docstring
         return self.isinf() # pylint: disable=no-member
 
     @classmethod
-    def random(cls) -> Fp12:
-        return Fp12(int(native.scalar.random()) * get_base2())
+    def random(cls) -> _Fp12:
+        return _Fp12(int(native.scalar.random()) * get_base2())
 
 #
 # Attempt to load mclbn256. If no local mclbn256 shared/dynamic library file
@@ -237,11 +240,10 @@ mclbn256 = None
 #
 
 # pylint: disable=C0103
-def make_native(G, F, global_scope=True):
+def _make_native(G, F, global_scope=True):
     """
     Factory to make the exported symbols.
     """
-
     # pylint: disable=C2801,W0621
     class native:
         """
@@ -252,9 +254,10 @@ def make_native(G, F, global_scope=True):
         primitive operations and classes exported by this module:
         :obj:`native.scl <scl>`, :obj:`native.rnd <rnd>`,
         :obj:`native.inv <inv>`, :obj:`native.smu <smu>`,
-        :obj:`native.pnt <pnt>`, :obj:`native.bas <bas>`,
-        :obj:`native.mul <mul>`, :obj:`native.point <point>`,
-        and :obj:`native.scalar <scalar>`.
+        :obj:`native.pnt <pnt>`, :obj:`native.bas <bas>`, :obj:`native.bas <bs2>`,
+        :obj:`native.mul <mul>`, :obj:`native.add <add>`,
+        :obj:`native.sub <sub>`, :obj:`native.par <par>`,
+        :obj:`native.point <point>`, and :obj:`native.scalar <scalar>`.
         For example, you can perform multiplication of scalars
         using the pure Python scalar multiplication implementation.
 
@@ -354,9 +357,7 @@ def make_native(G, F, global_scope=True):
             >>> p.hex()
             '9c6f2b3917ac249b3a43b3df3399ff54cd185be714a24541782b142a7ccb3423'
             """
-            p = G.__new__(point, G.random() if h is None else G.mapfrom(h))
-            # p.__repr__()
-            return p
+            return G.__new__(point, G.random() if h is None else G.mapfrom(h))
 
         @staticmethod
         def bas(s: scalar) -> point:  # G1:
@@ -366,7 +367,7 @@ def make_native(G, F, global_scope=True):
             >>> bytes(bas(scalar.hash('123'.encode()))).hex()
             'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
             """
-            return s * ECp.__new__(point, get_base())
+            return s * _ECp.__new__(point, get_base())
             # return s * get_base()
 
         @staticmethod
@@ -377,8 +378,8 @@ def make_native(G, F, global_scope=True):
             >>> bytes(bs2(scalar.hash('123'.encode()))).hex()[50:]
             'd1b99a7ca5660d124528b442d33e15eca23a202df3222c542e7bd71955c7623669554af518de01'
             """
-            # return s * ECp2.__new__(point2, get_base2())
-            return ECp2(int(s) * get_base2())
+            # return s * _ECp2.__new__(point2, get_base2())
+            return _ECp2(int(s) * get_base2())
 
         @staticmethod
         def par(p: Union[point, point2], q: Union[point, point2]) -> scalar2:
@@ -393,11 +394,12 @@ def make_native(G, F, global_scope=True):
             >>> z == z_mcl if mclbn256 else z == z_native
             True
 
-            After the finalexp function: gist.github.com/wyatt-howe/0ca575e99b73dada1f7fb63862a23a71
-            from MCl (not implemented in the pure Python library, or here, yet), the result hex. is:
-            '3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'
+            After the ``finalExp`` `function <gist.github.com/wyatt-howe/0ca575e99b73dada1f7fb63862a23a71>`__
+            from the MCl library (not yet implemented here or in the pure-Python library), the hexadecimal
+            result is: ``'3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'``.
 
-            The pairing function is bilinear
+            The pairing function is bilinear.
+
             >>> p = point.random()
             >>> s = scalar.random()
 
@@ -410,13 +412,14 @@ def make_native(G, F, global_scope=True):
 
             >>> x = y = p
 
-            For two points, one multiplied by the scalar `s`, and the other
-            multiplied by the scalar `t`, we can test if they are equal by
-            using a balancing point, g^(~s*t).  If the pairing of tx with g
-            is the same as the pairing with sy and g^(~s*t), then x equals y.
+            Suppose there are two points: one multiplied by the scalar ``s`` and the other
+            multiplied by the scalar ``t``. Their equality can be determined by using a
+            balancing point: ``g**(~s * t)``.  If the pairing of ``t * x`` with ``g`` is the
+            same as the pairing with ``s * y`` and ``g**(~s * t)``, then ``x`` equals ``y``.
+
             >>> g = point.base2(scalar.from_int(1))
-            >>> b = point.base2(~s*t)
-            >>> t*x @ g == s*y @ b
+            >>> b = point.base2(~s * t)
+            >>> (t * x) @ g == (s * y) @ b
             True
             """
             # p = point.random()
@@ -427,19 +430,17 @@ def make_native(G, F, global_scope=True):
             # tq = (t * q)
             # b = stp @ q == s * p @ tq
 
-
-
-            _p, _q = (p, q) if (p.G == ECp and q.G == ECp2) else (
-                (q, p) if (q.G == ECp and p.G == ECp2) else (None, None)
+            _p, _q = (p, q) if (p.G == _ECp and q.G == _ECp2) else (
+                (q, p) if (q.G == _ECp and p.G == _ECp2) else (None, None)
             )
             if type(_p) is type(None): # pylint: disable=unidiomatic-typecheck
                 raise TypeError(
                     "can only pair points of types point/ECp/G1 and point(2)/ECp2/G2 to each other"
                 )
-            p_ = ECp.__new__(ECp, _p)
-            q_ = ECp2.__new__(ECp2, _q)
+            p_ = _ECp.__new__(_ECp, _p)
+            q_ = _ECp2.__new__(_ECp2, _q)
             z = e(q_, p_)
-            return Fp12.__new__(scalar2, z)
+            return _Fp12.__new__(scalar2, z)
 
         @staticmethod
         def mul(s: scalar, p: point) -> point:
@@ -481,7 +482,7 @@ def make_native(G, F, global_scope=True):
             return p.G.__new__(p.__class__, p.G.add(-1 * q, p))
 
     if global_scope:
-        global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub  # pylint: disable=W0601
+        global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub # pylint: disable=W0601
         # Top-level best-effort synonyms.
         scl = native.scl
         rnd = native.rnd
@@ -495,7 +496,7 @@ def make_native(G, F, global_scope=True):
         add = native.add
         sub = native.sub
 
-        global mclbn256  # pylint: disable=W0603
+        global mclbn256 # pylint: disable=W0603
         mclbn256 = False
 
     _G = G
@@ -503,7 +504,7 @@ def make_native(G, F, global_scope=True):
     #
     # Dedicated point and scalar data structures derived from `bytes`.
     #
-    class point(G):  # pylint: disable=W0621,E0102
+    class point(G): # pylint: disable=W0621,E0102
         """
         Wrapper class for a bytes-like object that corresponds
         to a point.
@@ -551,7 +552,7 @@ def make_native(G, F, global_scope=True):
             >>> point.base(scalar.hash('123'.encode())).hex()
             'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
             """
-            p = G.__new__(cls, (cls._native.bas if cls.G == ECp else cls._native.bs2)(s))
+            p = G.__new__(cls, (cls._native.bas if cls.G == _ECp else cls._native.bs2)(s))
             return None if p.zero() else p
 
         @classmethod
@@ -587,17 +588,20 @@ def make_native(G, F, global_scope=True):
             """
             return G.__new__(cls, G.deserialize(bytes.fromhex(s)))
 
-        def hex(self):
+        def hex(self) -> str:
             """
             Generates hexadecimal representation of the point instance.
             """
             return self.serialize().hex()  # `hex(self)` fails, even though there is `G.__hex__`
 
-        def __repr__(self):
+        def __repr__(self) -> str:
+            """
+            Return string representation of this instance.
+            """
             print(self.serialize(), end='', flush=True)
             return ''
 
-        def __new__(cls, bs: bytes = None) -> point:
+        def __new__(cls, bs: Optional[bytes] = None) -> point:
             """
             If a bytes-like object is supplied, return a point object
             corresponding to the supplied bytes-like object (no checking
@@ -675,7 +679,7 @@ def make_native(G, F, global_scope=True):
             True
 
             After the finalexp function: gist.github.com/wyatt-howe/0ca575e99b73dada1f7fb63862a23a71
-            from MCl (not implemented in the pure Python library, or here, yet), the result hex. is:
+            from MCl (not implemented in the pure-Python library, or here, yet), the result hex. is:
             '3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'
 
             The pairing function is bilinear
@@ -691,13 +695,14 @@ def make_native(G, F, global_scope=True):
 
             >>> x = y = p
 
-            For two points, one multiplied by the scalar `s`, and the other
-            multiplied by the scalar `t`, we can test if they are equal by
-            using a balancing point, g^(~s*t).  If the pairing of tx with g
-            is the same as the pairing of sy with g^(~s*t), then x equals y.
+            Suppose there are two points: one multiplied by the scalar ``s`` and the other
+            multiplied by the scalar ``t``. Their equality can be determined by using a
+            balancing point: ``g**(~s * t)``.  If the pairing of ``t * x`` with ``g`` is the
+            same as the pairing with ``s * y`` and ``g**(~s * t)``, then ``x`` equals ``y``.
+
             >>> g = point.base2(scalar.from_int(1))
-            >>> b = point.base2(~s*t)
-            >>> t*x @ g == s*y @ b
+            >>> b = point.base2(~s * t)
+            >>> (t * x) @ g == (s * y) @ b
             True
             """
             s = self.__class__._native.par(self, other)
@@ -715,7 +720,8 @@ def make_native(G, F, global_scope=True):
             p = G.__new__(self.__class__, G.__neg__(self))
             return None if p.zero() else p
 
-        def __len__(self):
+        def __len__(self) -> int:
+            """Return length (in bytes) of the binary representation of this instance."""
             return bytes(self).__len__()
 
         def to_base64(self: point) -> str:
@@ -730,7 +736,7 @@ def make_native(G, F, global_scope=True):
 
     _F = F
 
-    class scalar(F):  # pylint: disable=E0102
+    class scalar(F): # pylint: disable=E0102
         """
         Wrapper class for a bytes-like object that corresponds
         to a scalar.
@@ -805,15 +811,15 @@ def make_native(G, F, global_scope=True):
             """
             Convert an integer/residue representation of a scalar to a scalar instance.
 
-            The integer can be from the range
-            `-16798108731015832284940804142231733909759579603404752749028378864165570215948`
-            to `16798108731015832284940804142231733909759579603404752749028378864165570215948`
-            or the equivilant in
-            `-8399054365507916142470402071115866954879789801702376374514189432082785107974`
-            to `8399054365507916142470402071115866954879789801702376374514189432082785107974`
-            scalar values.  Any values larger or smaller will not be reduced, and may be
-            truncated or simply affect a ``ValueError``.  Zero-valued scalars are technically
-            allowed, but can't be used for point-scalar multiplication.
+            The integer can be in the range from
+            ``-16798108731015832284940804142231733909759579603404752749028378864165570215948``
+            to ``16798108731015832284940804142231733909759579603404752749028378864165570215948``
+            (or a corresponding one in the range from
+            ``-8399054365507916142470402071115866954879789801702376374514189432082785107974``
+            to ``8399054365507916142470402071115866954879789801702376374514189432082785107974``).
+            Any values outside of this range will not be reduced, may be truncated, or may raise
+            a :obj:`ValueError`.  Zero-valued scalars are technically allowed, but cannot be used
+            for point-scalar multiplication.
 
             >>> int(scalar.from_int(
             ...    16798108731015832284940804142231733909759579603404752749028378864165570215948
@@ -836,14 +842,17 @@ def make_native(G, F, global_scope=True):
             """
             return bytes(self).hex()
 
-        def __int__(self):
+        def __int__(self) -> int:
             """
-            Generates hexadecimal representation of the point instance.
+            Generates an integer representation of the point instance.
             """
             n = self % r  # assert self < r  # assert int.__new__(int, self) < r
             return n if n < r / 2 else n - r
 
-        def __repr__(self):
+        def __repr__(self) -> str:
+            """
+            Return string representation of this instance.
+            """
             print(bytes(self), end='', flush=True)
             return ''
 
@@ -941,11 +950,12 @@ def make_native(G, F, global_scope=True):
             """
             return F.__new__(self.__class__, F.__add__(self, other))
 
-        def __bytes__(self):
-            return self.serialize() if self.__class__.F == Fp12 \
-            else int.to_bytes(self % r, 32, 'little')
+        def __bytes__(self) -> bytes:
+            """Return binary representation of this instance."""
+            return self.serialize() if self.__class__.F == _Fp12 else int.to_bytes(self % r, 32, 'little')
 
-        def __len__(self):
+        def __len__(self) -> int:
+            """Return length (in bytes) of the binary representation of this instance."""
             return 32 if self < pow(2, 32*8) else 384
             # return bytes(self).__len__()
 
@@ -963,10 +973,10 @@ def make_native(G, F, global_scope=True):
     native.point = point
     native.scalar = scalar
     return native, point, scalar
-_, point2, scalar2 = make_native(ECp2, Fp12, global_scope=False)
-native, point, scalar = make_native(ECp, int)
+_, point2, scalar2 = _make_native(_ECp2, _Fp12, global_scope=False)
+native, point, scalar = _make_native(_ECp, int)
 
-# Encapsulate classes that use pure Python implementations for methods.
+# Encapsulate classes that use pure-Python implementations for methods.
 native.point = point
 native.scalar = scalar
 
@@ -983,7 +993,7 @@ try:
     #mclbn256.mclbn256.assert_compatible()
 
     # pylint: disable=C0103
-    def make_mcl(G, F, global_scope=True):
+    def _make_mcl(G, F, global_scope=True):
         """
         Factory to make the exported symbols.
         """
@@ -1011,7 +1021,7 @@ try:
 
             If all of the above fail, then :obj:`mcl` is assigned
             the value ``None`` and all functions and class methods exported by
-            this module default to their pure Python variants (*i.e.*, those
+            this module default to their pure-Python variants (*i.e.*, those
             encapsulated within :obj:`native <native>`). One way to confirm
             that a dynamic/shared library *has not been found* when this module
             is imported is to evaluate `mcl is None`.
@@ -1021,10 +1031,10 @@ try:
             primitive operations and classes exported by this module:
             :obj:`mcl.scl <scl>`, :obj:`mcl.rnd <rnd>`,
             :obj:`mcl.inv <inv>`, :obj:`mcl.smu <smu>`,
-            :obj:`mcl.pnt <pnt>`, :obj:`mcl.bas <bas>`,
+            :obj:`mcl.pnt <pnt>`, :obj:`mcl.bas <bas>`, :obj:`mcl.bs2 <bs2>`,
             :obj:`mcl.mul <mul>`, :obj:`mcl.add <add>`,
-            :obj:`mcl.sub <sub>`, :obj:`mcl.point <point>`,
-            and :obj:`mcl.scalar <scalar>`.
+            :obj:`mcl.sub <sub>`, :obj:`mcl.par <par>`,
+            :obj:`mcl.point <point>`, and :obj:`mcl.scalar <scalar>`.
             For example, you can perform addition of points using
             the point addition implementation found in the mclbn256
             shared/dynamic library found on the host system.
@@ -1090,10 +1100,10 @@ try:
 
             @staticmethod
             def inv(s: scalar) -> scalar:
-                """
+                r"""
                 Return inverse of scalar modulo
                 ``r=16798108731015832284940804142231733909759579603404752749028378864165570215949``
-                in the prime field `F*_r`.
+                in the prime field *F\*_r*.
 
                 >>> s = scl()
                 >>> p = pnt()
@@ -1171,26 +1181,28 @@ try:
                 >>> par(p, q).hex()[700:]
                 '3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'
 
-                The pairing function is bilinear
+                The pairing function is bilinear.
+
                 >>> p = point.random()
                 >>> s = scalar.random()
 
                 >>> t = scalar.random()
-                >>> q = point2.random()  # -or- point.base2(scalar.random())
+                >>> q = point2.random() # Or ``point.base2(scalar.random())``.
                 >>> -((~s) * (s * p)) - p == scalar.from_int(-2) * p
                 True
-                >>> s*t*p @ q == s*p @ (t*q)
+                >>> s * t * p @ q == s * p @ (t * q)
                 True
 
                 >>> x = y = p
 
-                For two points, one multiplied by the scalar `s`, and the other
-                multiplied by the scalar `t`, we can test if they are equal by
-                using a balancing point, g^(~s*t).  If the pairing of tx with g
-                is the same as the pairing with sy and g^(~s*t), then x equals y.
+                Suppose there are two points: one multiplied by the scalar ``s`` and the other
+                multiplied by the scalar ``t``. Their equality can be determined by using a
+                balancing point: ``g**(~s * t)``.  If the pairing of ``t * x`` with ``g`` is the
+                same as the pairing with ``s * y`` and ``g**(~s * t)``, then ``x`` equals ``y``.
+
                 >>> g = point.base2(scalar.from_int(1))
-                >>> b = point.base2(~s*t)
-                >>> t*x @ g == s*y @ b
+                >>> b = point.base2(~s * t)
+                >>> (t * x) @ g == (s * y) @ b
                 True
                 """
                 return GT.__new__(scalar2, p.G.__matmul__(p, q))
@@ -1234,7 +1246,7 @@ try:
                 return p.G.__new__(p.__class__, p.G.__sub__(p, q))
 
         if global_scope:
-            global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub  # pylint: disable=W0601
+            global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub # pylint: disable=W0601
             # Top-level best-effort synonyms.
             scl = mcl.scl
             rnd = mcl.rnd
@@ -1251,12 +1263,11 @@ try:
             global mclbn256 # pylint: disable=W0603
             mclbn256 = True
 
-
         _G = G
         #
         # Dedicated point and scalar data structures derived from `bytes`.
         #
-        class point(G):  # pylint: disable=W0621,E0102
+        class point(G): # pylint: disable=W0621,E0102
             """
             Wrapper class for a bytes-like object that corresponds
             to a point.
@@ -1340,13 +1351,17 @@ try:
                 """
                 return G.__new__(cls, G.deserialize(bytes.fromhex(s)))
 
-            def hex(self):
+            def hex(self) -> str:
                 """
-                Generates hexadecimal representation of the point instance.
+                Generates hexadecimal representation of this instance.
                 """
-                return self.serialize().hex()  # `hex(self)` fails, even though there is `G.__hex__`
+                # Note that ``hex(self)`` fails, even though there is ``G.__hex__``.
+                return self.serialize().hex()
 
-            def __repr__(self):
+            def __repr__(self) -> str:
+                """
+                Return string representation of this instance.
+                """
                 print(bytes(self), end='', flush=True)
                 return ''
 
@@ -1437,13 +1452,14 @@ try:
 
                 >>> x = y = p
 
-                For two points, one multiplied by the scalar `s`, and the other
-                multiplied by the scalar `t`, we can test if they are equal by
-                using a balancing point, g^(~s*t).  If the pairing of tx with g
-                is the same as the pairing of sy with g^(~s*t), then x equals y.
+                Suppose there are two points: one multiplied by the scalar ``s`` and the other
+                multiplied by the scalar ``t``. Their equality can be determined by using a
+                balancing point: ``g**(~s * t)``.  If the pairing of ``t * x`` with ``g`` is the
+                same as the pairing with ``s * y`` and ``g**(~s * t)``, then ``x`` equals ``y``.
+
                 >>> g = point.base2(scalar.from_int(1))
-                >>> b = point.base2(~s*t)
-                >>> t*x @ g == s*y @ b
+                >>> b = point.base2(~s * t)
+                >>> (t * x) @ g == (s * y) @ b
                 True
                 """
                 s = self.__class__._mcl.par(self, other)
@@ -1461,7 +1477,8 @@ try:
                 p = G.__new__(self.__class__, G.__neg__(self))
                 return None if p.zero() else p
 
-            def __len__(self):
+            def __len__(self) -> int:
+                """Return length (in bytes) of the binary representation of this instance."""
                 return bytes(self).__len__()
 
             def to_base64(self: point) -> str:
@@ -1550,15 +1567,15 @@ try:
                 """
                 Convert an integer/residue representation of a scalar to a scalar instance.
 
-                The integer can be from the range
-                `-16798108731015832284940804142231733909759579603404752749028378864165570215948`
-                to `16798108731015832284940804142231733909759579603404752749028378864165570215948`
-                or the equivilant in
-                `-8399054365507916142470402071115866954879789801702376374514189432082785107974`
-                to `8399054365507916142470402071115866954879789801702376374514189432082785107974`
-                scalar values.  Any values larger or smaller will not be reduced, and may be
-                truncated or simply affect a ``ValueError``.  Zero-valued scalars are technically
-                allowed, but can't be used for point-scalar multiplication.
+                The integer can be in the range from
+                ``-16798108731015832284940804142231733909759579603404752749028378864165570215948``
+                to ``16798108731015832284940804142231733909759579603404752749028378864165570215948``
+                (or a corresponding one in the range from
+                ``-8399054365507916142470402071115866954879789801702376374514189432082785107974``
+                to ``8399054365507916142470402071115866954879789801702376374514189432082785107974``).
+                Any values outside of this range will not be reduced, may be truncated, or may raise
+                a :obj:`ValueError`.  Zero-valued scalars are technically allowed, but cannot be used
+                for point-scalar multiplication.
 
                 >>> int(scalar.from_int(
                 ...    16798108731015832284940804142231733909759579603404752749028378864165570215948
@@ -1575,13 +1592,16 @@ try:
                 """
                 return F.__new__(cls, i)
 
-            def hex(self):
+            def hex(self) -> str:
                 """
                 Generates hexadecimal representation of the point instance.
                 """
                 return self.serialize().hex()  # `hex(self)` fails, even though there is `F.__hex__`
 
-            def __repr__(self):
+            def __repr__(self) -> str:
+                """
+                Return string representation of this instance.
+                """
                 print(bytes(self), end='', flush=True)
                 return ''
 
@@ -1676,7 +1696,8 @@ try:
                 """
                 return F.__new__(self.__class__, F.__add__(self, other))
 
-            def __len__(self):
+            def __len__(self) -> int:
+                """Return length (in bytes) of the binary representation of this instance."""
                 return bytes(self).__len__()
 
             def to_base64(self: scalar) -> str:
@@ -1693,8 +1714,8 @@ try:
         mcl.point = point
         mcl.scalar = scalar
         return mcl, point, scalar
-    _, point2, scalar2 = make_mcl(G2, GT, global_scope=False)
-    mcl, point, scalar = make_mcl(G1, Fr)
+    _, point2, scalar2 = _make_mcl(G2, GT, global_scope=False)
+    mcl, point, scalar = _make_mcl(G1, Fr)
 
 except: # pylint: disable=W0702 # pragma: no cover
     # Exported symbol.

@@ -72,12 +72,17 @@ autodoc_default_options = {
 }
 autodoc_preserve_defaults = True
 
+# Avoid emitting duplicate documentation entries for classes and methods
+# that have identical interfaces.
+
 def autodoc_skip_member_handler(app, what, name, obj, skip, options):
-    # Avoid emitting entries within `native` and `sodium` that are
-    # duplicates of the top-level definitions.
-    if name in ('sodium', 'native'):
+    # Avoid emitting entries within ``native``, ``sodium``, and ``mcl``
+    # that are duplicates of the top-level definitions.
+    if name in ('sodium', 'mcl', 'native'):
         for method in [
-          'scl', 'rnd', 'inv', 'smu', 'pnt', 'bas', 'mul', 'add', 'sub',
+          'scl', 'rnd', 'inv', 'smu', 'pnt',
+          'bas', 'bs2', 
+          'mul', 'add', 'sub', 'par',
           'point', 'scalar'
         ]:
             if hasattr(obj, method):

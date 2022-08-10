@@ -7,25 +7,26 @@ ristretto module
 This module exports a collection of primitive operations for working
 with elliptic curve points and scalars, classes for representing points,
 classes for representing scalars, and two wrapper classes/namespaces that
-encapsulate pure Python and shared/dynamic library variants of the above.
+encapsulate pure-Python and shared/dynamic library variants of the above.
 
-* Under all conditions, the wrapper class :obj:`native` is defined and
-  exports a pure Python variant of every operation and class method
-  exported by this module as a whole.
+* Under all conditions, the wrapper class :obj:`~oblivious.ristretto.native`
+  is defined and exports a pure-Python variant of every operation and class
+  method exported by this module as a whole.
 
 * If a shared/dynamic library instance of the
   `libsodium <https://doc.libsodium.org>`__ library is found on the
   system (and successfully loaded at the time this module is imported) or
   the optional `rbcl <https://pypi.org/project/rbcl>`__ package is
-  installed, then the wrapper class :obj:`sodium` is defined and exports
-  a wrapper around the appropriate function in the dynamic/shared library
-  for every operation and class method exported by this module as a whole.
-  Otherwise, the exported variable ``sodium`` is assigned ``None``.
+  installed, then the wrapper class :obj:`~oblivious.ristretto.sodium` is
+  defined and exports a wrapper around the appropriate function in the
+  dynamic/shared library for every operation and class method exported by
+  this module as a whole. Otherwise, the exported variable ``sodium`` is
+  assigned ``None``.
 
 * All operations and class methods exported by this module correspond to
-  the variants defined by :obj:`sodium` if a dynamic/shared library is
-  loaded. Otherwise, they correspond to the variants defined by
-  :obj:`native`.
+  the variants defined by :obj:`~oblivious.ristretto.sodium` if a
+  dynamic/shared library is loaded. Otherwise, they correspond to the
+  variants defined by :obj:`~oblivious.ristretto.native`.
 """
 from __future__ import annotations
 from typing import Union, Optional
@@ -169,7 +170,7 @@ class native:
     Wrapper class for native Python implementations of
     primitive operations.
 
-    This class encapsulates pure Python variants of all
+    This class encapsulates pure-Python variants of all
     primitive operations and classes exported by this module:
     :obj:`native.scl <scl>`, :obj:`native.rnd <rnd>`,
     :obj:`native.inv <inv>`, :obj:`native.smu <smu>`,
@@ -178,17 +179,16 @@ class native:
     :obj:`native.sub <sub>`, :obj:`native.point <point>`,
     and :obj:`native.scalar <scalar>`.
     For example, you can perform addition of points using
-    the pure Python point addition implementation.
+    the pure-Python point addition implementation.
 
     >>> p = native.pnt()
     >>> q = native.pnt()
     >>> native.add(p, q) == native.add(q, p)
     True
 
-    Pure Python variants of the :obj:`native.point <point>`
-    and :obj:`native.scalar <scalar>` classes always employ pure
-    Python implementations of operations when their methods are
-    invoked.
+    Pure-Python variants of the :obj:`native.point <point>` and
+    :obj:`native.scalar <scalar>` classes always employ pure-Python
+    implementations of operations when their methods are invoked.
 
     >>> p = native.point()
     >>> q = native.point()
@@ -636,7 +636,7 @@ class scalar(bytes):
         """
         return base64.standard_b64encode(self).decode('utf-8')
 
-# Encapsulate classes that use pure Python implementations for methods.
+# Encapsulate classes that use pure-Python implementations for methods.
 native.point = point
 native.scalar = scalar
 
@@ -731,7 +731,7 @@ try:
 
         If all of the above fail, then :obj:`sodium` is assigned
         the value ``None`` and all functions and class methods exported by
-        this module default to their pure Python variants (*i.e.*, those
+        this module default to their pure-Python variants (*i.e.*, those
         encapsulated within :obj:`native <native>`). One way to confirm
         that a dynamic/shared library *has not been found* when this module
         is imported is to evaluate `sodium is None`.
