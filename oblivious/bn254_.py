@@ -848,9 +848,16 @@ def _make_native(G, F, global_scope=True):
 
         def __repr__(self) -> str:
             """
-            Return string representation of this instance.
+            Return (debug) string representation of this instance.
             """
             print(bytes(self), end='', flush=True)
+            return ''
+
+        def __str__(self) -> str:
+            """
+            Return string representation of this instance.
+            """
+            print(int(self), end='', flush=True)
             return ''
 
         def __new__(cls, bs: bytes = None) -> scalar:
@@ -868,7 +875,8 @@ def _make_native(G, F, global_scope=True):
             >>> len(scalar())
             32
             """
-            return F.__new__(cls, bs) if bs is not None else cls.random()
+            s = cls._native.scl(bs)
+            return F.__new__(cls, s) if s is not None else cls.random()
 
         def __invert__(self: scalar) -> scalar:
             """
@@ -1597,9 +1605,16 @@ try:
 
             def __repr__(self) -> str:
                 """
-                Return string representation of this instance.
+                Return (debug) string representation of this instance.
                 """
                 print(bytes(self), end='', flush=True)
+                return ''
+
+            def __str__(self) -> str:
+                """
+                Return string representation of this instance.
+                """
+                print(int(self), end='', flush=True)
                 return ''
 
             def __new__(cls, bs: bytes = None) -> scalar:
@@ -1617,7 +1632,8 @@ try:
                 >>> len(scalar())
                 32
                 """
-                return F.__new__(cls, bs) if bs is not None else cls.random()
+                s = bs # or `cls._mcl.scl(bs)`, but ``mclbn256`` handles this already
+                return F.__new__(cls, s) if s is not None else cls.random()
 
             def __invert__(self: scalar) -> scalar:
                 """
