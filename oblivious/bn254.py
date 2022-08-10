@@ -140,7 +140,7 @@ class _ECp2(ECp2_): # pylint: disable=invalid-name
     """Internal class."""
     # pylint: disable=missing-function-docstring
     def __new__(cls, *args, **kwargs):
-        q = _ECp2.__new__(cls)
+        q = ECp2_.__new__(cls)
         _ECp2.__init__(q, *args, **kwargs)
         return q
 
