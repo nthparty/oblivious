@@ -51,7 +51,7 @@ class Test_namespace(TestCase):
         self.assertTrue('bn254' in init.__dict__)
 
     def test_modules(self):
-        module = importlib.import_module('oblivious.bn254')
+        module = importlib.import_module('oblivious.bn254_')
         self.assertTrue('native' in module.__dict__)
         self.assertTrue('mcl' in module.__dict__)
         self.assertTrue(api_methods().issubset(module.__dict__.keys()))
