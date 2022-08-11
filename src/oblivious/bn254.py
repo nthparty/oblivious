@@ -25,7 +25,6 @@ encapsulate pure-Python and shared/dynamic library variants of the above.
   :obj:`~oblivious.bn254.native`.
 """
 from __future__ import annotations
-from __future__ import absolute_import
 from typing import Union, Optional
 import doctest
 import hashlib
@@ -976,6 +975,7 @@ def _make_native(G, F, global_scope=True):
     native.point = point
     native.scalar = scalar
     return native, point, scalar
+
 _, point2, scalar2 = _make_native(_ECp2, _Fp12, global_scope=False)
 native, point, scalar = _make_native(_ECp, int)
 
@@ -1250,7 +1250,7 @@ try:
 
         if global_scope:
             # Top-level best-effort synonyms.
-            global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub, point, scalar # pylint: disable=W0601
+            global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub # pylint: disable=W0601
             scl = mcl.scl
             rnd = mcl.rnd
             inv = mcl.inv
@@ -1262,8 +1262,6 @@ try:
             mul = mcl.mul
             add = mcl.add
             sub = mcl.sub
-            point = mcl.point
-            scalar = mcl.scalar
 
             global mclbn256 # pylint: disable=W0603
             mclbn256 = True
@@ -1726,6 +1724,7 @@ try:
         # Encapsulate classes that use wrappers for shared/dynamic library bindings for methods.
         mcl.point = point
         mcl.scalar = scalar
+
         return mcl, point, scalar
 
     _, point2, scalar2 = _make_mcl(G2, GT, global_scope=False)
