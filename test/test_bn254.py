@@ -261,8 +261,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 p = cls.point()
                 p_b64 = base64.standard_b64encode(bytes(p)).decode('utf-8')
                 self.assertEqual(p.to_base64(), p_b64)
-                if p.__class__.G in (bn254.G1, bn254.G2):
-                    self.assertEqual(cls.point.from_base64(p_b64), p)
+                self.assertEqual(cls.point.from_base64(p_b64), p)
 
         def test_point(self):
             mcl_hidden_and_fallback(hidden, fallback)
