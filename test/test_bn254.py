@@ -14,7 +14,7 @@ try:
     from oblivious import bn254 #pylint: disable=E0611# allows PyLint to fail the try block's import
 except: # pylint: disable=W0702
     # To support generation of reference specifications for unit tests.
-    spec = importlib.util.spec_from_file_location("bn254", "oblivious/bn254.py")
+    spec = importlib.util.spec_from_file_location("bn254", "src/oblivious/bn254.py")
     bn254 = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(bn254)
 
@@ -51,7 +51,7 @@ class Test_namespace(TestCase):
         self.assertTrue('bn254' in init.__dict__)
 
     def test_modules(self):
-        module = importlib.import_module('oblivious.bn254_')
+        module = importlib.import_module('oblivious.bn254')
         self.assertTrue('native' in module.__dict__)
         self.assertTrue('mcl' in module.__dict__)
         self.assertTrue(api_methods().issubset(module.__dict__.keys()))
@@ -596,9 +596,11 @@ if bn254.mclbn256 is not None:
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.
-    for tests in [Test_primitives_mcl(), Test_classes_mcl(), Test_types_mcl(), Test_algebra_mcl(),
-                  Test_primitives_native(), Test_classes_native(), Test_types_mcl()]:
-        print('\nUnit test reference bit vectors for ' + tests.__class__.__name__ + ' methods...')
+    for tests in [Test_primitives_native(), Test_classes_native()]:
+        print(
+            '\nUnit test reference bit vectors for ' +
+            tests.__class__.__name__ + ' methods...'
+        )
         for m in [m for m in dir(tests) if m.startswith('test_')]:
             method = getattr(tests, m)
             if 'bits' in method.__code__.co_varnames:

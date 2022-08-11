@@ -177,7 +177,7 @@ Concise unit tests are implemented with the help of `fountains <https://pypi.org
 Style conventions are enforced using `Pylint <https://pylint.pycqa.org>`__::
 
     python -m pip install .[lint]
-    python -m pylint oblivious test/test_ristretto.py test/test_bn254.py
+    python -m pylint src/oblivious test/test_ristretto.py test/test_bn254.py
 
 Contributions
 ^^^^^^^^^^^^^
@@ -200,7 +200,7 @@ Ensure that the correct version number appears in ``pyproject.toml``, and that a
 
 Remove any old build/distribution files. Then, package the source into a distribution archive::
 
-    rm -rf build dist *.egg-info
+    rm -rf build dist src/*.egg-info
     python -m build --sdist --wheel .
 
 Finally, upload the package distribution archive to `PyPI <https://pypi.org>`__::

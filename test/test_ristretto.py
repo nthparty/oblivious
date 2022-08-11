@@ -14,7 +14,7 @@ try:
     from oblivious import ristretto
 except: # pylint: disable=W0702
     # To support generation of reference specifications for unit tests.
-    spec = importlib.util.spec_from_file_location("ristretto", "oblivious/ristretto.py")
+    spec = importlib.util.spec_from_file_location("ristretto", "src/oblivious/ristretto.py")
     ristretto = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(ristretto)
 
@@ -554,8 +554,11 @@ if ristretto.rbcl is not None:
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.
-    for tests in [Test_primitives_native(), Test_classes_sodium()]:
-        print('\nUnit test reference bit vectors for ' + tests.__class__.__name__ + ' methods...')
+    for tests in [Test_primitives_native(), Test_classes_native()]:
+        print(
+            '\nUnit test reference bit vectors for ' +
+            tests.__class__.__name__ + ' methods...'
+        )
         for m in [m for m in dir(tests) if m.startswith('test_')]:
             method = getattr(tests, m)
             if 'bits' in method.__code__.co_varnames:

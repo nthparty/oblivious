@@ -25,21 +25,19 @@ encapsulate pure-Python and shared/dynamic library variants of the above.
   :obj:`~oblivious.bn254.native`.
 """
 from __future__ import annotations
+from __future__ import absolute_import
 from typing import Union, Optional
-import sys
-import os
 import doctest
 import hashlib
 import base64
 import secrets
-
-from bn254.ecp import generator as get_base # pylint: disable=wrong-import-position
-from bn254.ecp2 import generator as get_base2 # pylint: disable=wrong-import-position
-from bn254.pair import e # pylint: disable=wrong-import-position
-from bn254 import big as bn, Fp12 as Fp12_ # pylint: disable=wrong-import-position
-from bn254.ecp import ECp as ECp_ # pylint: disable=wrong-import-position
-from bn254.ecp2 import ECp2 as ECp2_ # pylint: disable=wrong-import-position
-from bn254.curve import r # pylint: disable=wrong-import-position
+from bn254.ecp import generator as get_base
+from bn254.ecp2 import generator as get_base2
+from bn254.pair import e
+from bn254 import big as bn, Fp12 as Fp12_
+from bn254.ecp import ECp as ECp_
+from bn254.ecp2 import ECp2 as ECp2_
+from bn254.curve import r
 
 class _ECp(ECp_): # pylint: disable=invalid-name
     """Internal class."""
