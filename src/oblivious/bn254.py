@@ -477,8 +477,8 @@ def _make_native(G, F, global_scope=True):
             return p.G.__new__(p.__class__, p.G.add(-1 * q, p))
 
     if global_scope:
-        global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub # pylint: disable=W0601
         # Top-level best-effort synonyms.
+        global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub # pylint: disable=W0601
         scl = native.scl
         rnd = native.rnd
         inv = native.inv
@@ -1249,8 +1249,8 @@ try:
                 return p.G.__new__(p.__class__, p.G.__sub__(p, q))
 
         if global_scope:
-            global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub # pylint: disable=W0601
             # Top-level best-effort synonyms.
+            global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub, point, scalar # pylint: disable=W0601
             scl = mcl.scl
             rnd = mcl.rnd
             inv = mcl.inv
@@ -1262,6 +1262,8 @@ try:
             mul = mcl.mul
             add = mcl.add
             sub = mcl.sub
+            point = mcl.point
+            scalar = mcl.scalar
 
             global mclbn256 # pylint: disable=W0603
             mclbn256 = True
@@ -1725,6 +1727,7 @@ try:
         mcl.point = point
         mcl.scalar = scalar
         return mcl, point, scalar
+
     _, point2, scalar2 = _make_mcl(G2, GT, global_scope=False)
     mcl, point, scalar = _make_mcl(G1, Fr)
 
