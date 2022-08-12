@@ -148,9 +148,9 @@ The operations and class methods exported by the |ristretto|_ module directly (*
 
 The classes that implement and wrap the functionalities within the `mcl <https://github.com/herumi/mcl>`__ library are organized in a similar manner. More information is available in the documentation for the |bn254|_ module.
 
-.. image:: https://raw.githubusercontent.com/gist/wyatt-howe/557ddf0efe0fee21f0ae3163b34f9889/raw/8a2c06505ece66d5d102b693404259624e2127d3/diagrambn.svg?sanitize=true
+.. image:: https://raw.githubusercontent.com/gist/wyatt-howe/557ddf0efe0fee21f0ae3163b34f9889/raw/57a96d2193177bdf7ee139e4bc5d3761c8142193/diagrambn.svg?sanitize=true
   :alt: Oblivious BN-254 data model
-  :width: 80%
+  :width: 92%
 :sup:`†` scalar-point multiplication (denoted ``*``) is only non-invertible when the scalar is secret
 
 Development
