@@ -148,6 +148,11 @@ The operations and class methods exported by the |ristretto|_ module directly (*
 
 The classes that implement and wrap the functionalities within the `mcl <https://github.com/herumi/mcl>`__ library are organized in a similar manner. More information is available in the documentation for the |bn254|_ module.
 
+.. image:: https://raw.githubusercontent.com/gist/wyatt-howe/557ddf0efe0fee21f0ae3163b34f9889/raw/8a2c06505ece66d5d102b693404259624e2127d3/diagrambn.svg?sanitize=true
+  :alt: Oblivious BN-254 data model
+  :width: 80%
+:sup:`†` scalar-point multiplication (denoted ``*``) is only non-invertible when the scalar is secret
+
 Development
 -----------
 All installation and development dependencies are fully specified in ``pyproject.toml``. The ``project.optional-dependencies`` object is used to `specify optional requirements <https://peps.python.org/pep-0621>`__ for various development tasks. This makes it possible to specify additional options (such as ``docs``, ``lint``, and so on) when performing installation using `pip <https://pypi.org/project/pip>`__::
