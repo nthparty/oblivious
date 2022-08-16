@@ -173,7 +173,7 @@ The documentation can be generated automatically from the source files using `Sp
 
     python -m pip install .[docs]
     cd docs
-    sphinx-apidoc -f -e -E --templatedir=_templates -o _source .. && make html
+    sphinx-apidoc -f -e -E --templatedir=_templates -o _source ../src && make html
 
 Testing and Conventions
 ^^^^^^^^^^^^^^^^^^^^^^^
