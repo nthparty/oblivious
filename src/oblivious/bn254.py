@@ -347,9 +347,9 @@ def _make_native(G, F, global_scope=True):
         @staticmethod
         def sad2(s: scalar2, t: scalar2) -> scalar2:
             """
-            Return scalar added to another scalar.
+            Return scalar2 added to another scalar2.
 
-            >>> s = scl()  # Could be `native.scl()`.
+            >>> s = scl()  # Should eventually be changed to `native.scl2()` or the like.
             >>> t = scl()
             >>> sad(s, t) == sad(t, s)
             True
