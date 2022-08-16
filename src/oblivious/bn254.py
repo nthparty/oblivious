@@ -1175,14 +1175,12 @@ try:
             """
             return Fr.__new__(s.__class__, Fr.__invert__(s))
 
-        '''
         @staticmethod
         def inv2(s):
             """
             Return the inverse of the scalar.
             """
             return GT.__new__(s.__class__, GT.__inv__(s))
-        '''
 
         @staticmethod
         def smu(s: scalar, t: scalar) -> scalar:
@@ -2178,7 +2176,6 @@ try:
             """
             return GT.__new__(cls, bs) if bs is not None else cls.random()
 
-        '''
         def __invert__(self: scalar2) -> scalar2:
             """
             Return inverse of scalar.
@@ -2200,10 +2197,13 @@ try:
             ...     '1d7x5+0HNQki1EXaB9k2Ii21uqnewVLCsrz8Rs3m/SLnAnGvihZOd+WAjOYCCVof'
             ... )
             >>> bytes(s.inverse()).hex()[700:]
+            'ec02e64a4556213eade4604303b93219233e21fd8e50f536e6421c7f73597f5bc905'
+            >>> ~~s == s
             True
+            >>> ~s == s
+            False
             """
             return mcl.inv2(self)
-        '''
 
         def __mul__(self: scalar2, other: scalar2) -> scalar2:
             """
