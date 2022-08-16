@@ -1048,7 +1048,7 @@ try:
         :obj:`mcl.inv <inv>`, :obj:`mcl.smu <smu>`,
         :obj:`mcl.pnt <pnt>`, :obj:`mcl.bas <bas>`, :obj:`mcl.bs2 <bs2>`,
         :obj:`mcl.mul <mul>`, :obj:`mcl.add <add>`,
-        :obj:`mcl.add <sad>`, :obj:`mcl.add <sad2>`,
+        :obj:`mcl.sad <sad>`, :obj:`mcl.sad2 <sad2>`,
         :obj:`mcl.sub <sub>`, :obj:`mcl.par <par>`,
         :obj:`mcl.point <point>`, and :obj:`mcl.scalar <scalar>`.
         For example, you can perform addition of points using
