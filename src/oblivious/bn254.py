@@ -331,17 +331,31 @@ def _make_native(G, F, global_scope=True):
             """
             return F.__new__(s.__class__, F.__mul__(s, t) % r)
 
-        # @staticmethod
-        # def sad(s: scalar, t: scalar) -> scalar:
-        #     """
-        #     Return scalar added to another scalar.
-        #
-        #     >>> s = scl()
-        #     >>> t = scl()
-        #     >>> sad(s, t) == sad(t, s)
-        #     True
-        #     """
-        #     return F.__new__(s.__class__, F.__sad__(s, t) % r)
+        @staticmethod
+        def sad(s: scalar, t: scalar) -> scalar:
+            """
+            Return scalar added to another scalar.
+
+            >>> s = scl()  # Could be `native.scl()`.
+            >>> t = scl()
+            >>> sad(s, t) == sad(t, s)
+            True
+            """
+            #return F.__new__(s.__class__, F.__add__(int(s), int(t)) % r)
+            return F.__new__(native.scalar, F.__add__(int(s), int(t)) % r)
+
+        @staticmethod
+        def sad2(s: scalar2, t: scalar2) -> scalar2:
+            """
+            Return scalar added to another scalar.
+
+            >>> s = scl()  # Could be `native.scl()`.
+            >>> t = scl()
+            >>> sad(s, t) == sad(t, s)
+            True
+            """
+            return None#F.__new__(s.__class__, F.__add__(s, t) % r)
+            #return F.__new__(native.scalar2, F.__add__(int(s), int(t)) % r)
 
         @staticmethod
         def pnt(h: bytes = None) -> point:
@@ -478,7 +492,7 @@ def _make_native(G, F, global_scope=True):
 
     if global_scope: # pylint: disable=global-statement
         # Top-level best-effort synonyms.
-        global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sub # pylint: disable=global-statement
+        global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sad, sad2, sub # pylint: disable=global-statement
         scl = native.scl
         rnd = native.rnd
         inv = native.inv
@@ -489,6 +503,8 @@ def _make_native(G, F, global_scope=True):
         par = native.par
         mul = native.mul
         add = native.add
+        sad = native.sad
+        sad2 = native.sad2
         sub = native.sub
 
         global mclbn256 # pylint: disable=W0603
@@ -1195,19 +1211,29 @@ try:
             """
             return GT.__new__(s.__class__, GT.__mul__(s, t))
 
-        # @staticmethod
-        # def sad(s: scalar, t: scalar) -> scalar:
-        #     """
-        #     Return scalar added to another scalar.
-        #
-        #     >>> s = scl()
-        #     >>> t = scl()
-        #     >>> sad(s, t) == sad(t, s)
-        #     True
-        #     """
-        #     # return s + t
-        #     # return F.__sad__(s, t)
-        #     return F.__new__(s.__class__, F.__sad__(s, t))
+        @staticmethod
+        def sad(s: scalar, t: scalar) -> scalar:
+            """
+            Return scalar added to another scalar.
+
+            >>> s = scl()
+            >>> t = scl()
+            >>> sad(s, t) == sad(t, s)
+            True
+            """
+            return Fr.__new__(s.__class__, Fr.__add__(s, t))
+
+        @staticmethod
+        def sad2(s: scalar2, t: scalar2) -> scalar2:
+            """
+            Return scalar added to another scalar.
+
+            >>> s = scl()
+            >>> t = scl()
+            >>> sad2(s, t) == sad2(t, s)
+            True
+            """
+            return GT.__new__(s.__class__, GT.__add__(s, t))
 
         @staticmethod
         def pnt(h: bytes = None) -> point:
