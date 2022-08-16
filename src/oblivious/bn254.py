@@ -1105,6 +1105,9 @@ try:
             except ValueError:
                 return None
 
+            # Addresses Pylint warning: ``inconsistent-return-statements``.
+            return None # pragma: no cover
+
         @staticmethod
         def scl2(s: Union[bytes, bytearray, None] = None) -> Optional[scalar2]:
             """
@@ -1842,7 +1845,7 @@ try:
             if the scalar is valid; otherwise, return ``None``.
 
             >>> point2.base(scalar.hash('123'.encode())).hex() == (
-            ...     '1c608cfa50a623fb602a83a32b49b305d56124c970a16f81cad1b99a7ca5660d' + 
+            ...     '1c608cfa50a623fb602a83a32b49b305d56124c970a16f81cad1b99a7ca5660d' +
             ...     '124528b442d33e15eca23a202df3222c542e7bd71955c7623669554af518de01'
             ... )
             True
@@ -1934,7 +1937,7 @@ try:
             it is a :obj:`scalar` instance). This method is included so
             that an exception can be raised if an incorrect argument is
             supplied.
-            
+
             >>> p = point2.hash('123'.encode())
             >>> 2 * p
             Traceback (most recent call last):
@@ -1952,7 +1955,7 @@ try:
             >>> p = point2.hash('123'.encode())
             >>> q = point2.hash('456'.encode())
             >>> (p + q).hex() == (
-            ...     '019ecabf1926c7d673198e2b55e8fca863c115ca3202e15b9ea06b518d613018' + 
+            ...     '019ecabf1926c7d673198e2b55e8fca863c115ca3202e15b9ea06b518d613018' +
             ...     '7f5d2ee6dc8d8dd5951bb6156227c0141b2ba0e6ef3e5a68cebba2cd3d702918'
             ... )
             True
@@ -1969,7 +1972,7 @@ try:
             >>> p = point2.hash('123'.encode())
             >>> q = point2.hash('456'.encode())
             >>> (p - q).hex() == (
-            ...     '95c5c1ce52c545a5183818f534bf592c74dabb86bd8ea2c011f99fc98d73af1f' + 
+            ...     '95c5c1ce52c545a5183818f534bf592c74dabb86bd8ea2c011f99fc98d73af1f' +
             ...     'ba5cb37348cb95439bc2838370fc8b01c6a845c661a6cdeacb233a991499c813'
             ... )
             True
@@ -2015,7 +2018,7 @@ try:
             """
             return base64.standard_b64encode(bytes(self)).decode('utf-8')
 
-    class scalar2(GT):
+    class scalar2(GT): # pylint: disable=function-redefined
         """
         Wrapper class for a bytes-like object that corresponds to a
         second-level scalar.
@@ -2072,7 +2075,7 @@ try:
         def from_hex(cls, s: str) -> scalar2:
             """
             Construct an instance from its hexadecimal UTF-8 string representation.
-            
+
             >>> s = scalar2.from_hex(
             ...     '18d0e065798ffa4ecca0a7cc6e2b8d6d3269f7eb413525e59b731332b02ea805' +
             ...     '4b90c89ce93e4452557f53aae5f8f13221858dde2ea6a50373f1858f11287021' +
@@ -2136,7 +2139,7 @@ try:
             True
             """
             # Note that ``hex(self)`` fails, even though ``GT.__hex__`` exists.
-            return self.serialize().hex()  
+            return self.serialize().hex()
 
         def __new__(cls, bs: Optional[bytes] = None) -> scalar2: # pylint: disable=arguments-differ
             """
