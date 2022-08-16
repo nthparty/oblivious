@@ -351,7 +351,7 @@ def _make_native(G, F, global_scope=True):
 
             >>> s = scl()  # Should eventually be changed to `native.scl2()` or the like.
             >>> t = scl()
-            >>> sad(s, t) == sad(t, s)
+            >>> sad2(s, t) == sad2(t, s)
             True
             """
             return None#F.__new__(s.__class__, F.__add__(s, t) % r)
