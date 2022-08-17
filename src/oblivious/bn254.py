@@ -234,7 +234,7 @@ mclbn256 = None
 #
 
 # pylint: disable=C0103
-def _make_native(G, F, global_scope=True):
+def _make_native(G, F):
     """
     Factory to make the exported symbols.
     """
@@ -248,7 +248,7 @@ def _make_native(G, F, global_scope=True):
         primitive operations and classes exported by this module:
         :obj:`native.scl <scl>`, :obj:`native.rnd <rnd>`,
         :obj:`native.inv <inv>`, :obj:`native.smu <smu>`,
-        :obj:`native.pnt <pnt>`, :obj:`native.bas <bas>`, :obj:`native.bas <bs2>`,
+        :obj:`native.pnt <pnt>`, :obj:`native.bas <bas>`, :obj:`native.bas2 <bas2>`,
         :obj:`native.mul <mul>`, :obj:`native.add <add>`,
         :obj:`native.sub <sub>`, :obj:`native.par <par>`,
         :obj:`native.point <point>`, and :obj:`native.scalar <scalar>`.
@@ -349,8 +349,8 @@ def _make_native(G, F, global_scope=True):
             """
             Return scalar2 added to another scalar2.
 
-            >>> s = scl()  # Should eventually be changed to `native.scl2()` or the like.
-            >>> t = scl()
+            >>> s = scl2()  # Should eventually be changed to `native.scl2()` or the like.
+            >>> t = scl2()
             >>> sad2(s, t) == sad2(t, s)
             True
             """
@@ -481,26 +481,6 @@ def _make_native(G, F, global_scope=True):
             '34bf1212d1028ba42f9f47065c17afc8d07299afe483e3e7e3e39fa3f763bceb'
             """
             return p.G.__new__(p.__class__, p.G.add(-1 * q, p))
-
-    if global_scope: # pylint: disable=global-statement
-        # Top-level best-effort synonyms.
-        global scl, rnd, inv, smu, pnt, bas, bs2, par, mul, add, sad, sad2, sub # pylint: disable=global-statement
-        scl = native.scl
-        rnd = native.rnd
-        inv = native.inv
-        smu = native.smu
-        pnt = native.pnt
-        bas = native.bas
-        bs2 = native.bs2
-        par = native.par
-        mul = native.mul
-        add = native.add
-        sad = native.sad
-        sad2 = native.sad2
-        sub = native.sub
-
-        global mclbn256 # pylint: disable=W0603
-        mclbn256 = False
 
     _G = G
 
@@ -998,8 +978,27 @@ def _make_native(G, F, global_scope=True):
     native.scalar = scalar
     return native, point, scalar
 
-_, point2, scalar2 = _make_native(_ECp2, _Fp12, global_scope=False)
+_, point2, scalar2 = _make_native(_ECp2, _Fp12)
 native, point, scalar = _make_native(_ECp, int)
+
+# Encapsulate pure-Python functions.
+scl = native.scl
+rnd = native.rnd
+inv = native.inv
+smu = native.smu
+pnt = native.pnt
+bas = native.bas
+bs2 = native.bs2
+par = native.par
+mul = native.mul
+add = native.add
+sad = native.sad
+sad2 = native.sad2
+sub = native.sub
+
+# Indicate that data structures based on the dynamic/shared library have
+# not been defined.
+mclbn256 = False
 
 # Encapsulate classes that use pure-Python implementations for methods.
 native.point = point
@@ -1081,6 +1080,8 @@ try:
         with those accepted and emitted by the operations and class
         methods in :obj:`native`.
         """
+        # pylint: disable=too-many-public-methods
+
         @staticmethod
         def rnd() -> scalar:
             """
@@ -1090,18 +1091,6 @@ try:
             32
             """
             return Fr.__new__(scalar, Fr().randomize())
-
-        @staticmethod
-        def rnd2() -> scalar2:
-            """
-            Return random non-zero scalar.
-
-            >>> len(mcl.rnd2())
-            384
-            """
-            p = point.random()
-            q = (point2.base2 if hasattr(point2, 'base2') else point2.base)(scalar.random())
-            return mcl.par(p, q)
 
         @classmethod
         def scl(cls, s: Union[bytes, bytearray, None] = None) -> Optional[scalar]:
@@ -1129,6 +1118,189 @@ try:
 
             # Addresses Pylint warning: ``inconsistent-return-statements``.
             return None # pragma: no cover
+
+        @staticmethod
+        def inv(s: scalar) -> scalar:
+            r"""
+            Return inverse of scalar modulo
+            ``r = 16798108731015832284940804142231733909759579603404752749028378864165570215949``
+            in the prime field *F*\_*r*.
+
+            >>> s = scl()
+            >>> p = pnt()
+            >>> mul(inv(s), mul(s, p)) == p
+            True
+            """
+            return Fr.__new__(s.__class__, Fr.__invert__(s))
+
+        @staticmethod
+        def smu(s: scalar, t: scalar) -> scalar:
+            """
+            Return scalar multiplied by another scalar.
+
+            >>> s = scl()
+            >>> t = scl()
+            >>> smu(s, t) == smu(t, s)
+            True
+            """
+            return Fr.__new__(s.__class__, Fr.__mul__(s, t))
+
+        @staticmethod
+        def sad(s: scalar, t: scalar) -> scalar:
+            """
+            Return scalar added to another scalar.
+
+            >>> s = scl()
+            >>> t = scl()
+            >>> sad(s, t) == sad(t, s)
+            True
+            """
+            return Fr.__new__(s.__class__, Fr.__add__(s, t))
+
+        @staticmethod
+        def pnt(h: bytes = None) -> point:
+            """
+            Construct a point if the supplied bytes-like object represents
+            a valid point; otherwise, return ``None``. If no byte vector is
+            supplied, return a random point.
+
+            >>> p = pnt(hashlib.sha512('123'.encode()).digest())
+            >>> p.hex()[:64]
+            '346d68495eb4d539db4df70fd24d54fae37c9adf7dfd8dc705ccb8de8630e7cf'
+            """
+            return G1.__new__(point, G1.random() if h is None else G1.mapfrom(h))
+
+        @staticmethod
+        def bas(s: scalar) -> point:#G1:
+            """
+            Return base point multiplied by supplied scalar.
+
+            >>> bytes(bas(scalar.hash('123'.encode()))).hex()[:64]
+            'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
+            """
+            return s * G1.__new__(point, G1.base_point())
+            # return G1.base_point() * s
+
+        @staticmethod
+        def mul(s: scalar, p: point) -> point:
+            """
+            Multiply the point by the supplied scalar and return the result.
+
+            >>> p = pnt(hashlib.sha512('123'.encode()).digest())
+            >>> s = scl(bytes.fromhex(
+            ...     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
+            ... ))
+            >>> mul(s, p).hex()[:64]
+            '34aa7645c6b3d473b7c6805cc3967ecdff6eb44cfea0a665861043e992c3fc1e'
+            """
+            return G1.__new__(p.__class__, G1.__mul__(p, s))
+
+        @staticmethod
+        def add(p: point, q: point) -> point:
+            """
+            Return sum of the supplied points.
+
+            >>> p = point.hash('123'.encode())
+            >>> q = point.hash('456'.encode())
+            >>> add(p, q).hex()[:64]
+            '34448e4ef105c30224fd1dabc80e86370a6cfe20acfedf44624be9a9693dc6f7'
+            """
+            return G1.__new__(p.__class__, G1.__add__(p, q))
+
+        @staticmethod
+        def sub(p: point, q: point) -> point:
+            """
+            Return result of subtracting second point from first point.
+
+            >>> p = point.hash('123'.encode())
+            >>> q = point.hash('456'.encode())
+            >>> sub(p, q).hex()[:64]
+            '34bf1212d1028ba42f9f47065c17afc8d07299afe483e3e7e3e39fa3f763bceb'
+            """
+            return G1.__new__(p.__class__, G1.__sub__(p, q))
+
+        @staticmethod
+        def par(p: Union[point, point2], q: Union[point, point2]) -> scalar2:
+            """
+            Compute the pairing function on two points.
+
+            >>> p = point.hash('123'.encode())
+            >>> q = point2.base(scalar.from_int(456))
+            >>> par(p, q).hex()[700:]
+            '3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'
+
+            The pairing function is bilinear.
+
+            >>> p = point.random()
+            >>> s = scalar.random()
+
+            >>> t = scalar.random()
+            >>> q = point2.random()
+            >>> -((~s) * (s * p)) - p == scalar.from_int(-2) * p
+            True
+            >>> s * t * p @ q == s * p @ (t * q)
+            True
+
+            >>> x = y = p
+
+            Suppose there are two points: one multiplied by the scalar ``s`` and the other
+            multiplied by the scalar ``t``. Their equality can be determined by using a
+            balancing point: ``g**(~s * t)``.  If the pairing of ``t * x`` with ``g`` is the
+            same as the pairing with ``s * y`` and ``g**(~s * t)``, then ``x`` equals ``y``.
+
+            >>> g = point2.base(scalar.from_int(1))
+            >>> b = point2.base(~s * t)
+            >>> (t * x) @ g == (s * y) @ b
+            True
+
+            Pairing is defined as ``e: (G1 x G2) -> GT``. This operation accepts a point and
+            a second-level point.
+
+            >>> p @ (p + p)
+            Traceback (most recent call last):
+              ...
+            ValueError: points are from the same group (cannot both be from G1 or G2)
+            >>> g @ b
+            Traceback (most recent call last):
+              ...
+            ValueError: points are from the same group (cannot both be from G1 or G2)
+
+            Pairing is intended to be nonsingular.
+
+            >>> p @ q.clear()
+            Traceback (most recent call last):
+              ...
+            TypeError: cannot meaningfully pair the infinity point
+            >>> p.clear() @ g
+            Traceback (most recent call last):
+              ...
+            TypeError: cannot meaningfully pair the infinity point
+            """
+            if p.zero() or q.zero():
+                raise TypeError('cannot meaningfully pair the infinity point')
+            if (
+                (isinstance(p, G1) and isinstance(q, G1)) or
+                (isinstance(p, G2) and isinstance(q, G2))
+            ):
+                raise ValueError('points are from the same group (cannot both be from G1 or G2)')
+
+            if isinstance(p, G1):
+                return GT.__new__(scalar2, G1.__matmul__(G1.__new__(G1, p), G2.__new__(G2, q)))
+
+            return GT.__new__(scalar2, G2.__matmul__(G2.__new__(G2, p), G1.__new__(G1, q)))
+
+
+        @staticmethod
+        def rnd2() -> scalar2:
+            """
+            Return random non-zero scalar.
+
+            >>> len(mcl.rnd2())
+            384
+            """
+            p = point.random()
+            q = (point2.base2 if hasattr(point2, 'base2') else point2.base)(scalar.random())
+            return mcl.par(p, q)
 
         @staticmethod
         def scl2(s: Union[bytes, bytearray, None] = None) -> Optional[scalar2]:
@@ -1167,37 +1339,12 @@ try:
             return None
 
         @staticmethod
-        def inv(s: scalar) -> scalar:
-            r"""
-            Return inverse of scalar modulo
-            ``r = 16798108731015832284940804142231733909759579603404752749028378864165570215949``
-            in the prime field *F*\_*r*.
-
-            >>> s = scl()
-            >>> p = pnt()
-            >>> mul(inv(s), mul(s, p)) == p
-            True
-            """
-            return Fr.__new__(s.__class__, Fr.__invert__(s))
-
-        @staticmethod
         def inv2(s):
             """
             Return the inverse of the scalar.
             """
             return GT.__new__(s.__class__, GT.__inv__(s))
 
-        @staticmethod
-        def smu(s: scalar, t: scalar) -> scalar:
-            """
-            Return scalar multiplied by another scalar.
-
-            >>> s = scl()
-            >>> t = scl()
-            >>> smu(s, t) == smu(t, s)
-            True
-            """
-            return Fr.__new__(s.__class__, Fr.__mul__(s, t))
 
         @staticmethod
         def smu2(s: scalar2, t: scalar2) -> scalar2:
@@ -1206,8 +1353,8 @@ try:
 
             >>> p1 = point.hash('123'.encode())
             >>> p2 = point.hash('456'.encode())
-            >>> q1 = point2.base(scalar.from_int(123))
-            >>> q2 = point2.base(scalar.from_int(456))
+            >>> q1 = point2.base(scalar.hash('123'.encode()))
+            >>> q2 = point2.base(scalar.hash('456'.encode()))
             >>> s = p1 @ q1
             >>> t = p2 @ q2
             >>> mcl.smu2(s, t) == mcl.smu2(t, s)
@@ -1216,44 +1363,23 @@ try:
             return GT.__new__(s.__class__, GT.__mul__(s, t))
 
         @staticmethod
-        def sad(s: scalar, t: scalar) -> scalar:
-            """
-            Return scalar added to another scalar.
-
-            >>> s = scl()
-            >>> t = scl()
-            >>> sad(s, t) == sad(t, s)
-            True
-            """
-            return Fr.__new__(s.__class__, Fr.__add__(s, t))
-
-        @staticmethod
         def sad2(s: scalar2, t: scalar2) -> scalar2:
             """
             Return scalar added to another scalar.
 
-            >>> s = scl()
-            >>> t = scl()
+            >>> s = scl2()
+            >>> t = scl2()
             >>> sad2(s, t) == sad2(t, s)
             True
             """
             return GT.__new__(s.__class__, GT.__add__(s, t))
 
         @staticmethod
-        def pnt(h: bytes = None) -> point:
-            """
-            Return point from 64-byte vector (normally obtained via hashing).
-
-            >>> p = pnt(hashlib.sha512('123'.encode()).digest())
-            >>> p.hex()[:64]
-            '346d68495eb4d539db4df70fd24d54fae37c9adf7dfd8dc705ccb8de8630e7cf'
-            """
-            return G1.__new__(point, G1.random() if h is None else G1.mapfrom(h))
-
-        @staticmethod
         def pnt2(h: bytes = None) -> point2:
             """
-            Return point from 64-byte vector (normally obtained via hashing).
+            Construct a second-level point if the supplied bytes-like object
+            represents a valid second-level point; otherwise, return ``None``.
+            If no byte vector is supplied, return a random second-level point.
 
             >>> p = mcl.pnt2(hashlib.sha512('123'.encode()).digest())
             >>> p.hex()[:128] == (
@@ -1265,18 +1391,7 @@ try:
             return G2.__new__(point2, G2.random() if h is None else G2.mapfrom(h))
 
         @staticmethod
-        def bas(s: scalar) -> point:#G1:
-            """
-            Return base point multiplied by supplied scalar.
-
-            >>> bytes(bas(scalar.hash('123'.encode()))).hex()[:64]
-            'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
-            """
-            return s * G1.__new__(point, G1.base_point())
-            # return G1.base_point() * s
-
-        @staticmethod
-        def bs2(s) -> G2:
+        def bas2(s) -> G2:
             """
             Return base point multiplied by supplied scalar.
 
@@ -1287,102 +1402,63 @@ try:
             return G2.base_point() * s
 
         @staticmethod
-        def par(p: Union[point, point2], q: Union[point, point2]) -> scalar2:
+        def mul2(s: scalar, p: point2) -> point2:
             """
-            Compute the pairing function on two points.
+            Multiply a second-level point by a scalar.
 
-            >>> p = point.hash('123'.encode())
-            >>> q = point2.base(scalar.from_int(456))
-            >>> par(p, q).hex()[700:]
-            '3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'
-
-            The pairing function is bilinear.
-
-            >>> p = point.random()
-            >>> s = scalar.random()
-
-            >>> t = scalar.random()
-            >>> q = point2.random()
-            >>> -((~s) * (s * p)) - p == scalar.from_int(-2) * p
-            True
-            >>> s * t * p @ q == s * p @ (t * q)
-            True
-
-            >>> x = y = p
-
-            Suppose there are two points: one multiplied by the scalar ``s`` and the other
-            multiplied by the scalar ``t``. Their equality can be determined by using a
-            balancing point: ``g**(~s * t)``.  If the pairing of ``t * x`` with ``g`` is the
-            same as the pairing with ``s * y`` and ``g**(~s * t)``, then ``x`` equals ``y``.
-
-            >>> g = point.base2(scalar.from_int(1))
-            >>> b = point.base2(~s * t)
-            >>> (t * x) @ g == (s * y) @ b
-            True
-
-            Pairing is defined as ``e: (G1 x G2) -> GT``.  The operation takes a point and a point2.
-            >>> p @ (p + p)
-            Traceback (most recent call last):
-              ...
-            ValueError: points are from the same group (cannot both be from G1 or G2)
-            >>> g @ b
-            Traceback (most recent call last):
-              ...
-            ValueError: points are from the same group (cannot both be from G1 or G2)
-
-            Pairing is intended to be nonsingular.
-            >>> p @ q.clear()
-            Traceback (most recent call last):
-              ...
-            TypeError: cannot meaningfully pair the infinity point
-            >>> p.clear() @ g
-            Traceback (most recent call last):
-              ...
-            TypeError: cannot meaningfully pair the infinity point
-            """
-            if p.zero() or q.zero():
-                raise TypeError('cannot meaningfully pair the infinity point')
-            if p.G == q.G:  # or compare using type() or isinstance()
-                raise ValueError('points are from the same group (cannot both be from G1 or G2)')
-            return GT.__new__(scalar2, p.G.__matmul__(p.G.__new__(p.G, p), q.G.__new__(q.G, q)))
-
-        @staticmethod
-        def mul(s: scalar, p: point) -> point:
-            """
-            Multiply the point by the supplied scalar and return the result.
-
-            >>> p = pnt(hashlib.sha512('123'.encode()).digest())
+            >>> p = point2.hash('123'.encode())
             >>> s = scl(bytes.fromhex(
             ...     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
             ... ))
-            >>> mul(s, p).hex()[:64]
-            '34aa7645c6b3d473b7c6805cc3967ecdff6eb44cfea0a665861043e992c3fc1e'
+            >>> mul2(s, p).hex() == (
+            ...     '3400b4ab995841dc4a07d967f729cf060ccc523e2488d7f43a1502b3fcbede10' +
+            ...     '2492e908b39cfa5cb6cf54788eaa051f3d5547eb4eaedac85f246ee65e196eab' +
+            ...     '212069764e60decd750f4e9af0466e9c09166d38acd68483101543fb2982168d' +
+            ...     '0227245bf2ab45188b832031263a03135b6aae374f6906448650858a0e6e42d9' +
+            ...     '1e0065b7cc518b81da1b65f813b695aea5a76dc476f8a82780d7550e93478fad1' +
+            ...     '3689798227e5572ad2461e3972b98dd52dae5917db3f88005b2e61d50a1464013'
+            ... )
+            True
             """
-            return p.G.__new__(p.__class__, p.G.__mul__(p, s))
+            return G2.__new__(p.__class__, G2.__mul__(p, s))
 
         @staticmethod
-        def add(p: point, q: point) -> point:
+        def add2(p: point2, q: point2) -> point2:
             """
-            Return sum of the supplied points.
+            Return sum of the supplied second-level points.
 
-            >>> p = point.hash('123'.encode())
-            >>> q = point.hash('456'.encode())
-            >>> add(p, q).hex()[:64]
-            '34448e4ef105c30224fd1dabc80e86370a6cfe20acfedf44624be9a9693dc6f7'
+            >>> p = point2.hash('123'.encode())
+            >>> q = point2.hash('456'.encode())
+            >>> add2(p, q).hex() == (
+            ...     '34f4fd8a265221c37e279252f3b45a66e901d87aed9873178cfabd60e52958d2' +
+            ...     '24a66fe2a31cc05e6d5e75d9522ea1aacd54c72560cbd43735eb89b0798c2f50' +
+            ...     '061da782a97e17b18d53d86a95b8ba115711f054660a17fd195a2fc5fe6412c8' +
+            ...     '02d8776e0ff5ece51e407d96caeba3e4d100b8f59aa300038e458832f2eec183' +
+            ...     '1c4d7c682d012e9049fe66102bad19796849d6f254099d7b12b733fb860d73471' +
+            ...     'ea1d7afed4721cf2367cdf29ede71917a7a437f8c483a5d5aba3281c2c06b2915'
+            ... )
+            True
             """
-            return p.G.__new__(p.__class__, p.G.__add__(p, q))
+            return G2.__new__(p.__class__, G2.__add__(p, q))
 
         @staticmethod
-        def sub(p: point, q: point) -> point:
+        def sub2(p: point2, q: point2) -> point2:
             """
-            Return result of subtracting second point from first point.
+            Return result of subtracting one second-level point from another.
 
-            >>> p = point.hash('123'.encode())
-            >>> q = point.hash('456'.encode())
-            >>> sub(p, q).hex()[:64]
-            '34bf1212d1028ba42f9f47065c17afc8d07299afe483e3e7e3e39fa3f763bceb'
+            >>> p = point2.hash('123'.encode())
+            >>> q = point2.hash('456'.encode())
+            >>> sub2(p, q).hex() == (
+            ...     '34d7953fc7aca8b323666fd6fe8bf001ac06223d149e33a09eddd1a04958b12e' +
+            ...     '222859a4f008c76531c7208aa6a08f2c5128b2d1f34d24c381e30ae6e9cc4e84' +
+            ...     '182b8e5d456d3e6895e1b043fa1f1b525c78dafff8d51e42b932ab0b637a0b8d' +
+            ...     '2128a6126ad40d68337c2087d8efb5eb3c922ce06b427cf56c7e947e12c63009' +
+            ...     '214d7c682d012e9049fe66102bad19796849d6f254099d7b12b733fb860d73471' +
+            ...     'ea1d7afed4721cf2367cdf29ede71917a7a437f8c483a5d5aba3281c2c06b2915'
+            ... )
+            True
             """
-            return p.G.__new__(p.__class__, p.G.__sub__(p, q))
+            return G2.__new__(p.__class__, G2.__sub__(p, q))
 
     #
     # Dedicated point and scalar data structures.
@@ -1393,9 +1469,6 @@ try:
         Wrapper class for a bytes-like object that corresponds
         to a point.
         """
-        _mcl = mcl
-        G = G1
-
         @classmethod
         def random(cls) -> point:
             """
@@ -1404,7 +1477,9 @@ try:
             >>> len(point.random())
             32
             """
-            return cls._mcl.pnt()
+            p = mcl.pnt()
+            p.__class__ = point
+            return p
 
         @classmethod
         def bytes(cls, bs: bytes) -> point:
@@ -1416,7 +1491,9 @@ try:
             >>> p.hex()[:64]
             '346d68495eb4d539db4df70fd24d54fae37c9adf7dfd8dc705ccb8de8630e7cf'
             """
-            return cls._mcl.pnt(bs)
+            p = mcl.pnt(bs)
+            p.__class__ = point
+            return p
 
         @classmethod
         def hash(cls, bs: bytes) -> point: # pylint: disable=arguments-differ
@@ -1426,7 +1503,9 @@ try:
             >>> point.hash('123'.encode()).hex()[:64]
             '34825aa78af4c88d6de4abaebabf1a96f668956b92876cfb5d3a44829899cb48'
             """
-            return cls._mcl.pnt(hashlib.sha512(bs).digest()[:32])  # really only need ≥254-bits
+            p = mcl.pnt(hashlib.sha512(bs).digest()[:32])
+            p.__class__ = point
+            return p
 
         @classmethod
         def base(cls, s: scalar) -> Optional[point]:
@@ -1437,32 +1516,20 @@ try:
             >>> point.base(scalar.hash('123'.encode())).hex()[:64]
             '34dfeb7d0cc60851a112fbbda37d09bf067c5eae37439c19210ff649341337e7'
             """
-            p = G1.__new__(cls, (cls._mcl.bas if cls.G == G1 else cls._mcl.bs2)(s))
+            p = G1.__new__(cls, mcl.bas(s))
+            p.__class__ = point
             return None if p.zero() else p
 
         @classmethod
         def base2(cls, s: scalar) -> Optional[point2]:
             """
-            Return base point multiplied by supplied scalar
-            if the scalar is valid; otherwise, return `None`.
+            Return base point multiplied by supplied scalar if the scalar is
+            valid; otherwise, return ``None``.
 
             >>> point.base(scalar.hash('123'.encode())).hex()[:64]
             '34dfeb7d0cc60851a112fbbda37d09bf067c5eae37439c19210ff649341337e7'
             """
             return point2.base(s)
-
-        @classmethod
-        def from_base64(cls, s: str) -> point:
-            """
-            Convert the Base64 UTF-8 string representation of a point to a point instance.
-
-            >>> point.from_base64(
-            ...     'NEpv+1fjZiqHt34jbtWI99kmecwtkDy//Kmsfj9XpeQRgEwOVD/rd4YH4gXUqEDm6C' +
-            ...     'Q2exlXqxReLuZBGRb8hQsYFhqZua0pEoguRVDDd2My3uf/pRv6HfJctcjwkGfwIw=='
-            ... ).hex()[:64]
-            '344a6ffb57e3662a87b77e236ed588f7d92679cc2d903cbffca9ac7e3f57a5e4'
-            """
-            return G1.__new__(cls, G1().fromstr(base64.standard_b64decode(s), 1088))
 
         @classmethod
         def from_hex(cls, s: str) -> point:
@@ -1478,14 +1545,20 @@ try:
             """
             return G1.__new__(cls, G1().fromstr(bytes.fromhex(s), 1088))
 
-        def hex(self) -> str:
+        @classmethod
+        def from_base64(cls, s: str) -> point:
             """
-            Generates hexadecimal representation of this instance.
-            """
-            # Note that ``hex(self)`` fails, even though ``G1.__hex__`` exists.
-            return self.tostr(1088).hex()  # IoEcProj|IoArrayRaw == 1024|64 == 1088
+            Construct an instance from its corresponding Base64 UTF-8 string representation.
 
-        def __new__(cls, bs: bytes = None) -> point: # pylint: disable=arguments-differ
+            >>> point.from_base64(
+            ...     'NEpv+1fjZiqHt34jbtWI99kmecwtkDy//Kmsfj9XpeQRgEwOVD/rd4YH4gXUqEDm6C' +
+            ...     'Q2exlXqxReLuZBGRb8hQsYFhqZua0pEoguRVDDd2My3uf/pRv6HfJctcjwkGfwIw=='
+            ... ).hex()[:64]
+            '344a6ffb57e3662a87b77e236ed588f7d92679cc2d903cbffca9ac7e3f57a5e4'
+            """
+            return G1.__new__(cls, G1().fromstr(base64.standard_b64decode(s), 1088))
+
+        def __new__(cls, bs: Union[bytes, bytearray, None] = None) -> point: # pylint: disable=arguments-differ
             """
             If a bytes-like object is supplied, return a point object
             corresponding to the supplied bytes-like object (no checking
@@ -1525,7 +1598,8 @@ try:
             >>> (s * p).hex()[:64]
             '34b60472878ad6b5ca553ae1416aae57571f0e843b092610b92f5599c5d1c1ab'
             """
-            p = self.__class__._mcl.mul(other, self)
+            p = mcl.mul(other, self)
+            p.__class__ = point
             return None if p.zero() else p
 
         def __add__(self: point, other: point) -> Optional[point]:
@@ -1537,7 +1611,8 @@ try:
             >>> (p + q).hex()[:64]
             '34448e4ef105c30224fd1dabc80e86370a6cfe20acfedf44624be9a9693dc6f7'
             """
-            p = self.__class__._mcl.add(self, other)
+            p = mcl.add(self, other)
+            p.__class__ = point
             return None if p.zero() else p
 
         def __sub__(self: point, other: point) -> Optional[point]:
@@ -1549,7 +1624,8 @@ try:
             >>> (p - q).hex()[:64]
             '34bf1212d1028ba42f9f47065c17afc8d07299afe483e3e7e3e39fa3f763bceb'
             """
-            p = self.__class__._mcl.sub(self, other)
+            p = mcl.sub(self, other)
+            p.__class__ = point
             return None if p.zero() else p
 
         def __matmul__(self: point, other: point2) -> Optional[scalar2]:
@@ -1584,9 +1660,10 @@ try:
             >>> (t * x) @ g == (s * y) @ b
             True
             """
-            s = self.__class__._mcl.par(self, other)
+            s = mcl.par(self, other)
+            s.__class__ = scalar2
+            # Could be ``None if s.zero() or s.one() else s``, but no way to get identities.
             return s
-            # Could be `None if s.zero() or s.one() else s`, but there's no way to get identities.
 
         def __neg__(self: point) -> Optional[point]:
             """
@@ -1598,15 +1675,32 @@ try:
             '34448e4ef105c30224fd1dabc80e86370a6cfe20acfedf44624be9a9693dc6f7'
             """
             p = G1.__new__(self.__class__, G1.__neg__(self))
+            p.__class__ = point
             return None if p.zero() else p
 
-        def __len__(self) -> int:
-            """Return length (in bytes) of the binary representation of this instance."""
+        def __len__(self: point) -> int:
+            """
+            Return length (in bytes) of the binary representation of this instance.
+
+            >>> len(point())
+            32
+            """
             return bytes(self).__len__()
+
+        def hex(self: point) -> str:
+            """
+            Return a hexadecimal representation of this instance.
+
+            >>> p = point.hash('123'.encode())
+            >>> p.hex()[-64:]
+            '8effffffffffff158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b21'
+            """
+            # Note that ``hex(self)`` fails, even though ``G1.__hex__`` exists.
+            return self.tostr(1088).hex()  # IoEcProj|IoArrayRaw == 1024|64 == 1088
 
         def to_base64(self: point) -> str:
             """
-            Convert to equivalent Base64 UTF-8 string representation.
+            Return an equivalent Base64 UTF-8 string representation of this instance.
 
             >>> p = point.from_base64(
             ...     'NEpv+1fjZiqHt34jbtWI99kmecwtkDy//Kmsfj9XpeQRgEwOVD/rd4YH4gXUqEDm6C' +
@@ -1621,9 +1715,6 @@ try:
         """
         Class for representing a scalar.
         """
-        _mcl = mcl
-        F = Fr
-
         @classmethod
         def random(cls) -> scalar:
             """
@@ -1632,7 +1723,7 @@ try:
             >>> len(scalar.random())
             32
             """
-            return Fr.__new__(cls, cls._mcl.rnd())
+            return Fr.__new__(cls, mcl.rnd())
 
         @classmethod
         def bytes(cls, bs: bytes) -> Optional[scalar]:
@@ -1645,7 +1736,7 @@ try:
             >>> s.hex() == t.hex()[:64]
             True
             """
-            s = cls._mcl.scl(bs)
+            s = mcl.scl(bs)
             s = Fr.__new__(cls, s) if s is not None else None
             return s
 
@@ -1658,39 +1749,17 @@ try:
             '482d79cb1b8da4c68d16e9dffb6882716e11480e376ab51c6daf7fe88677c709'
             """
             h = hashlib.sha256(bs).digest()
-            s = cls._mcl.scl(h)
+            s = mcl.scl(h)
             while s is None:
                 h = hashlib.sha256(h).digest()
-                s = cls._mcl.scl(h)
+                s = mcl.scl(h)
             return s
-
-        @classmethod
-        def from_base64(cls, s: str) -> scalar:
-            """
-            Convert Base64 UTF-8 string representation of a scalar to a scalar instance.
-
-            >>> scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=').hex()[:64]
-            'b9cb30a0187fe56bd9784315638fb203b61007dae22d73581563968e92e6f415'
-            """
-            return Fr.__new__(cls, Fr.deserialize(base64.standard_b64decode(s)))
-
-        @classmethod
-        def from_hex(cls, s: str) -> scalar:
-            """
-            Convert the hexadecimal UTF-8 string representation of a scalar to a scalar
-            instance.
-
-            >>> scalar.from_hex(
-            ...     '3ab45f5b1c9339f1d25b878cce1c053b5492b4dc1affe689cbe141769f655e1e'
-            ... ).hex()[:64]
-            'c423b05250408af6199ea09ff8c235d9ba4fd5ec58b2dda9125868bbc276ef1d'
-            """
-            return Fr.__new__(cls, Fr.deserialize(bytes.fromhex(s)))
 
         @classmethod
         def from_int(cls, i: int) -> scalar:
             """
-            Convert an integer/residue representation of a scalar to a scalar instance.
+            Construct an instance from its corresponding integer (*i.e.*, residue)
+            representation.
 
             The integer can be in the range from
             ``-16798108731015832284940804142231733909759579603404752749028378864165570215948``
@@ -1717,14 +1786,30 @@ try:
             """
             return Fr.__new__(cls, i)
 
-        def hex(self) -> str:
+        @classmethod
+        def from_hex(cls, s: str) -> scalar:
             """
-            Generates hexadecimal representation of the point instance.
-            """
-            # Note that ``hex(self)`` fails, even though ``Fr.__hex__`` exists.
-            return self.tostr(1088).hex()
+            Convert the hexadecimal UTF-8 string representation of a scalar to a scalar
+            instance.
 
-        def __new__(cls, bs: bytes = None) -> scalar: # pylint: disable=arguments-differ
+            >>> scalar.from_hex(
+            ...     '3ab45f5b1c9339f1d25b878cce1c053b5492b4dc1affe689cbe141769f655e1e'
+            ... ).hex()[:64]
+            'c423b05250408af6199ea09ff8c235d9ba4fd5ec58b2dda9125868bbc276ef1d'
+            """
+            return Fr.__new__(cls, Fr.deserialize(bytes.fromhex(s)))
+
+        @classmethod
+        def from_base64(cls, s: str) -> scalar:
+            """
+            Convert Base64 UTF-8 string representation of a scalar to a scalar instance.
+
+            >>> scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=').hex()[:64]
+            'b9cb30a0187fe56bd9784315638fb203b61007dae22d73581563968e92e6f415'
+            """
+            return Fr.__new__(cls, Fr.deserialize(base64.standard_b64decode(s)))
+
+        def __new__(cls, s: Union[bytes, bytearray, None] = None) -> scalar: # pylint: disable=arguments-differ
             """
             If a bytes-like object is supplied, return a scalar object
             corresponding to the supplied bytes-like object (no checking
@@ -1739,7 +1824,6 @@ try:
             >>> len(scalar())
             32
             """
-            s = bs # or `cls._mcl.scl(bs)`, but ``mclbn256`` handles this already
             return Fr.__new__(cls, s) if s is not None else cls.random()
 
         def __invert__(self: scalar) -> scalar:
@@ -1752,7 +1836,7 @@ try:
             >>> ((~s) * (s * p)) == p
             True
             """
-            return self.__class__._mcl.inv(self)
+            return mcl.inv(self)
 
         def inverse(self: scalar) -> scalar:
             """
@@ -1803,9 +1887,17 @@ try:
                 s.__class__ = scalar
                 return s
 
-            p = mcl.mul(self, other)
-            p.__class__ = other.__class__
-            return None if p.zero() else p
+            if isinstance(other, point):
+                p = mcl.mul(self, other)
+                p.__class__ = point
+                return p
+
+            if isinstance(other, point2):
+                p = mcl.mul2(self, other)
+                p.__class__ = point2
+                return p
+
+            return None
 
         def __rmul__(self: scalar, other: Union[scalar, point]):
             """
@@ -1836,9 +1928,25 @@ try:
             """
             return Fr.__new__(self.__class__, Fr.__add__(self, other))
 
-        def __len__(self) -> int:
-            """Return length (in bytes) of the binary representation of this instance."""
+        def __len__(self: scalar) -> int:
+            """
+            Return length (in bytes) of the binary representation of this instance.
+
+            >>> len(scalar())
+            32
+            """
             return bytes(self).__len__()
+
+        def hex(self: scalar) -> str:
+            """
+            Return a hexadecimal representation of this instance.
+
+            >>> s = scalar.hash('123'.encode())
+            >>> s.hex()
+            '482d79cb1b8da4c68d16e9dffb6882716e11480e376ab51c6daf7fe88677c709'
+            """
+            # Note that ``hex(self)`` fails, even though ``Fr.__hex__`` exists.
+            return self.tostr(1088).hex()
 
         def to_base64(self: scalar) -> str:
             """
@@ -1850,19 +1958,12 @@ try:
             """
             return base64.standard_b64encode(bytes(self)).decode('utf-8')
 
-    #
-    # Dedicated point and scalar data structures derived from `bytes`.
-    #
-
     class point2(G2): # pylint: disable=W0621,E0102
         # pylint: disable=C0301 # Accommodate large outputs in doctests.
         """
         Wrapper class for a bytes-like object that corresponds
         to a point.
         """
-        G = G2
-        _mcl = mcl
-
         @classmethod
         def random(cls) -> point2:
             """
@@ -1919,34 +2020,14 @@ try:
             ... )
             True
             """
-            p = mcl.bs2(s)
+            p = mcl.bas2(s)
             p.__class__ = point2
             return None if p.zero() else p
 
         @classmethod
-        def from_base64(cls, s: str) -> point2:
-            """
-            Convert the Base64 UTF-8 string representation of a point to a point instance.
-
-            >>> p = point2.from_base64(
-            ...     'NJeB1+JFzMjcU993iGTwvyeBKOuhYUua34jgo6f0rI0J' +
-            ...     'uvRvVMGdFhkJW/rAYTiSUWlihga9g7wFBQ9J2lAb6wW+' +
-            ...     'yEh8uxnflKYLrhnusp8HPV6U1ov7PPjI8DIErib5CyFM' +
-            ...     'oEn+vmB/zwABmq63BPxS/gBDnF8tHVtQbwLMszAF1TCP' +
-            ...     'yYxHhtmTo+Lgba9bUdLvgaUwY/r12mwctXdTvRJB0B/N' +
-            ...     'SuoSaNizbqORfucoZyszzv4T/nBbL4Y6JmeYEQ=='
-            ... )
-            >>> p.to_base64()[-64:]
-            'gaUwY/r12mwctXdTvRJB0B/NSuoSaNizbqORfucoZyszzv4T/nBbL4Y6JmeYEQ=='
-            """
-            p = G2.__new__(cls, G2().fromstr(base64.standard_b64decode(s), 1088))
-            p.__class__ = point2
-            return p
-
-        @classmethod
         def from_hex(cls, s: str) -> point2:
             """
-            Convert the hexadecimal UTF-8 string representation of a point to a point instance.
+            Construct a second-level point from its hexadecimal UTF-8 string representation.
 
             >>> p = point2.from_hex(
             ...     '349781d7e245ccc8dc53df778864f0bf278128eba1614b9adf88e0a3a7f4ac8d' +
@@ -1963,14 +2044,27 @@ try:
             p.__class__ = point2
             return p
 
-        def hex(self) -> str:
+        @classmethod
+        def from_base64(cls, s: str) -> point2:
             """
-            Generates hexadecimal representation of this instance.
-            """
-            # Note that ``hex(self)`` fails, even though ``G2.__hex__`` exists.
-            return self.tostr(1088).hex()
+            Construct a second-level point from its Base64 UTF-8 string representation.
 
-        def __new__(cls, bs: Optional[bytes] = None) -> point2: # pylint: disable=arguments-differ
+            >>> p = point2.from_base64(
+            ...     'NJeB1+JFzMjcU993iGTwvyeBKOuhYUua34jgo6f0rI0J' +
+            ...     'uvRvVMGdFhkJW/rAYTiSUWlihga9g7wFBQ9J2lAb6wW+' +
+            ...     'yEh8uxnflKYLrhnusp8HPV6U1ov7PPjI8DIErib5CyFM' +
+            ...     'oEn+vmB/zwABmq63BPxS/gBDnF8tHVtQbwLMszAF1TCP' +
+            ...     'yYxHhtmTo+Lgba9bUdLvgaUwY/r12mwctXdTvRJB0B/N' +
+            ...     'SuoSaNizbqORfucoZyszzv4T/nBbL4Y6JmeYEQ=='
+            ... )
+            >>> p.to_base64()[-64:]
+            'gaUwY/r12mwctXdTvRJB0B/NSuoSaNizbqORfucoZyszzv4T/nBbL4Y6JmeYEQ=='
+            """
+            p = G2.__new__(cls, G2().fromstr(base64.standard_b64decode(s), 1088))
+            p.__class__ = point2
+            return p
+
+        def __new__(cls, bs: Union[bytes, bytearray, None] = None) -> point2: # pylint: disable=arguments-differ
             """
             If a bytes-like object is supplied, return a second-level point
             object corresponding to the supplied bytes-like object (no check
@@ -2066,14 +2160,6 @@ try:
             p.__class__ = point2
             return None if p.zero() else p
 
-        def __matmul__(self: point2, other: point) -> Optional[scalar2]:
-            """
-            Return the result of pairing another point with this point.
-
-            Input-swapped alias of ``point.__matmul__``
-            """
-            return point.__matmul__(other, self)
-
         def __neg__(self: point2) -> Optional[point2]:
             """
             Return the negation (additive inverse) of this instance.
@@ -2089,6 +2175,14 @@ try:
             p.__class__ = point2
             return None if p.zero() else p
 
+        def __matmul__(self: point2, other: point) -> Optional[scalar2]:
+            """
+            Return the result of pairing another point with this point.
+
+            Input-swapped alias of :obj:`point.__matmul__`.
+            """
+            return point.__matmul__(other, self)
+
         def __len__(self: point2) -> int:
             """
             Return length (in bytes) of the binary representation of this instance.
@@ -2097,6 +2191,24 @@ try:
             64
             """
             return bytes(self).__len__()
+
+        def hex(self: point2) -> str:
+            """
+            Generates hexadecimal representation of this instance.
+
+            >>> p = point2.hash('123'.encode())
+            >>> p.hex() == (
+            ...     '34b5b0a52e43ba71ae03317333da4ba9452dbdbbec353ade0c732348e0bea4ba' +
+            ...     '1b8860718e5ba784d55799ab292459a638f6399738a6de348742e6a789674f30' +
+            ...     '0d7e59c60a595253ebf69bf0794b7a032e59b6b5037adba410d680b53ffac085' +
+            ...     '17cf5bc3be9d850ec64ea6939904cf66b66b6b4b82be03ee4f10661fedaf8384' +
+            ...     '1fba7e678442a658340a5b3c51eb5076d738cf88387ada6cbd1fe7f8d8a226841' +
+            ...     '7bc8aedbc99808b0450025d0c75b5f1ccb34bc69934cc620d9ea51038a1d98721'
+            ... )
+            True
+            """
+            # Note that ``hex(self)`` fails, even though ``G2.__hex__`` exists.
+            return self.tostr(1088).hex()
 
         def to_base64(self: point2) -> str:
             """
@@ -2117,13 +2229,12 @@ try:
 
     class scalar2(GT): # pylint: disable=function-redefined
         """
-        Wrapper class for a bytes-like object that corresponds to a
-        second-level scalar.
+        Class for representing second-level scalars.
         """
         @classmethod
         def random(cls) -> scalar2:
             """
-            Return random non-zero instance.
+            Return random non-zero second-level scalar.
 
             >>> isinstance(scalar2.random(), scalar2)
             True
@@ -2146,27 +2257,6 @@ try:
             p = point.hash(bs[:32])
             q = point2.base(scalar.hash(bs[32:]))
             return mcl.par(p, q)
-
-        @classmethod
-        def from_base64(cls, s: str) -> scalar2:
-            """
-            Construct an instance from a Base64 UTF-8 string representation thereof.
-
-            >>> b64s = (
-            ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
-            ...     'IYWN3i6mpQNz8YWPEShwIQmz2veiF6IKPYcmMvjO1kPTJkmyQaZ2Ab7IVb1D8HcQ'
-            ...     'iN9yK8rMj9F08WrX7xsdXmItk7fP7GOFw1PBN5Ok4Bw3HvVM2DaojhsfHhmNVm07'
-            ...     'vlqiJXNDBfFMrJr5yCE1HIazZRkBBdG35xAR0TYu1q2RM6LCxCiY6evD0WBKYI8Q'
-            ...     'hGHTeyRjtPiPDMtCe17qhxTuiPjDPa9+5KP0XKi8qRGHlWq7TSfeG0nl4Fn5BPu0'
-            ...     'dYBHFasloXMG+g4ZbzBSFTpg36BzynjeSe3qrJxUyrPQE4dQwjwLaN55JKadG6AC'
-            ...     'okrFkmIqRcWcHe1xM3lCkqCWAr1Xo2YB01Q4hG/LNw85wPp6FbNNFKtvle5b9bJr'
-            ...     '1d7x5+0HNQki1EXaB9k2Ii21uqnewVLCsrz8Rs3m/SLnAnGvihZOd+WAjOYCCVof'
-            ... )
-            >>> s = scalar2.from_base64(b64s)
-            >>> s.to_base64() == b64s
-            True
-            """
-            return GT.__new__(cls, GT.deserialize(base64.standard_b64decode(s)))
 
         @classmethod
         def from_hex(cls, s: str) -> scalar2:
@@ -2205,11 +2295,12 @@ try:
             """
             return GT.__new__(cls, GT.deserialize(bytes.fromhex(s)))
 
-        def hex(self: scalar2) -> str:
+        @classmethod
+        def from_base64(cls, s: str) -> scalar2:
             """
-            Generates hexadecimal representation of this instance.
+            Construct an instance from a Base64 UTF-8 string representation thereof.
 
-            >>> s = scalar2.from_base64(
+            >>> b64s = (
             ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
             ...     'IYWN3i6mpQNz8YWPEShwIQmz2veiF6IKPYcmMvjO1kPTJkmyQaZ2Ab7IVb1D8HcQ'
             ...     'iN9yK8rMj9F08WrX7xsdXmItk7fP7GOFw1PBN5Ok4Bw3HvVM2DaojhsfHhmNVm07'
@@ -2219,26 +2310,13 @@ try:
             ...     'okrFkmIqRcWcHe1xM3lCkqCWAr1Xo2YB01Q4hG/LNw85wPp6FbNNFKtvle5b9bJr'
             ...     '1d7x5+0HNQki1EXaB9k2Ii21uqnewVLCsrz8Rs3m/SLnAnGvihZOd+WAjOYCCVof'
             ... )
-            >>> s.hex() == (
-            ...     '18d0e065798ffa4ecca0a7cc6e2b8d6d3269f7eb413525e59b731332b02ea805' +
-            ...     '4b90c89ce93e4452557f53aae5f8f13221858dde2ea6a50373f1858f11287021' +
-            ...     '09b3daf7a217a20a3d872632f8ced643d32649b241a67601bec855bd43f07710' +
-            ...     '88df722bcacc8fd174f16ad7ef1b1d5e622d93b7cfec6385c353c13793a4e01c' +
-            ...     '371ef54cd836a88e1b1f1e198d566d3bbe5aa225734305f14cac9af9c821351c' +
-            ...     '86b365190105d1b7e71011d1362ed6ad9133a2c2c42898e9ebc3d1604a608f10' +
-            ...     '8461d37b2463b4f88f0ccb427b5eea8714ee88f8c33daf7ee4a3f45ca8bca911' +
-            ...     '87956abb4d27de1b49e5e059f904fbb475804715ab25a17306fa0e196f305215' +
-            ...     '3a60dfa073ca78de49edeaac9c54cab3d0138750c23c0b68de7924a69d1ba002' +
-            ...     'a24ac592622a45c59c1ded7133794292a09602bd57a36601d35438846fcb370f' +
-            ...     '39c0fa7a15b34d14ab6f95ee5bf5b26bd5def1e7ed07350922d445da07d93622' +
-            ...     '2db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
-            ... )
+            >>> s = scalar2.from_base64(b64s)
+            >>> s.to_base64() == b64s
             True
             """
-            # Note that ``hex(self)`` fails, even though ``GT.__hex__`` exists.
-            return self.serialize().hex()
+            return GT.__new__(cls, GT.deserialize(base64.standard_b64decode(s)))
 
-        def __new__(cls, bs: Optional[bytes] = None) -> scalar2: # pylint: disable=arguments-differ
+        def __new__(cls, bs: Union[bytes, bytearray, None] = None) -> scalar2: # pylint: disable=arguments-differ
             """
             If a bytes-like object is supplied, return an instance that
             corresponds to the supplied bytes-like object (no checking
@@ -2340,6 +2418,39 @@ try:
             """
             return bytes(self).__len__()
 
+        def hex(self: scalar2) -> str:
+            """
+            Return a hexadecimal representation of this instance.
+
+            >>> s = scalar2.from_base64(
+            ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
+            ...     'IYWN3i6mpQNz8YWPEShwIQmz2veiF6IKPYcmMvjO1kPTJkmyQaZ2Ab7IVb1D8HcQ'
+            ...     'iN9yK8rMj9F08WrX7xsdXmItk7fP7GOFw1PBN5Ok4Bw3HvVM2DaojhsfHhmNVm07'
+            ...     'vlqiJXNDBfFMrJr5yCE1HIazZRkBBdG35xAR0TYu1q2RM6LCxCiY6evD0WBKYI8Q'
+            ...     'hGHTeyRjtPiPDMtCe17qhxTuiPjDPa9+5KP0XKi8qRGHlWq7TSfeG0nl4Fn5BPu0'
+            ...     'dYBHFasloXMG+g4ZbzBSFTpg36BzynjeSe3qrJxUyrPQE4dQwjwLaN55JKadG6AC'
+            ...     'okrFkmIqRcWcHe1xM3lCkqCWAr1Xo2YB01Q4hG/LNw85wPp6FbNNFKtvle5b9bJr'
+            ...     '1d7x5+0HNQki1EXaB9k2Ii21uqnewVLCsrz8Rs3m/SLnAnGvihZOd+WAjOYCCVof'
+            ... )
+            >>> s.hex() == (
+            ...     '18d0e065798ffa4ecca0a7cc6e2b8d6d3269f7eb413525e59b731332b02ea805' +
+            ...     '4b90c89ce93e4452557f53aae5f8f13221858dde2ea6a50373f1858f11287021' +
+            ...     '09b3daf7a217a20a3d872632f8ced643d32649b241a67601bec855bd43f07710' +
+            ...     '88df722bcacc8fd174f16ad7ef1b1d5e622d93b7cfec6385c353c13793a4e01c' +
+            ...     '371ef54cd836a88e1b1f1e198d566d3bbe5aa225734305f14cac9af9c821351c' +
+            ...     '86b365190105d1b7e71011d1362ed6ad9133a2c2c42898e9ebc3d1604a608f10' +
+            ...     '8461d37b2463b4f88f0ccb427b5eea8714ee88f8c33daf7ee4a3f45ca8bca911' +
+            ...     '87956abb4d27de1b49e5e059f904fbb475804715ab25a17306fa0e196f305215' +
+            ...     '3a60dfa073ca78de49edeaac9c54cab3d0138750c23c0b68de7924a69d1ba002' +
+            ...     'a24ac592622a45c59c1ded7133794292a09602bd57a36601d35438846fcb370f' +
+            ...     '39c0fa7a15b34d14ab6f95ee5bf5b26bd5def1e7ed07350922d445da07d93622' +
+            ...     '2db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
+            ... )
+            True
+            """
+            # Note that ``hex(self)`` fails, even though ``GT.__hex__`` exists.
+            return self.serialize().hex()
+
         def to_base64(self: scalar2) -> str:
             """
             Convert this instance to an equivalent Base64 UTF-8 string representation.
@@ -2360,24 +2471,34 @@ try:
             """
             return base64.standard_b64encode(bytes(self)).decode('utf-8')
 
-    # Gather classes that use wrappers for shared/dynamic library bindings for methods.
-    mcl.point = point
-    mcl.scalar = scalar
-    mcl.point2 = point2
-    mcl.scalar2 = scalar2
-
     # Top-level best-effort synonyms.
     scl = mcl.scl
     rnd = mcl.rnd
     inv = mcl.inv
     smu = mcl.smu
+    sad = mcl.sad
     pnt = mcl.pnt
     bas = mcl.bas
-    bs2 = mcl.bs2
-    par = mcl.par
     mul = mcl.mul
     add = mcl.add
     sub = mcl.sub
+    par = mcl.par
+    rnd2 = mcl.rnd2
+    scl2 = mcl.scl2
+    inv2 = mcl.inv2
+    smu2 = mcl.smu2
+    sad2 = mcl.sad2
+    pnt2 = mcl.pnt2
+    bas2 = mcl.bas2
+    mul2 = mcl.mul2
+    add2 = mcl.add2
+    sub2 = mcl.sub2
+
+    # Gather classes that use wrappers for shared/dynamic library bindings for methods.
+    mcl.point = point
+    mcl.scalar = scalar
+    mcl.point2 = point2
+    mcl.scalar2 = scalar2
 
     # Indicate that data structures based on the dynamic/shared library have
     # successfully been defined.
