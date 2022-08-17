@@ -363,8 +363,8 @@ def _make_native(G, F, global_scope=True):
             Return point from 64-byte vector (normally obtained via hashing).
 
             >>> p = pnt(hashlib.sha512('123'.encode()).digest())
-            >>> p.hex()
-            '9c6f2b3917ac249b3a43b3df3399ff54cd185be714a24541782b142a7ccb3423'
+            >>> p.hex()[:64]
+            '346d68495eb4d539db4df70fd24d54fae37c9adf7dfd8dc705ccb8de8630e7cf'
             """
             return G.__new__(point, G.random() if h is None else G.mapfrom(h))
 
@@ -452,8 +452,8 @@ def _make_native(G, F, global_scope=True):
             >>> s = scl(bytes.fromhex(
             ...     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
             ... ))
-            >>> mul(s, p).hex()
-            'a7f9b967b2d85e2b18e93717d1aac438ce660017023a1207a080f45b42c6b19f'
+            >>> mul(s, p).hex()[:64]
+            '34aa7645c6b3d473b7c6805cc3967ecdff6eb44cfea0a665861043e992c3fc1e'
             """
             s = s % r #assert int(s) < r
             return p.G.__new__(p.__class__, p.G.__rmul__(p.G(p), int(s)))
@@ -465,8 +465,8 @@ def _make_native(G, F, global_scope=True):
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> add(p, q).hex()
-            '1a78bb2f044b38e84a82b6eb7bbc2d339132481a98d635aca3b78c899095b68b'
+            >>> add(p, q).hex()[:64]
+            '34448e4ef105c30224fd1dabc80e86370a6cfe20acfedf44624be9a9693dc6f7'
             """
             return p.G.__new__(p.__class__, p.G.add(p.copy(), q))
 
@@ -477,8 +477,8 @@ def _make_native(G, F, global_scope=True):
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> sub(p, q).hex()
-            '7dad51d4465bcd77bebf243c466726192a411d527dbd5ab8124a98ab0ccc8922'
+            >>> sub(p, q).hex()[:64]
+            '34bf1212d1028ba42f9f47065c17afc8d07299afe483e3e7e3e39fa3f763bceb'
             """
             return p.G.__new__(p.__class__, p.G.add(-1 * q, p))
 
@@ -531,8 +531,8 @@ def _make_native(G, F, global_scope=True):
             Return point object obtained by transforming supplied bytes-like object.
 
             >>> p = point.bytes(hashlib.sha512('123'.encode()).digest())
-            >>> p.hex()
-            '9c6f2b3917ac249b3a43b3df3399ff54cd185be714a24541782b142a7ccb3423'
+            >>> p.hex()[:64]
+            '346d68495eb4d539db4df70fd24d54fae37c9adf7dfd8dc705ccb8de8630e7cf'
             """
             return cls._native.pnt(bs)
 
@@ -541,8 +541,8 @@ def _make_native(G, F, global_scope=True):
             """
             Return point object by hashing supplied bytes-like object.
 
-            >>> point.hash('123'.encode()).hex()
-            'a8884a30f29ca2163f5719b5c4d9707bb94ae44bd54811d44b2c8b78af64c711'
+            >>> point.hash('123'.encode()).hex()[:64]
+            '34825aa78af4c88d6de4abaebabf1a96f668956b92876cfb5d3a44829899cb48'
             """
             return cls._native.pnt(hashlib.sha512(bs).digest()[:32])  # really only need ≥254-bits
 
@@ -552,8 +552,8 @@ def _make_native(G, F, global_scope=True):
             Return base point multiplied by supplied scalar
             if the scalar is valid; otherwise, return `None`.
 
-            >>> point.base(scalar.hash('123'.encode())).hex()
-            'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
+            >>> point.base(scalar.hash('123'.encode())).hex()[:64]
+            '34dfeb7d0cc60851a112fbbda37d09bf067c5eae37439c19210ff649341337e7'
             """
             p = G.__new__(cls, (cls._native.bas if cls.G == _ECp else cls._native.bs2)(s))
             return None if p.zero() else p
@@ -564,8 +564,8 @@ def _make_native(G, F, global_scope=True):
             Return base point multiplied by supplied scalar
             if the scalar is valid; otherwise, return `None`.
 
-            >>> point.base(scalar.hash('123'.encode())).hex()
-            'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
+            >>> point.base(scalar.hash('123'.encode())).hex()[:64]
+            '34dfeb7d0cc60851a112fbbda37d09bf067c5eae37439c19210ff649341337e7'
             """
             return point2.base(s)
 
@@ -574,8 +574,11 @@ def _make_native(G, F, global_scope=True):
             """
             Convert the Base64 UTF-8 string representation of a point to a point instance.
 
-            >>> point.from_base64('hoVmn8Pi6U9Gx8L/cJxHHYTjwrl0bKMNNPMjoxXqGJI=').hex()
-            '8685669fc3e2e94f46c7c2ff709c471d84e3c2b9746ca30d34f323a315ea1892'
+            >>> point.from_base64(
+            ...     'NEpv+1fjZiqHt34jbtWI99kmecwtkDy//Kmsfj9XpeQRgEwOVD/rd4YH4gXUqEDm6C' +
+            ...     'Q2exlXqxReLuZBGRb8hQsYFhqZua0pEoguRVDDd2My3uf/pRv6HfJctcjwkGfwIw=='
+            ... ).hex()[:64]
+            '344a6ffb57e3662a87b77e236ed588f7d92679cc2d903cbffca9ac7e3f57a5e4'
             """
             return G.__new__(cls, G.deserialize(base64.standard_b64decode(s)))
 
@@ -585,9 +588,11 @@ def _make_native(G, F, global_scope=True):
             Convert the hexadecimal UTF-8 string representation of a point to a point instance.
 
             >>> point.from_hex(
-            ...     'afa9a593ff45b66b3545fe6e56fa56da0d966fd7a61dec45bf99a45a45ab4d0c'
-            ... ).hex()
-            'afa9a593ff45b66b3545fe6e56fa56da0d966fd7a61dec45bf99a45a45ab4d0c'
+            ...     '346f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d2' +
+            ...     '1e597c27f58b7cf87029fcdd03edc697d6c107bd5a7284d08c4116d1b72ea89a' +
+            ...     '1ec25ecce13dd95858edfc48e8f2a6c405d83e25f08e1fa9bf4962fa73a0d54817'
+            ... ).hex()[:64]
+            '346f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d2'
             """
             return G.__new__(cls, G.deserialize(bytes.fromhex(s)))
 
@@ -595,7 +600,7 @@ def _make_native(G, F, global_scope=True):
             """
             Generates hexadecimal representation of the point instance.
             """
-            return self.serialize().hex()  # `hex(self)` fails, even though there is `G.__hex__`
+            return self.serialize().hex()[:64] # `hex(self)` fails, even though there is `G.__hex__`
 
         def __repr__(self) -> str:
             """
@@ -613,10 +618,12 @@ def _make_native(G, F, global_scope=True):
             object.
 
             >>> bs = bytes.fromhex(
-            ...     '80e437b94b704007e4f2fcfabae00df29853a8e027cc85e6328b870b4fd1be8a'
+            ...     '34bb20e8dbca1c76266cb9a51a655c08f93247ad17c632e8d74dca168bdfddb0' +
+            ...     '1d3be9e63a9f2c0b689b38ae9475e728dcb836466553fd04c1a51a90a7645c61' +
+            ...     '0d46bad2e723a3511417c20956e8448131f04c7959ae8c606b2e7aca477c92170b'
             ... )
-            >>> point(bs).hex()
-            '80e437b94b704007e4f2fcfabae00df29853a8e027cc85e6328b870b4fd1be8a'
+            >>> point(bs).hex()[:64]
+            '34bb20e8dbca1c76266cb9a51a655c08f93247ad17c632e8d74dca168bdfddb0'
             >>> len(point())
             32
             """
@@ -639,8 +646,8 @@ def _make_native(G, F, global_scope=True):
 
             >>> p = point.hash('123'.encode())
             >>> s = scalar.hash('456'.encode())
-            >>> (s * p).hex()
-            '3914c4cf63ce5a5a3dab97e837038959403999221186f5f923328abedd0f151d'
+            >>> (s * p).hex()[:64]
+            '34b60472878ad6b5ca553ae1416aae57571f0e843b092610b92f5599c5d1c1ab'
             """
             p = self.__class__._native.mul(other, self)
             return None if p.zero() else p
@@ -651,8 +658,8 @@ def _make_native(G, F, global_scope=True):
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> (p + q).hex()
-            '1a78bb2f044b38e84a82b6eb7bbc2d339132481a98d635aca3b78c899095b68b'
+            >>> (p + q).hex()[:64]
+            '34448e4ef105c30224fd1dabc80e86370a6cfe20acfedf44624be9a9693dc6f7'
             """
             p = self.__class__._native.add(self, other)
             return None if p.zero() else p
@@ -663,8 +670,8 @@ def _make_native(G, F, global_scope=True):
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> (p - q).hex()
-            '7dad51d4465bcd77bebf243c466726192a411d527dbd5ab8124a98ab0ccc8922'
+            >>> (p - q).hex()[:64]
+            '34bf1212d1028ba42f9f47065c17afc8d07299afe483e3e7e3e39fa3f763bceb'
             """
             p = self.__class__._native.sub(self, other)
             return None if p.zero() else p
@@ -717,8 +724,8 @@ def _make_native(G, F, global_scope=True):
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> (p + q).hex()
-            '1a78bb2f044b38e84a82b6eb7bbc2d339132481a98d635aca3b78c899095b68b'
+            >>> (p + q).hex()[:64]
+            '34448e4ef105c30224fd1dabc80e86370a6cfe20acfedf44624be9a9693dc6f7'
             """
             p = G.__new__(self.__class__, G.__neg__(self))
             return None if p.zero() else p
@@ -731,9 +738,12 @@ def _make_native(G, F, global_scope=True):
             """
             Convert to equivalent Base64 UTF-8 string representation.
 
-            >>> p = point.from_base64('5fLTU+9atKP+91ZEZWc1qX6mzsmI39kFKqSlRiYiZxo=')
-            >>> p.to_base64()
-            '5fLTU+9atKP+91ZEZWc1qX6mzsmI39kFKqSlRiYiZxo='
+            >>> p = point.from_base64(
+            ...     'NEpv+1fjZiqHt34jbtWI99kmecwtkDy//Kmsfj9XpeQRgEwOVD/rd4YH4gXUqEDm6C' +
+            ...     'Q2exlXqxReLuZBGRb8hQsYFhqZua0pEoguRVDDd2My3uf/pRv6HfJctcjwkGfwIw=='
+            ... )
+            >>> p.to_base64()[-64:]
+            'exlXqxReLuZBGRb8hQsYFhqZua0pEoguRVDDd2My3uf/pRv6HfJctcjwkGfwIw=='
             """
             return base64.standard_b64encode(bytes(self)).decode('utf-8')
 
@@ -765,7 +775,7 @@ def _make_native(G, F, global_scope=True):
 
             >>> s = scl()
             >>> t = scalar.bytes(bytes(s))
-            >>> s.hex() == t.hex()
+            >>> s.hex() == t.hex()[:64]
             True
             """
             s = cls._native.scl(bs)
@@ -776,8 +786,8 @@ def _make_native(G, F, global_scope=True):
             """
             Return scalar object by hashing supplied bytes-like object.
 
-            >>> scalar.hash('123'.encode()).hex()
-            '93d829354cb3592743174133104b5405ba6992b67bb219fbde3e394d70505913'
+            >>> scalar.hash('123'.encode()).hex()[:64]
+            '482d79cb1b8da4c68d16e9dffb6882716e11480e376ab51c6daf7fe88677c709'
             """
             h = hashlib.sha256(bs).digest()
             s = cls._native.scl(h)
@@ -791,8 +801,8 @@ def _make_native(G, F, global_scope=True):
             """
             Convert Base64 UTF-8 string representation of a scalar to a scalar instance.
 
-            >>> scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=').hex()
-            '312d0c9130f69153bec9f5d0386a95135eb45eebf130af5f1fed1c6ed15f2500'
+            >>> scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=').hex()[:64]
+            'b9cb30a0187fe56bd9784315638fb203b61007dae22d73581563968e92e6f415'
             """
             return F.__new__(cls, int.from_bytes(base64.standard_b64decode(s), 'little'))
 
@@ -804,8 +814,8 @@ def _make_native(G, F, global_scope=True):
 
             >>> scalar.from_hex(
             ...     '3ab45f5b1c9339f1d25b878cce1c053b5492b4dc1affe689cbe141769f655e1e'
-            ... ).hex()
-            '3ab45f5b1c9339f1d25b878cce1c053b5492b4dc1affe689cbe141769f655e1e'
+            ... ).hex()[:64]
+            'c423b05250408af6199ea09ff8c235d9ba4fd5ec58b2dda9125868bbc276ef1d'
             """
             return F.__new__(cls, F.from_bytes(bytes.fromhex(s), 'little'))
 
@@ -876,7 +886,7 @@ def _make_native(G, F, global_scope=True):
 
             >>> s = scl()
             >>> t = scalar(s)
-            >>> s.hex() == t.hex()
+            >>> s.hex() == t.hex()[:64]
             True
             >>> len(scalar())
             32
@@ -913,13 +923,16 @@ def _make_native(G, F, global_scope=True):
             Multiply supplied scalar or point by this scalar.
 
             >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
-            >>> p = point.from_base64('hoVmn8Pi6U9Gx8L/cJxHHYTjwrl0bKMNNPMjoxXqGJI=')
-            >>> (s * s).hex()
-            '5435c4667d60491122e1e47044890e8fa8aaa2e40b0e1380b6e918af25fcc21a'
+            >>> p = point.from_base64(
+            ...     'NEpv+1fjZiqHt34jbtWI99kmecwtkDy//Kmsfj9XpeQRgEwOVD/rd4YH4gXUqEDm6C' +
+            ...     'Q2exlXqxReLuZBGRb8hQsYFhqZua0pEoguRVDDd2My3uf/pRv6HfJctcjwkGfwIw=='
+            ... )
+            >>> (s * s).hex()[:64]
+            'c4948d8f468d2613e429370afdc7ab7105a3e86bbc43cac0a223d95e700a9707'
             >>> isinstance(s * s, scalar)
             True
-            >>> (s * p).hex()
-            '34624e581a5f8e76dd10badc62c587d4aae20b8cef45975677e1ebdba52b2e99'
+            >>> (s * p).hex()[:64]
+            '34e4487e7a431b32ff61d7671f5e682cabecd12a1404748f2da935cbfd7626a2'
             >>> isinstance(s * p, point)
             True
             """
@@ -945,8 +958,8 @@ def _make_native(G, F, global_scope=True):
             Add this scalar with another scalar.
 
             >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
-            >>> (s + s).hex()
-            '625a182261ec23a77c93eba171d42a27bc68bdd6e3615ebf3eda39dca2bf4a00'
+            >>> (s + s).hex()[:64]
+            '6597614031feca36a2f1862ac69ec50764210eb4450eb2f628c62cdda268c606'
             >>> isinstance(s + s, scalar)
             True
 
@@ -1140,8 +1153,8 @@ try:
             ...     '39c0fa7a15b34d14ab6f95ee5bf5b26bd5def1e7ed07350922d445da07d93622' +
             ...     '2db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
             ... ))
-            >>> mcl.scl2(bs).serialize().hex()[700:]
-            '36222db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
+            >>> mcl.scl2(bs).tostr(1088).hex()[700:]
+            '35145b2cf0fb3ca4a65aebc14a7c696e58b78fc9b7504a33bd4873f23a9ceaf75201'
             """
             if s is None:
                 return mcl.rnd2()
@@ -1232,8 +1245,8 @@ try:
             Return point from 64-byte vector (normally obtained via hashing).
 
             >>> p = pnt(hashlib.sha512('123'.encode()).digest())
-            >>> p.hex()
-            '9c6f2b3917ac249b3a43b3df3399ff54cd185be714a24541782b142a7ccb3423'
+            >>> p.hex()[:64]
+            '346d68495eb4d539db4df70fd24d54fae37c9adf7dfd8dc705ccb8de8630e7cf'
             """
             return G1.__new__(point, G1.random() if h is None else G1.mapfrom(h))
 
@@ -1243,9 +1256,9 @@ try:
             Return point from 64-byte vector (normally obtained via hashing).
 
             >>> p = mcl.pnt2(hashlib.sha512('123'.encode()).digest())
-            >>> p.hex() == (
-            ...     '4a644e3aff7871d7e4461d8480b82766f7e0be551d31a31b39efdbdb97dad510' +
-            ...     '7524b4d90db115ce63a2590b6bccb3db57c4c12e00bf6a634b3b75170db9af8f'
+            >>> p.hex()[:128] == (
+            ...     '342f742f356b0621f1c61891c7cc8fb988dc79b3be6f164fd4b0f9f833ade6aa' +
+            ...     '1cb5b80e05db5afd589ccf2a6ddadee8ba108d9c25313d52ede65c058ab659fb'
             ... )
             True
             """
@@ -1256,7 +1269,7 @@ try:
             """
             Return base point multiplied by supplied scalar.
 
-            >>> bytes(bas(scalar.hash('123'.encode()))).hex()
+            >>> bytes(bas(scalar.hash('123'.encode()))).hex()[:64]
             'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
             """
             return s * G1.__new__(point, G1.base_point())
@@ -1342,8 +1355,8 @@ try:
             >>> s = scl(bytes.fromhex(
             ...     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
             ... ))
-            >>> mul(s, p).hex()
-            'a7f9b967b2d85e2b18e93717d1aac438ce660017023a1207a080f45b42c6b19f'
+            >>> mul(s, p).hex()[:64]
+            '34aa7645c6b3d473b7c6805cc3967ecdff6eb44cfea0a665861043e992c3fc1e'
             """
             return p.G.__new__(p.__class__, p.G.__mul__(p, s))
 
@@ -1354,8 +1367,8 @@ try:
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> add(p, q).hex()
-            '1a78bb2f044b38e84a82b6eb7bbc2d339132481a98d635aca3b78c899095b68b'
+            >>> add(p, q).hex()[:64]
+            '34448e4ef105c30224fd1dabc80e86370a6cfe20acfedf44624be9a9693dc6f7'
             """
             return p.G.__new__(p.__class__, p.G.__add__(p, q))
 
@@ -1366,8 +1379,8 @@ try:
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> sub(p, q).hex()
-            '7dad51d4465bcd77bebf243c466726192a411d527dbd5ab8124a98ab0ccc8922'
+            >>> sub(p, q).hex()[:64]
+            '34bf1212d1028ba42f9f47065c17afc8d07299afe483e3e7e3e39fa3f763bceb'
             """
             return p.G.__new__(p.__class__, p.G.__sub__(p, q))
 
@@ -1400,8 +1413,8 @@ try:
             object if it is possible to do so; otherwise, return ``None``.
 
             >>> p = point.bytes(hashlib.sha512('123'.encode()).digest())
-            >>> p.hex()
-            '9c6f2b3917ac249b3a43b3df3399ff54cd185be714a24541782b142a7ccb3423'
+            >>> p.hex()[:64]
+            '346d68495eb4d539db4df70fd24d54fae37c9adf7dfd8dc705ccb8de8630e7cf'
             """
             return cls._mcl.pnt(bs)
 
@@ -1410,8 +1423,8 @@ try:
             """
             Return point object by hashing supplied bytes-like object.
 
-            >>> point.hash('123'.encode()).hex()
-            'a8884a30f29ca2163f5719b5c4d9707bb94ae44bd54811d44b2c8b78af64c711'
+            >>> point.hash('123'.encode()).hex()[:64]
+            '34825aa78af4c88d6de4abaebabf1a96f668956b92876cfb5d3a44829899cb48'
             """
             return cls._mcl.pnt(hashlib.sha512(bs).digest()[:32])  # really only need ≥254-bits
 
@@ -1421,8 +1434,8 @@ try:
             Return base point multiplied by supplied scalar
             if the scalar is valid; otherwise, return `None`.
 
-            >>> point.base(scalar.hash('123'.encode())).hex()
-            'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
+            >>> point.base(scalar.hash('123'.encode())).hex()[:64]
+            '34dfeb7d0cc60851a112fbbda37d09bf067c5eae37439c19210ff649341337e7'
             """
             p = G1.__new__(cls, (cls._mcl.bas if cls.G == G1 else cls._mcl.bs2)(s))
             return None if p.zero() else p
@@ -1433,8 +1446,8 @@ try:
             Return base point multiplied by supplied scalar
             if the scalar is valid; otherwise, return `None`.
 
-            >>> point.base(scalar.hash('123'.encode())).hex()
-            'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
+            >>> point.base(scalar.hash('123'.encode())).hex()[:64]
+            '34dfeb7d0cc60851a112fbbda37d09bf067c5eae37439c19210ff649341337e7'
             """
             return point2.base(s)
 
@@ -1443,10 +1456,13 @@ try:
             """
             Convert the Base64 UTF-8 string representation of a point to a point instance.
 
-            >>> point.from_base64('hoVmn8Pi6U9Gx8L/cJxHHYTjwrl0bKMNNPMjoxXqGJI=').hex()
-            '8685669fc3e2e94f46c7c2ff709c471d84e3c2b9746ca30d34f323a315ea1892'
+            >>> point.from_base64(
+            ...     'NEpv+1fjZiqHt34jbtWI99kmecwtkDy//Kmsfj9XpeQRgEwOVD/rd4YH4gXUqEDm6C' +
+            ...     'Q2exlXqxReLuZBGRb8hQsYFhqZua0pEoguRVDDd2My3uf/pRv6HfJctcjwkGfwIw=='
+            ... ).hex()[:64]
+            '344a6ffb57e3662a87b77e236ed588f7d92679cc2d903cbffca9ac7e3f57a5e4'
             """
-            return G1.__new__(cls, G1.deserialize(base64.standard_b64decode(s)))
+            return G1.__new__(cls, G1().fromstr(base64.standard_b64decode(s), 1088))
 
         @classmethod
         def from_hex(cls, s: str) -> point:
@@ -1454,18 +1470,20 @@ try:
             Convert the hexadecimal UTF-8 string representation of a point to a point instance.
 
             >>> point.from_hex(
-            ...     'afa9a593ff45b66b3545fe6e56fa56da0d966fd7a61dec45bf99a45a45ab4d0c'
-            ... ).hex()
-            'afa9a593ff45b66b3545fe6e56fa56da0d966fd7a61dec45bf99a45a45ab4d0c'
+            ...     '346f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d2' +
+            ...     '1e597c27f58b7cf87029fcdd03edc697d6c107bd5a7284d08c4116d1b72ea89a' +
+            ...     '1ec25ecce13dd95858edfc48e8f2a6c405d83e25f08e1fa9bf4962fa73a0d54817'
+            ... ).hex()[:64]
+            '346f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d2'
             """
-            return G1.__new__(cls, G1.deserialize(bytes.fromhex(s)))
+            return G1.__new__(cls, G1().fromstr(bytes.fromhex(s), 1088))
 
         def hex(self) -> str:
             """
             Generates hexadecimal representation of this instance.
             """
             # Note that ``hex(self)`` fails, even though ``G1.__hex__`` exists.
-            return self.serialize().hex()
+            return self.tostr(1088).hex()  # IoEcProj|IoArrayRaw == 1024|64 == 1088
 
         def __new__(cls, bs: bytes = None) -> point: # pylint: disable=arguments-differ
             """
@@ -1476,14 +1494,16 @@ try:
             object.
 
             >>> bs = bytes.fromhex(
-            ...     '8031b72abe00d4c04ab3b920aab8995bc5e87026f152ea1e3a87e1647c44dd19'
+            ...     '346f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d2' +
+            ...     '1e597c27f58b7cf87029fcdd03edc697d6c107bd5a7284d08c4116d1b72ea89a' +
+            ...     '1ec25ecce13dd95858edfc48e8f2a6c405d83e25f08e1fa9bf4962fa73a0d54817'
             ... )
-            >>> point(bs).hex()
-            '8031b72abe00d4c04ab3b920aab8995bc5e87026f152ea1e3a87e1647c44dd19'
+            >>> point(bs).hex()[:64]
+            '346f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d2'
             >>> len(point())
             32
             """
-            return G1.__new__(cls, G1.deserialize(bs)) if bs is not None else cls.random()
+            return G1.__new__(cls, G1().fromstr(bs, 1088)) if bs is not None else cls.random()
 
         def __mul__(self: point, other):
             """
@@ -1502,8 +1522,8 @@ try:
 
             >>> p = point.hash('123'.encode())
             >>> s = scalar.hash('456'.encode())
-            >>> (s * p).hex()
-            '3914c4cf63ce5a5a3dab97e837038959403999221186f5f923328abedd0f151d'
+            >>> (s * p).hex()[:64]
+            '34b60472878ad6b5ca553ae1416aae57571f0e843b092610b92f5599c5d1c1ab'
             """
             p = self.__class__._mcl.mul(other, self)
             return None if p.zero() else p
@@ -1514,8 +1534,8 @@ try:
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> (p + q).hex()
-            '1a78bb2f044b38e84a82b6eb7bbc2d339132481a98d635aca3b78c899095b68b'
+            >>> (p + q).hex()[:64]
+            '34448e4ef105c30224fd1dabc80e86370a6cfe20acfedf44624be9a9693dc6f7'
             """
             p = self.__class__._mcl.add(self, other)
             return None if p.zero() else p
@@ -1526,8 +1546,8 @@ try:
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> (p - q).hex()
-            '7dad51d4465bcd77bebf243c466726192a411d527dbd5ab8124a98ab0ccc8922'
+            >>> (p - q).hex()[:64]
+            '34bf1212d1028ba42f9f47065c17afc8d07299afe483e3e7e3e39fa3f763bceb'
             """
             p = self.__class__._mcl.sub(self, other)
             return None if p.zero() else p
@@ -1566,6 +1586,7 @@ try:
             """
             s = self.__class__._mcl.par(self, other)
             return s
+            # Could be `None if s.zero() or s.one() else s`, but there's no way to get identities.
 
         def __neg__(self: point) -> Optional[point]:
             """
@@ -1573,8 +1594,8 @@ try:
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> (p + q).hex()
-            '1a78bb2f044b38e84a82b6eb7bbc2d339132481a98d635aca3b78c899095b68b'
+            >>> (p + q).hex()[:64]
+            '34448e4ef105c30224fd1dabc80e86370a6cfe20acfedf44624be9a9693dc6f7'
             """
             p = G1.__new__(self.__class__, G1.__neg__(self))
             return None if p.zero() else p
@@ -1587,11 +1608,14 @@ try:
             """
             Convert to equivalent Base64 UTF-8 string representation.
 
-            >>> p = point.from_base64('5fLTU+9atKP+91ZEZWc1qX6mzsmI39kFKqSlRiYiZxo=')
-            >>> p.to_base64()
-            '5fLTU+9atKP+91ZEZWc1qX6mzsmI39kFKqSlRiYiZxo='
+            >>> p = point.from_base64(
+            ...     'NEpv+1fjZiqHt34jbtWI99kmecwtkDy//Kmsfj9XpeQRgEwOVD/rd4YH4gXUqEDm6C' +
+            ...     'Q2exlXqxReLuZBGRb8hQsYFhqZua0pEoguRVDDd2My3uf/pRv6HfJctcjwkGfwIw=='
+            ... )
+            >>> p.to_base64()[-64:]
+            'exlXqxReLuZBGRb8hQsYFhqZua0pEoguRVDDd2My3uf/pRv6HfJctcjwkGfwIw=='
             """
-            return base64.standard_b64encode(bytes(self)).decode('utf-8')
+            return base64.standard_b64encode(self.tostr(1088)).decode('utf-8')
 
     class scalar(Fr): # pylint: disable=E0102
         """
@@ -1618,7 +1642,7 @@ try:
 
             >>> s = scl()
             >>> t = scalar.bytes(bytes(s))
-            >>> s.hex() == t.hex()
+            >>> s.hex() == t.hex()[:64]
             True
             """
             s = cls._mcl.scl(bs)
@@ -1630,8 +1654,8 @@ try:
             """
             Return scalar object by hashing supplied bytes-like object.
 
-            >>> scalar.hash('123'.encode()).hex()
-            '93d829354cb3592743174133104b5405ba6992b67bb219fbde3e394d70505913'
+            >>> scalar.hash('123'.encode()).hex()[:64]
+            '482d79cb1b8da4c68d16e9dffb6882716e11480e376ab51c6daf7fe88677c709'
             """
             h = hashlib.sha256(bs).digest()
             s = cls._mcl.scl(h)
@@ -1645,8 +1669,8 @@ try:
             """
             Convert Base64 UTF-8 string representation of a scalar to a scalar instance.
 
-            >>> scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=').hex()
-            '312d0c9130f69153bec9f5d0386a95135eb45eebf130af5f1fed1c6ed15f2500'
+            >>> scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=').hex()[:64]
+            'b9cb30a0187fe56bd9784315638fb203b61007dae22d73581563968e92e6f415'
             """
             return Fr.__new__(cls, Fr.deserialize(base64.standard_b64decode(s)))
 
@@ -1658,8 +1682,8 @@ try:
 
             >>> scalar.from_hex(
             ...     '3ab45f5b1c9339f1d25b878cce1c053b5492b4dc1affe689cbe141769f655e1e'
-            ... ).hex()
-            '3ab45f5b1c9339f1d25b878cce1c053b5492b4dc1affe689cbe141769f655e1e'
+            ... ).hex()[:64]
+            'c423b05250408af6199ea09ff8c235d9ba4fd5ec58b2dda9125868bbc276ef1d'
             """
             return Fr.__new__(cls, Fr.deserialize(bytes.fromhex(s)))
 
@@ -1698,7 +1722,7 @@ try:
             Generates hexadecimal representation of the point instance.
             """
             # Note that ``hex(self)`` fails, even though ``Fr.__hex__`` exists.
-            return self.serialize().hex()
+            return self.tostr(1088).hex()
 
         def __new__(cls, bs: bytes = None) -> scalar: # pylint: disable=arguments-differ
             """
@@ -1710,7 +1734,7 @@ try:
 
             >>> s = scl()
             >>> t = scalar(s)
-            >>> s.hex() == t.hex()
+            >>> s.hex() == t.hex()[:64]
             True
             >>> len(scalar())
             32
@@ -1751,13 +1775,16 @@ try:
             instance.
 
             >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
-            >>> (s * s).hex()
-            '5435c4667d60491122e1e47044890e8fa8aaa2e40b0e1380b6e918af25fcc21a'
+            >>> (s * s).hex()[:64]
+            'c4948d8f468d2613e429370afdc7ab7105a3e86bbc43cac0a223d95e700a9707'
             >>> isinstance(s * s, scalar)
             True
-            >>> p = point.from_base64('hoVmn8Pi6U9Gx8L/cJxHHYTjwrl0bKMNNPMjoxXqGJI=')
-            >>> (s * p).hex()
-            '34624e581a5f8e76dd10badc62c587d4aae20b8cef45975677e1ebdba52b2e99'
+            >>> p = point.from_base64(
+            ...     'NEpv+1fjZiqHt34jbtWI99kmecwtkDy//Kmsfj9XpeQRgEwOVD/rd4YH4gXUqEDm6C' +
+            ...     'Q2exlXqxReLuZBGRb8hQsYFhqZua0pEoguRVDDd2My3uf/pRv6HfJctcjwkGfwIw=='
+            ... )
+            >>> (s * p).hex()[:64]
+            '34e4487e7a431b32ff61d7671f5e682cabecd12a1404748f2da935cbfd7626a2'
             >>> isinstance(s * p, point)
             True
 
@@ -1765,9 +1792,9 @@ try:
             pre-empts :obj:`point2.__rmul__`.
 
             >>> p = point2.hash('123'.encode())
-            >>> (s * p).hex() == (
-            ...     '7992dfce4f0a88ac7cca3938844d23d89a6589745b5591e31ddf0f56a9dee206' +
-            ...     '052d66811454ca371bdc26ae20d5456d7ea1c9aa46f8557e35d9281578086204'
+            >>> (s * p).hex()[:128] == (
+            ...     '34e8bd0a0a52edcf9a9ae0e98c29e2ab4ff2260e3c2e4e7ffebd26c2788c4038' +
+            ...     '032af0d8ada206fb669f62965e1ea5ec4d10368426d13cdfc3c70c93b34e647e'
             ... )
             True
             """
@@ -1796,8 +1823,8 @@ try:
             Add this scalar with another scalar.
 
             >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
-            >>> (s + s).hex()
-            '625a182261ec23a77c93eba171d42a27bc68bdd6e3615ebf3eda39dca2bf4a00'
+            >>> (s + s).hex()[:64]
+            '6597614031feca36a2f1862ac69ec50764210eb4450eb2f628c62cdda268c606'
             >>> isinstance(s + s, scalar)
             True
 
@@ -1855,9 +1882,9 @@ try:
             object.
 
             >>> p = point2.bytes(hashlib.sha512('123'.encode()).digest())
-            >>> p.hex() == (
-            ...     '4a644e3aff7871d7e4461d8480b82766f7e0be551d31a31b39efdbdb97dad510' +
-            ...     '7524b4d90db115ce63a2590b6bccb3db57c4c12e00bf6a634b3b75170db9af8f'
+            >>> p.hex()[:128] == (
+            ...     '342f742f356b0621f1c61891c7cc8fb988dc79b3be6f164fd4b0f9f833ade6aa' +
+            ...     '1cb5b80e05db5afd589ccf2a6ddadee8ba108d9c25313d52ede65c058ab659fb'
             ... )
             True
             """
@@ -1870,9 +1897,9 @@ try:
             """
             Construct an instance by hashing the supplied bytes-like object.
 
-            >>> point2.hash('123'.encode()).hex() == (
-            ...     '45e5b634ec918cde8081ac3397e6422f5816ec814de235488840c0a607eb690b' +
-            ...     '3037be1bd37cf0a17aab457c12f7832d1781ee1131e9eea628d90a46fa9e2111'
+            >>> point2.hash('123'.encode()).hex()[:128] == (
+            ...     '34b5b0a52e43ba71ae03317333da4ba9452dbdbbec353ade0c732348e0bea4ba' +
+            ...     '1b8860718e5ba784d55799ab292459a638f6399738a6de348742e6a789674f30'
             ... )
             True
             """
@@ -1886,9 +1913,9 @@ try:
             Return base second-level point multiplied by the supplied scalar
             if the scalar is valid; otherwise, return ``None``.
 
-            >>> point2.base(scalar.hash('123'.encode())).hex() == (
-            ...     '1c608cfa50a623fb602a83a32b49b305d56124c970a16f81cad1b99a7ca5660d' +
-            ...     '124528b442d33e15eca23a202df3222c542e7bd71955c7623669554af518de01'
+            >>> point2.base(scalar.hash('123'.encode())).hex()[:128] == (
+            ...     '3444c4594a118b339c699c1072debc2d3e58de5ee3cf7ec7a018982ed7744899' +
+            ...     '0451b7ba30e34e05b0768f78c7f477f9b1c16053e10219748e6061ed60ad2821'
             ... )
             True
             """
@@ -1902,13 +1929,17 @@ try:
             Convert the Base64 UTF-8 string representation of a point to a point instance.
 
             >>> p = point2.from_base64(
-            ...     'S2Rtz0qhAjKfiCUnFQoOE0BjvXCwEiJ7Pg4qXpDMShQr' +
-            ...     'icSU075nKzpnSFl3rVzme9Ij6ZIbVNchYwnwnrt1iA=='
+            ...     'NJeB1+JFzMjcU993iGTwvyeBKOuhYUua34jgo6f0rI0J' +
+            ...     'uvRvVMGdFhkJW/rAYTiSUWlihga9g7wFBQ9J2lAb6wW+' +
+            ...     'yEh8uxnflKYLrhnusp8HPV6U1ov7PPjI8DIErib5CyFM' +
+            ...     'oEn+vmB/zwABmq63BPxS/gBDnF8tHVtQbwLMszAF1TCP' +
+            ...     'yYxHhtmTo+Lgba9bUdLvgaUwY/r12mwctXdTvRJB0B/N' +
+            ...     'SuoSaNizbqORfucoZyszzv4T/nBbL4Y6JmeYEQ=='
             ... )
-            >>> p.to_base64()
-            'S2Rtz0qhAjKfiCUnFQoOE0BjvXCwEiJ7Pg4qXpDMShQricSU075nKzpnSFl3rVzme9Ij6ZIbVNchYwnwnrt1iA=='
+            >>> p.to_base64()[-64:]
+            'gaUwY/r12mwctXdTvRJB0B/NSuoSaNizbqORfucoZyszzv4T/nBbL4Y6JmeYEQ=='
             """
-            p = G2.__new__(cls, G2.deserialize(base64.standard_b64decode(s)))
+            p = G2.__new__(cls, G2().fromstr(base64.standard_b64decode(s), 1088))
             p.__class__ = point2
             return p
 
@@ -1918,13 +1949,17 @@ try:
             Convert the hexadecimal UTF-8 string representation of a point to a point instance.
 
             >>> p = point2.from_hex(
-            ...     '019ecabf1926c7d673198e2b55e8fca863c115ca3202e15b9ea06b518d613018' +
-            ...     '7f5d2ee6dc8d8dd5951bb6156227c0141b2ba0e6ef3e5a68cebba2cd3d702918'
+            ...     '349781d7e245ccc8dc53df778864f0bf278128eba1614b9adf88e0a3a7f4ac8d' +
+            ...     '09baf46f54c19d1619095bfac06138925169628606bd83bc05050f49da501beb' +
+            ...     '05bec8487cbb19df94a60bae19eeb29f073d5e94d68bfb3cf8c8f03204ae26f9' +
+            ...     '0b214ca049febe607fcf00019aaeb704fc52fe00439c5f2d1d5b506f02ccb330' +
+            ...     '05d5308fc98c4786d993a3e2e06daf5b51d2ef81a53063faf5da6c1cb57753bd' +
+            ...     '1241d01fcd4aea1268d8b36ea3917ee728672b33cefe13fe705b2f863a26679811'
             ... )
-            >>> p.hex()
-            '019ecabf1926c7d673198e2b55e8fca863c115ca3202e15b9ea06b518d6130187f5d2ee6dc8d8dd5951bb6156227c0141b2ba0e6ef3e5a68cebba2cd3d702918'
+            >>> p.hex()[:64]
+            '349781d7e245ccc8dc53df778864f0bf278128eba1614b9adf88e0a3a7f4ac8d'
             """
-            p = G2.__new__(cls, G2.deserialize(bytes.fromhex(s)))
+            p = G2.__new__(cls, G2().fromstr(bytes.fromhex(s), 1088))
             p.__class__ = point2
             return p
 
@@ -1933,7 +1968,7 @@ try:
             Generates hexadecimal representation of this instance.
             """
             # Note that ``hex(self)`` fails, even though ``G2.__hex__`` exists.
-            return self.serialize().hex()
+            return self.tostr(1088).hex()
 
         def __new__(cls, bs: Optional[bytes] = None) -> point2: # pylint: disable=arguments-differ
             """
@@ -1944,16 +1979,24 @@ try:
             is returned.
 
             >>> bs = bytes.fromhex(
-            ...     '019ecabf1926c7d673198e2b55e8fca863c115ca3202e15b9ea06b518d613018' +
-            ...     '7f5d2ee6dc8d8dd5951bb6156227c0141b2ba0e6ef3e5a68cebba2cd3d702918'
+            ...     '349781d7e245ccc8dc53df778864f0bf278128eba1614b9adf88e0a3a7f4ac8d' +
+            ...     '09baf46f54c19d1619095bfac06138925169628606bd83bc05050f49da501beb' +
+            ...     '05bec8487cbb19df94a60bae19eeb29f073d5e94d68bfb3cf8c8f03204ae26f9' +
+            ...     '0b214ca049febe607fcf00019aaeb704fc52fe00439c5f2d1d5b506f02ccb330' +
+            ...     '05d5308fc98c4786d993a3e2e06daf5b51d2ef81a53063faf5da6c1cb57753bd' +
+            ...     '1241d01fcd4aea1268d8b36ea3917ee728672b33cefe13fe705b2f863a26679811'
             ... )
             >>> point2(bs).hex() == (
-            ...     '019ecabf1926c7d673198e2b55e8fca863c115ca3202e15b9ea06b518d613018' +
-            ...     '7f5d2ee6dc8d8dd5951bb6156227c0141b2ba0e6ef3e5a68cebba2cd3d702918'
+            ...     '349781d7e245ccc8dc53df778864f0bf278128eba1614b9adf88e0a3a7f4ac8d' +
+            ...     '09baf46f54c19d1619095bfac06138925169628606bd83bc05050f49da501beb' +
+            ...     '05bec8487cbb19df94a60bae19eeb29f073d5e94d68bfb3cf8c8f03204ae26f9' +
+            ...     '0b214ca049febe607fcf00019aaeb704fc52fe00439c5f2d1d5b506f02ccb330' +
+            ...     '05d5308fc98c4786d993a3e2e06daf5b51d2ef81a53063faf5da6c1cb57753bd' +
+            ...     '1241d01fcd4aea1268d8b36ea3917ee728672b33cefe13fe705b2f863a26679811'
             ... )
             True
             """
-            p = G2.__new__(cls, G2.deserialize(bs)) if bs is not None else cls.random()
+            p = G2.__new__(cls, G2().fromstr(bs, 1088)) if bs is not None else cls.random()
             p.__class__ = point2
             return p
 
@@ -1996,9 +2039,9 @@ try:
 
             >>> p = point2.hash('123'.encode())
             >>> q = point2.hash('456'.encode())
-            >>> (p + q).hex() == (
-            ...     '019ecabf1926c7d673198e2b55e8fca863c115ca3202e15b9ea06b518d613018' +
-            ...     '7f5d2ee6dc8d8dd5951bb6156227c0141b2ba0e6ef3e5a68cebba2cd3d702918'
+            >>> (p + q).hex()[:128] == (
+            ...     '34f4fd8a265221c37e279252f3b45a66e901d87aed9873178cfabd60e52958d2' +
+            ...     '24a66fe2a31cc05e6d5e75d9522ea1aacd54c72560cbd43735eb89b0798c2f50'
             ... )
             True
             """
@@ -2013,9 +2056,9 @@ try:
 
             >>> p = point2.hash('123'.encode())
             >>> q = point2.hash('456'.encode())
-            >>> (p - q).hex() == (
-            ...     '95c5c1ce52c545a5183818f534bf592c74dabb86bd8ea2c011f99fc98d73af1f' +
-            ...     'ba5cb37348cb95439bc2838370fc8b01c6a845c661a6cdeacb233a991499c813'
+            >>> (p - q).hex()[:128] == (
+            ...     '34d7953fc7aca8b323666fd6fe8bf001ac06223d149e33a09eddd1a04958b12e' +
+            ...     '222859a4f008c76531c7208aa6a08f2c5128b2d1f34d24c381e30ae6e9cc4e84'
             ... )
             True
             """
@@ -2036,9 +2079,9 @@ try:
             Return the negation (additive inverse) of this instance.
 
             >>> p = point2.hash('123'.encode())
-            >>> (-p).hex() == (
-            ...     '45e5b634ec918cde8081ac3397e6422f5816ec814de235488840c0a607eb690b' +
-            ...     '3037be1bd37cf0a17aab457c12f7832d1781ee1131e9eea628d90a46fa9e2191'
+            >>> (-p).hex()[:128] == (
+            ...     '34b5b0a52e43ba71ae03317333da4ba9452dbdbbec353ade0c732348e0bea4ba' +
+            ...     '1b8860718e5ba784d55799ab292459a638f6399738a6de348742e6a789674f30'
             ... )
             True
             """
@@ -2060,13 +2103,17 @@ try:
             Convert to equivalent Base64 UTF-8 string representation.
 
             >>> p = point2.from_base64(
-            ...     'S2Rtz0qhAjKfiCUnFQoOE0BjvXCwEiJ7Pg4qXpDMShQr' +
-            ...     'icSU075nKzpnSFl3rVzme9Ij6ZIbVNchYwnwnrt1iA=='
+            ...     'NJeB1+JFzMjcU993iGTwvyeBKOuhYUua34jgo6f0rI0J' +
+            ...     'uvRvVMGdFhkJW/rAYTiSUWlihga9g7wFBQ9J2lAb6wW+' +
+            ...     'yEh8uxnflKYLrhnusp8HPV6U1ov7PPjI8DIErib5CyFM' +
+            ...     'oEn+vmB/zwABmq63BPxS/gBDnF8tHVtQbwLMszAF1TCP' +
+            ...     'yYxHhtmTo+Lgba9bUdLvgaUwY/r12mwctXdTvRJB0B/N' +
+            ...     'SuoSaNizbqORfucoZyszzv4T/nBbL4Y6JmeYEQ=='
             ... )
-            >>> p.to_base64()
-            'S2Rtz0qhAjKfiCUnFQoOE0BjvXCwEiJ7Pg4qXpDMShQricSU075nKzpnSFl3rVzme9Ij6ZIbVNchYwnwnrt1iA=='
+            >>> p.to_base64()[-64:]
+            'gaUwY/r12mwctXdTvRJB0B/NSuoSaNizbqORfucoZyszzv4T/nBbL4Y6JmeYEQ=='
             """
-            return base64.standard_b64encode(bytes(self)).decode('utf-8')
+            return base64.standard_b64encode(self.tostr(1088)).decode('utf-8')
 
     class scalar2(GT): # pylint: disable=function-redefined
         """
