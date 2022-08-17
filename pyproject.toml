@@ -32,7 +32,7 @@ rbcl = [
     "rbcl~=0.2"
 ]
 mcl = [
-    "mclbn256~=1.1"
+    "mclbn256~=1.2"
 ]
 docs = [
     "toml~=0.10.2",
