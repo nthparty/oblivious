@@ -114,13 +114,13 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             mcl_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
                 s = cls.rnd()
-                self.assertTrue(len(s) == SCALAR_LEN and cls.scl(s))
+                self.assertTrue(cls.scl(s))
 
         def test_scl_none(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
                 s = cls.scl()
-                self.assertTrue(len(s) == SCALAR_LEN and cls.scl(s))
+                self.assertTrue(cls.scl(s))
 
         def test_scl(
                 self,
