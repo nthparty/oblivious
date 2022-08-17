@@ -431,14 +431,6 @@ def _make_native(G, F, global_scope=True):
             >>> (t * x) @ g == (s * y) @ b
             True
             """
-            # p = point.random()
-            # s = scalar.random()
-            # t = scalar.random()
-            # q = point2.random()
-            # stp = s * t * p
-            # tq = (t * q)
-            # b = stp @ q == s * p @ tq
-
             _p, _q = (p, q) if (p.G == _ECp and q.G == _ECp2) else (
                 (q, p) if (q.G == _ECp and p.G == _ECp2) else (None, None)
             )
@@ -1314,8 +1306,32 @@ try:
             >>> b = point.base2(~s * t)
             >>> (t * x) @ g == (s * y) @ b
             True
+
+            Pairing is defined as ``e: (G1 x G2) -> GT``.  The operation takes a point and a point2.
+            >>> p @ (p + p)
+            Traceback (most recent call last):
+              ...
+            ValueError: points are from the same group (cannot both be from G1 or G2)
+            >>> g @ b
+            Traceback (most recent call last):
+              ...
+            ValueError: points are from the same group (cannot both be from G1 or G2)
+
+            Pairing is intended to be nonsingular.
+            >>> p @ q.clear()
+            Traceback (most recent call last):
+              ...
+            TypeError: cannot meaningfully pair the infinity point
+            >>> p.clear() @ g
+            Traceback (most recent call last):
+              ...
+            TypeError: cannot meaningfully pair the infinity point
             """
-            return GT.__new__(scalar2, p.G.__matmul__(p, q))
+            if p.zero() or q.zero():
+                raise TypeError('cannot meaningfully pair the infinity point')
+            if p.G == q.G:  # or compare using type() or isinstance()
+                raise ValueError('points are from the same group (cannot both be from G1 or G2)')
+            return GT.__new__(scalar2, p.G.__matmul__(p.G.__new__(p.G, p), q.G.__new__(q.G, q)))
 
         @staticmethod
         def mul(s: scalar, p: point) -> point:
@@ -1818,6 +1834,7 @@ try:
         to a point.
         """
         G = G2
+        _mcl = mcl
 
         @classmethod
         def random(cls) -> point2:
@@ -2005,6 +2022,14 @@ try:
             p = G2.__sub__(self, other)
             p.__class__ = point2
             return None if p.zero() else p
+
+        def __matmul__(self: point2, other: point) -> Optional[scalar2]:
+            """
+            Return the result of pairing another point with this point.
+
+            Input-swapped alias of ``point.__matmul__``
+            """
+            return point.__matmul__(other, self)
 
         def __neg__(self: point2) -> Optional[point2]:
             """
