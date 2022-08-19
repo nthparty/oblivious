@@ -370,7 +370,17 @@ sub = native.sub
 
 class point(bytes):
     """
-    Class for a bytes-like object that corresponds to a point.
+    Class for representing a point. Because this class is derived from
+    :obj:`bytes`, it inherits methods such as :obj:`bytes.hex` and
+    :obj:`bytes.fromhex`.
+
+    >>> len(point.random())
+    32
+    >>> p = point.hash('123'.encode())
+    >>> p.hex()
+    '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
+    >>> point.fromhex(p.hex()) == p
+    True
     """
     @classmethod
     def random(cls) -> point:
@@ -404,6 +414,16 @@ class point(bytes):
         return bytes.__new__(cls, native.pnt(hashlib.sha512(bs).digest()))
 
     @classmethod
+    def from_base64(cls, s: str) -> point:
+        """
+        Construct an instance from its Base64 UTF-8 string representation.
+
+        >>> point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=').hex()
+        '86855a2aade8225c449dd3f636abf745d6e68aee228a7644e88c28fa470a0229'
+        """
+        return bytes.__new__(cls, base64.standard_b64decode(s))
+
+    @classmethod
     def base(cls, s: scalar) -> Optional[point]:
         """
         Return base point multiplied by supplied scalar
@@ -414,16 +434,6 @@ class point(bytes):
         """
         p = native.bas(s)
         return None if _zero(p) else bytes.__new__(cls, p)
-
-    @classmethod
-    def from_base64(cls, s: str) -> point:
-        """
-        Convert Base64 UTF-8 string representation of a point to a point instance.
-
-        >>> point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=').hex()
-        '86855a2aade8225c449dd3f636abf745d6e68aee228a7644e88c28fa470a0229'
-        """
-        return bytes.__new__(cls, base64.standard_b64decode(s))
 
     def __new__(cls, bs: bytes = None) -> point:
         """
@@ -492,7 +502,7 @@ class point(bytes):
 
     def to_base64(self: point) -> str:
         """
-        Convert to equivalent Base64 UTF-8 string representation.
+        Return an equivalent Base64 UTF-8 string representation of this instance.
 
         >>> p = point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=')
         >>> p.to_base64()
@@ -502,7 +512,17 @@ class point(bytes):
 
 class scalar(bytes):
     """
-    Class for a bytes-like object that corresponds to a scalar.
+    Class for representing a scalar. Because this class is derived from
+    :obj:`bytes`, it inherits methods such as :obj:`bytes.hex` and
+    :obj:`bytes.fromhex`.
+
+    >>> len(scalar.random())
+    32
+    >>> s = scalar.hash('123'.encode())
+    >>> s.hex()
+    'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27a03'
+    >>> scalar.fromhex(s.hex()) == s
+    True
     """
     @classmethod
     def random(cls) -> scalar:
@@ -544,9 +564,36 @@ class scalar(bytes):
         return bytes.__new__(cls, s)
 
     @classmethod
+    def from_int(cls, i: int) -> scalar:
+        """
+        Construct an instance from its integer (*i.e.*, residue) representation.
+
+        >>> p = point()
+        >>> one = scalar.from_int(1)
+        >>> one * p == p
+        True
+        >>> two = scalar.from_int(2)
+        >>> two * p == p + p
+        True
+
+        Negative integers are supported (and automatically converted into their
+        corresponding least nonnegative residues).
+
+        >>> q = point()
+        >>> q - p - p == q + (scalar.from_int(-2) * p)
+        True
+        """
+        return bytes.__new__(
+            cls,
+            (
+                i % (pow(2, 252) + 27742317777372353535851937790883648493)
+            ).to_bytes(32, 'little')
+        )
+
+    @classmethod
     def from_base64(cls, s: str) -> scalar:
         """
-        Convert Base64 UTF-8 string representation of a scalar to a scalar instance.
+        Construct an instance from its Base64 UTF-8 string representation.
 
         >>> scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=').hex()
         '312d0c9130f69153bec9f5d0386a95135eb45eebf130af5f1fed1c6ed15f2500'
@@ -626,9 +673,20 @@ class scalar(bytes):
         """
         raise TypeError('scalar must be on left-hand side of multiplication operator')
 
+    def __int__(self: scalar) ->  int:
+        """
+        Return the integer (*i.e.*, least nonnegative residue) representation
+        of this instance.
+
+        >>> s = scalar()
+        >>> int(s * (~s))
+        1
+        """
+        return int.from_bytes(self, 'little')
+
     def to_base64(self: scalar) -> str:
         """
-        Convert to equivalent Base64 UTF-8 string representation.
+        Return an equivalent Base64 UTF-8 string representation of this instance.
 
         >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
         >>> s.to_base64()
@@ -943,8 +1001,17 @@ try:
 
     class point(bytes): # pylint: disable=E0102
         """
-        Wrapper class for a bytes-like object that corresponds
-        to a point.
+        Class for representing a point. Because this class is derived from
+        :obj:`bytes`, it inherits methods such as :obj:`bytes.hex` and
+        :obj:`bytes.fromhex`.
+
+        >>> len(point.random())
+        32
+        >>> p = point.hash('123'.encode())
+        >>> p.hex()
+        '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
+        >>> point.fromhex(p.hex()) == p
+        True
         """
         @classmethod
         def random(cls) -> point:
@@ -978,6 +1045,16 @@ try:
             return bytes.__new__(cls, sodium.pnt(hashlib.sha512(bs).digest()))
 
         @classmethod
+        def from_base64(cls, s: str) -> point:
+            """
+            Construct an instance from its Base64 UTF-8 string representation.
+
+            >>> point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=').hex()
+            '86855a2aade8225c449dd3f636abf745d6e68aee228a7644e88c28fa470a0229'
+            """
+            return bytes.__new__(cls, base64.standard_b64decode(s))
+
+        @classmethod
         def base(cls, s: scalar) -> Optional[point]:
             """
             Return base point multiplied by supplied scalar
@@ -988,16 +1065,6 @@ try:
             """
             p = sodium.bas(s)
             return None if _zero(p) else bytes.__new__(cls, p)
-
-        @classmethod
-        def from_base64(cls, s: str) -> point:
-            """
-            Convert Base64 UTF-8 string representation of a point to a point instance.
-
-            >>> point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=').hex()
-            '86855a2aade8225c449dd3f636abf745d6e68aee228a7644e88c28fa470a0229'
-            """
-            return bytes.__new__(cls, base64.standard_b64decode(s))
 
         def __new__(cls, bs: bytes = None) -> point:
             """
@@ -1066,7 +1133,7 @@ try:
 
         def to_base64(self: point) -> str:
             """
-            Convert to equivalent Base64 UTF-8 string representation.
+            Return an equivalent Base64 UTF-8 string representation of this instance.
 
             >>> p = point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=')
             >>> p.to_base64()
@@ -1076,8 +1143,17 @@ try:
 
     class scalar(bytes): # pylint: disable=E0102
         """
-        Wrapper class for a bytes-like object that corresponds
-        to a scalar.
+        Class for representing a scalar. Because this class is derived from
+        :obj:`bytes`, it inherits methods such as :obj:`bytes.hex` and
+        :obj:`bytes.fromhex`.
+
+        >>> len(scalar.random())
+        32
+        >>> s = scalar.hash('123'.encode())
+        >>> s.hex()
+        'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27a03'
+        >>> scalar.fromhex(s.hex()) == s
+        True
         """
         @classmethod
         def random(cls) -> scalar:
@@ -1119,9 +1195,36 @@ try:
             return bytes.__new__(cls, s)
 
         @classmethod
+        def from_int(cls, i: int) -> scalar:
+            """
+            Construct an instance from its integer (*i.e.*, residue) representation.
+
+            >>> p = point()
+            >>> one = scalar.from_int(1)
+            >>> one * p == p
+            True
+            >>> two = scalar.from_int(2)
+            >>> two * p == p + p
+            True
+
+            Negative integers are supported (and automatically converted into their
+            corresponding least nonnegative residues).
+
+            >>> q = point()
+            >>> q - p - p == q + (scalar.from_int(-2) * p)
+            True
+            """
+            return bytes.__new__(
+                cls,
+                (
+                    i % (pow(2, 252) + 27742317777372353535851937790883648493)
+                ).to_bytes(32, 'little')
+            )
+
+        @classmethod
         def from_base64(cls, s: str) -> scalar:
             """
-            Convert Base64 UTF-8 string representation of a scalar to a scalar instance.
+            Construct an instance from its Base64 UTF-8 string representation.
 
             >>> scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=').hex()
             '312d0c9130f69153bec9f5d0386a95135eb45eebf130af5f1fed1c6ed15f2500'
@@ -1200,9 +1303,20 @@ try:
             """
             raise TypeError('scalar must be on left-hand side of multiplication operator')
 
+        def __int__(self: scalar) ->  int:
+            """
+            Return the integer (*i.e.*, least nonnegative residue) representation
+            of this instance.
+
+            >>> s = scalar()
+            >>> int(s * (~s))
+            1
+            """
+            return int.from_bytes(self, 'little')
+
         def to_base64(self: scalar) -> str:
             """
-            Convert to equivalent Base64 UTF-8 string representation.
+            Return an equivalent Base64 UTF-8 string representation of this instance.
 
             >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
             >>> s.to_base64()

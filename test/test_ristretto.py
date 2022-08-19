@@ -320,6 +320,24 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             sodium_hidden_and_fallback(hidden, fallback)
             return check_or_generate_operation(self, cls.scalar.hash, [SCALAR_LEN], bits)
 
+        def test_scalar_int(
+                self,
+                bits='0928da0180005ae247051210c18310046141618834405000c497480453000461'
+            ):
+            def fun(bs):
+                s = cls.scalar.bytes(bs)
+                return int(s).to_bytes(32, 'little') if (s is not None) else bytes([0])
+            return check_or_generate_operation(self, fun, [32], bits)
+
+        def test_scalar_from_int(
+                self,
+                bits='ed35aa7069cffb53b6a86e5b9c4ae0e78ccc7d514dcfd672a8584e00ceacba03'
+            ):
+            def fun(bs):
+                s = cls.scalar.from_int(int.from_bytes(bs, 'little'))
+                return s if (s is not None) else bytes([0])
+            return check_or_generate_operation(self, fun, [32], bits)
+
         def test_scalar_base64(self):
             sodium_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
