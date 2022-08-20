@@ -212,6 +212,13 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             for _ in range(TRIALS_PER_TEST):
                 self.assertTrue(len(cls.point.random()) == POINT_LEN)
 
+        def test_point_zero(
+                self,
+                bits='0000000000000000000000000000000000000000000000000000000000000000'
+            ):
+            sodium_hidden_and_fallback(hidden, fallback)
+            return check_or_generate_operation(self, lambda _: cls.point.zero(), [1], bits)
+
         def test_point_bytes(
                 self,
                 bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
@@ -488,6 +495,14 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                         cls.mul(s0, cls.mul(s1, p0)),
                         cls.mul(s1, cls.mul(s0, p0))
                     )
+
+        def test_algebra_point_identity(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                z = cls.point.zero()
+                p = cls.pnt(bs)
+                self.assertEqual(cls.add(z, p), p)
+                self.assertEqual(cls.add(p, z), p)
 
         def test_algebra_point_add_commute(self):
             sodium_hidden_and_fallback(hidden, fallback)

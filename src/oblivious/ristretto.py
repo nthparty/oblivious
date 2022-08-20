@@ -383,6 +383,18 @@ class point(bytes):
     True
     """
     @classmethod
+    def zero(cls) -> point:
+        """
+        Return the additive identity for points.
+
+        >>> z = point.zero()
+        >>> p = point()
+        >>> z + p == p
+        True
+        """
+        return bytes.__new__(cls, bytes(32))
+
+    @classmethod
     def random(cls) -> point:
         """
         Return random point object.
@@ -432,8 +444,7 @@ class point(bytes):
         >>> point.base(scalar.hash('123'.encode())).hex()
         '4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005'
         """
-        p = native.bas(s)
-        return None if _zero(p) else bytes.__new__(cls, p)
+        return bytes.__new__(cls, native.bas(s))
 
     def __new__(cls, bs: bytes = None) -> point:
         """
@@ -473,8 +484,7 @@ class point(bytes):
         >>> (s * p).hex()
         'f61b377aa86050aaa88c90f4a4a0f1e36b0000cf46f6a34232c2f1da7a799f16'
         """
-        p = native.mul(other, self)
-        return None if _zero(p) else native.point(p)
+        return native.point(native.mul(other, self))
 
     def __add__(self: point, other: point) -> Optional[point]:
         """
@@ -484,9 +494,10 @@ class point(bytes):
         >>> q = point.hash('456'.encode())
         >>> (p + q).hex()
         '7076739c9df665d416e68b9512f5513bf1d0181a2aacefdeb1b7244528a4dd77'
+        >>> p + point.zero() == p
+        True
         """
-        p = native.add(self, other)
-        return None if _zero(p) else native.point(p)
+        return native.point(native.add(self, other))
 
     def __sub__(self: point, other: point) -> Optional[point]:
         """
@@ -496,9 +507,10 @@ class point(bytes):
         >>> q = point.hash('456'.encode())
         >>> (p - q).hex()
         '1a3199ca7debfe31a90171696d8bab91b99eb23a541b822a7061b09776e1046c'
+        >>> p - p == point.zero()
+        True
         """
-        p = native.sub(self, other)
-        return None if _zero(p) else native.point(p)
+        return native.point(native.sub(self, other))
 
     def to_base64(self: point) -> str:
         """
@@ -659,8 +671,8 @@ class scalar(bytes):
         if isinstance(other, native.scalar) or\
            (sodium is not None and isinstance(other, sodium.scalar)):
             return native.scalar(native.smu(self, other))
-        p = native.mul(self, other)
-        return None if _zero(p) else native.point(p)
+
+        return native.point(native.mul(self, other))
 
     def __rmul__(self: scalar, other: Union[scalar, point]):
         """
@@ -1014,6 +1026,18 @@ try:
         True
         """
         @classmethod
+        def zero(cls) -> point:
+            """
+            Return the additive identity for points.
+
+            >>> z = point.zero()
+            >>> p = point()
+            >>> z + p == p
+            True
+            """
+            return bytes.__new__(cls, bytes(32))
+
+        @classmethod
         def random(cls) -> point:
             """
             Return random point object.
@@ -1063,8 +1087,7 @@ try:
             >>> point.base(scalar.hash('123'.encode())).hex()
             '4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005'
             """
-            p = sodium.bas(s)
-            return None if _zero(p) else bytes.__new__(cls, p)
+            return bytes.__new__(cls, sodium.bas(s))
 
         def __new__(cls, bs: bytes = None) -> point:
             """
@@ -1104,8 +1127,7 @@ try:
             >>> (s * p).hex()
             'f61b377aa86050aaa88c90f4a4a0f1e36b0000cf46f6a34232c2f1da7a799f16'
             """
-            p = sodium.mul(other, self)
-            return None if _zero(p) else sodium.point(p)
+            return sodium.point(sodium.mul(other, self))
 
         def __add__(self: point, other: point) -> Optional[point]:
             """
@@ -1115,9 +1137,10 @@ try:
             >>> q = point.hash('456'.encode())
             >>> (p + q).hex()
             '7076739c9df665d416e68b9512f5513bf1d0181a2aacefdeb1b7244528a4dd77'
+            >>> p + point.zero() == p
+            True
             """
-            p = sodium.add(self, other)
-            return None if _zero(p) else sodium.point(p)
+            return sodium.point(sodium.add(self, other))
 
         def __sub__(self: point, other: point) -> Optional[point]:
             """
@@ -1127,9 +1150,10 @@ try:
             >>> q = point.hash('456'.encode())
             >>> (p - q).hex()
             '1a3199ca7debfe31a90171696d8bab91b99eb23a541b822a7061b09776e1046c'
+            >>> p - p == point.zero()
+            True
             """
-            p = sodium.sub(self, other)
-            return None if _zero(p) else sodium.point(p)
+            return sodium.point(sodium.sub(self, other))
 
         def to_base64(self: point) -> str:
             """
@@ -1289,8 +1313,8 @@ try:
             """
             if isinstance(other, (native.scalar, sodium.scalar)):
                 return sodium.scalar(sodium.smu(self, other))
-            p = sodium.mul(self, other)
-            return None if _zero(p) else sodium.point(p)
+
+            return sodium.point(sodium.mul(self, other))
 
         def __rmul__(self: scalar, other: Union[scalar, point]):
             """
