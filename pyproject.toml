@@ -29,7 +29,7 @@ Documentation = "https://oblivious.readthedocs.io"
 rbcl = [
     "six~=1.16",
     "cffi~=1.15",
-    "rbcl~=0.2"
+    "rbcl~=0.3"
 ]
 mcl = [
     "mclbn256~=1.2"

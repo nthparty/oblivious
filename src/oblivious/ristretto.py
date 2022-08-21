@@ -29,7 +29,7 @@ encapsulate pure-Python and shared/dynamic library variants of the above.
   variants defined by :obj:`~oblivious.ristretto.native`.
 """
 from __future__ import annotations
-from typing import Union, Optional
+from typing import Any, NoReturn, Union, Optional
 import doctest
 import platform
 import os
@@ -219,7 +219,7 @@ class native:
     def scl(cls, s: bytes = None) -> Optional[bytes]:
         """
         Return supplied byte vector if it is a valid scalar; otherwise, return
-        `None`. If no byte vector is supplied, return a random scalar.
+        ``None``. If no byte vector is supplied, return a random scalar.
 
         >>> s = scl()
         >>> t = scl(s)
@@ -234,10 +234,7 @@ class native:
         s = bytearray(s)
         s[-1] &= 0x1f
 
-        if _sc25519_is_canonical(s) and not _zero(s):
-            return bytes(s)
-
-        return None
+        return bytes(s) if _sc25519_is_canonical(s) else None
 
     @staticmethod
     def inv(s: bytes) -> bytes:
@@ -323,8 +320,10 @@ class native:
         """
         p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
         q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
-        if not _ristretto255_is_canonical(p) or p_p3 is None or\
-           not _ristretto255_is_canonical(q) or q_p3 is None:
+        if (
+            not _ristretto255_is_canonical(p) or p_p3 is None or
+            not _ristretto255_is_canonical(q) or q_p3 is None
+        ):
             return bytes(32) # pragma: no cover
 
         q_cached = ge25519.ge25519_cached.from_p3(q_p3)
@@ -344,8 +343,10 @@ class native:
         """
         p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
         q_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(q)
-        if not _ristretto255_is_canonical(p) or p_p3 is None or\
-           not _ristretto255_is_canonical(q) or q_p3 is None:
+        if (
+            not _ristretto255_is_canonical(p) or p_p3 is None or
+            not _ristretto255_is_canonical(q) or q_p3 is None
+        ):
             return bytes(32) # pragma: no cover
 
         q_cached = ge25519.ge25519_cached.from_p3(q_p3)
@@ -438,11 +439,16 @@ class point(bytes):
     @classmethod
     def base(cls, s: scalar) -> Optional[point]:
         """
-        Return base point multiplied by supplied scalar
-        if the scalar is valid; otherwise, return `None`.
+        Return base point multiplied by supplied scalar if the scalar is valid;
+        otherwise, return ``None``.
 
         >>> point.base(scalar.hash('123'.encode())).hex()
         '4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005'
+
+        Use of the scalar corresponding to the zero residue is permitted.
+
+        >>> point.base(scalar.from_int(0)) == point.zero()
+        True
         """
         return bytes.__new__(cls, native.bas(s))
 
@@ -464,7 +470,7 @@ class point(bytes):
         """
         return bytes.__new__(cls, bs) if bs is not None else cls.random()
 
-    def __mul__(self: point, other):
+    def __mul__(self: point, other: Any) -> NoReturn:
         """
         Use of this method is not permitted. A point cannot be a left-hand argument.
 
@@ -483,6 +489,12 @@ class point(bytes):
         >>> s = scalar.hash('456'.encode())
         >>> (s * p).hex()
         'f61b377aa86050aaa88c90f4a4a0f1e36b0000cf46f6a34232c2f1da7a799f16'
+
+        Multiplying a point by the scalar corresponding to the zero residue
+        yields the additive identity point.
+
+        >>> scalar.from_int(0) * point() == point.zero()
+        True
         """
         return native.point(native.mul(other, self))
 
@@ -550,7 +562,7 @@ class scalar(bytes):
     def bytes(cls, bs: bytes) -> Optional[scalar]:
         """
         Return scalar object obtained by transforming supplied bytes-like
-        object if it is possible to do; otherwise, return `None`.
+        object if it is possible to do; otherwise, return ``None``.
 
         >>> s = scl()
         >>> t = scalar.bytes(s)
@@ -581,6 +593,9 @@ class scalar(bytes):
         Construct an instance from its integer (*i.e.*, residue) representation.
 
         >>> p = point()
+        >>> zero = scalar.from_int(0)
+        >>> zero * p == point.zero()
+        True
         >>> one = scalar.from_int(1)
         >>> one * p == p
         True
@@ -638,7 +653,19 @@ class scalar(bytes):
         >>> p = point()
         >>> ((~s) * (s * p)) == p
         True
+
+        The scalar corresponding to the zero residue cannot be inverted.
+
+        >>> ~scalar.from_int(0)
+        Traceback (most recent call last):
+          ...
+        ValueError: cannot invert scalar corresponding to zero
         """
+        if _zero(self):
+            raise ValueError( # pragma: no cover
+                'cannot invert scalar corresponding to zero'
+            )
+
         return native.scalar(native.inv(self))
 
     def inverse(self: scalar) -> scalar:
@@ -650,7 +677,19 @@ class scalar(bytes):
         >>> p = point()
         >>> ((s.inverse()) * (s * p)) == p
         True
+
+        The scalar corresponding to the zero residue cannot be inverted.
+
+        >>> scalar.from_int(0).inverse()
+        Traceback (most recent call last):
+          ...
+        ValueError: cannot invert scalar corresponding to zero
         """
+        if _zero(self):
+            raise ValueError( # pragma: no cover
+                'cannot invert scalar corresponding to zero'
+            )
+
         return native.scalar(native.inv(self))
 
     def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point, None]:
@@ -667,9 +706,19 @@ class scalar(bytes):
         '2208082412921a67f42ea399748190d2b889228372509f2f2d9929813d074e1b'
         >>> isinstance(s * p, point)
         True
+
+        Multiplying any point or scalar by the scalar corresponding to the
+        zero residue yields the point or scalar corresponding to zero.
+
+        >>> scalar.from_int(0) * point() == point.zero()
+        True
+        >>> scalar.from_int(0) * scalar() == scalar.from_int(0)
+        True
         """
-        if isinstance(other, native.scalar) or\
-           (sodium is not None and isinstance(other, sodium.scalar)):
+        if (
+            isinstance(other, native.scalar) or
+            (sodium is not None and isinstance(other, sodium.scalar))
+        ):
             return native.scalar(native.smu(self, other))
 
         return native.point(native.mul(self, other))
@@ -764,6 +813,44 @@ try:
         if _sodium is None and rbcl is not None: # pragma: no cover
             _sodium = rbcl
             _call_variant = _call_variant_wrapped
+
+    # Add method variants that are not present in libsodium.
+    if _sodium is not rbcl and _sodium is not None: # pragma: no cover
+
+        def crypto_scalarmult_ristretto255_allow_scalar_zero(buf, s, p):
+            """
+            Variant of scalar-point multiplication function that permits
+            a scalar corresponding to the zero residue.
+            """
+            r = _sodium.crypto_scalarmult_ristretto255(buf, s, p)
+
+            if (1 - _zero(s)) * int(r == -1):
+                raise RuntimeError('libsodium error (possibly due to invalid input)')
+
+            return buf
+
+        def crypto_scalarmult_ristretto255_base_allow_scalar_zero(buf, s):
+            """
+            Variant of scalar-point multiplication function that permits
+            a scalar corresponding to the zero residue.
+            """
+            r = _sodium.crypto_scalarmult_ristretto255_base(buf, s)
+
+            if (1 - _zero(s)) * int(r == -1):
+                raise RuntimeError('libsodium error (possibly due to invalid input)')
+
+            return buf
+
+        setattr(
+            _sodium,
+            'crypto_scalarmult_ristretto255_allow_scalar_zero',
+            crypto_scalarmult_ristretto255_allow_scalar_zero
+        )
+        setattr(
+            _sodium,
+            'crypto_scalarmult_ristretto255_base_allow_scalar_zero',
+            crypto_scalarmult_ristretto255_base_allow_scalar_zero
+        )
 
     # Ensure the chosen version of libsodium (or its substitute) has the necessary primitives.
     assert hasattr(_sodium, 'crypto_core_ristretto255_bytes')
@@ -862,7 +949,7 @@ try:
         def scl(cls, s: bytes = None) -> Optional[bytes]:
             """
             Return supplied byte vector if it is a valid scalar; otherwise, return
-            `None`. If no byte vector is supplied, return a random scalar.
+            ``None``. If no byte vector is supplied, return a random scalar.
 
             >>> s = scl()
             >>> t = scl(s)
@@ -877,10 +964,7 @@ try:
             s = bytearray(s)
             s[-1] &= 0x1f
 
-            if _sc25519_is_canonical(s) and not _zero(s):
-                return bytes(s)
-
-            return None
+            return bytes(s) if _sc25519_is_canonical(s) else None
 
         @staticmethod
         def inv(s: bytes) -> bytes:
@@ -942,7 +1026,7 @@ try:
             """
             return sodium._call(
                 sodium._lib.crypto_core_ristretto255_scalarbytes(),
-                sodium._lib.crypto_scalarmult_ristretto255_base,
+                sodium._lib.crypto_scalarmult_ristretto255_base_allow_scalar_zero,
                 bytes(s)
             )
 
@@ -960,7 +1044,7 @@ try:
             """
             return sodium._call(
                 sodium._lib.crypto_core_ristretto255_scalarbytes(),
-                sodium._lib.crypto_scalarmult_ristretto255,
+                sodium._lib.crypto_scalarmult_ristretto255_allow_scalar_zero,
                 bytes(s), bytes(p)
             )
 
@@ -1082,10 +1166,15 @@ try:
         def base(cls, s: scalar) -> Optional[point]:
             """
             Return base point multiplied by supplied scalar
-            if the scalar is valid; otherwise, return `None`.
+            if the scalar is valid; otherwise, return ``None``.
 
             >>> point.base(scalar.hash('123'.encode())).hex()
             '4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005'
+
+            Use of the scalar corresponding to the zero residue is permitted.
+
+            >>> point.base(scalar.from_int(0)) == point.zero()
+            True
             """
             return bytes.__new__(cls, sodium.bas(s))
 
@@ -1107,7 +1196,7 @@ try:
             """
             return bytes.__new__(cls, bs) if bs is not None else cls.random()
 
-        def __mul__(self: point, other):
+        def __mul__(self: point, other: Any) -> NoReturn:
             """
             Use of this method is not permitted. A point cannot be a left-hand argument.
 
@@ -1126,6 +1215,12 @@ try:
             >>> s = scalar.hash('456'.encode())
             >>> (s * p).hex()
             'f61b377aa86050aaa88c90f4a4a0f1e36b0000cf46f6a34232c2f1da7a799f16'
+
+            Multiplying a point by the scalar corresponding to the zero residue
+            yields the additive identity point.
+
+            >>> scalar.from_int(0) * point() == point.zero()
+            True
             """
             return sodium.point(sodium.mul(other, self))
 
@@ -1193,7 +1288,7 @@ try:
         def bytes(cls, bs: bytes) -> Optional[scalar]:
             """
             Return scalar object obtained by transforming supplied bytes-like
-            object if it is possible to do; otherwise, return `None`.
+            object if it is possible to do; otherwise, return ``None``.
 
             >>> s = scl()
             >>> t = scalar.bytes(s)
@@ -1224,6 +1319,9 @@ try:
             Construct an instance from its integer (*i.e.*, residue) representation.
 
             >>> p = point()
+            >>> zero = scalar.from_int(0)
+            >>> zero * p == point.zero()
+            True
             >>> one = scalar.from_int(1)
             >>> one * p == p
             True
@@ -1235,6 +1333,8 @@ try:
             corresponding least nonnegative residues).
 
             >>> q = point()
+            >>> p - p == scalar.from_int(0) * p
+            True
             >>> q - p - p == q + (scalar.from_int(-2) * p)
             True
             """
@@ -1281,7 +1381,17 @@ try:
             >>> p = point()
             >>> ((~s) * (s * p)) == p
             True
+
+            The scalar corresponding to the zero residue cannot be inverted.
+
+            >>> ~scalar.from_int(0)
+            Traceback (most recent call last):
+              ...
+            ValueError: cannot invert scalar corresponding to zero
             """
+            if _zero(self):
+                raise ValueError('cannot invert scalar corresponding to zero')
+
             return sodium.scalar(sodium.inv(self))
 
         def inverse(self: scalar) -> scalar:
@@ -1293,7 +1403,17 @@ try:
             >>> p = point()
             >>> ((s.inverse()) * (s * p)) == p
             True
+
+            The scalar corresponding to the zero residue cannot be inverted.
+
+            >>> scalar.from_int(0).inverse()
+            Traceback (most recent call last):
+              ...
+            ValueError: cannot invert scalar corresponding to zero
             """
+            if _zero(self):
+                raise ValueError('cannot invert scalar corresponding to zero')
+
             return sodium.scalar(sodium.inv(self))
 
         def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point, None]:
@@ -1309,6 +1429,14 @@ try:
             >>> (s * p).hex()
             '2208082412921a67f42ea399748190d2b889228372509f2f2d9929813d074e1b'
             >>> isinstance(s * p, point)
+            True
+
+            Multiplying any point or scalar by the scalar corresponding to the
+            zero residue yields the point or scalar corresponding to zero.
+
+            >>> scalar.from_int(0) * point() == point.zero()
+            True
+            >>> scalar.from_int(0) * scalar() == scalar.from_int(0)
             True
             """
             if isinstance(other, (native.scalar, sodium.scalar)):

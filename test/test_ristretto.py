@@ -516,6 +516,18 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 (p0, p1) = (cls.pnt(bs[:POINT_HASH_LEN]), cls.pnt(bs[POINT_HASH_LEN:]))
                 self.assertEqual(cls.add(cls.sub(p0, p1), p1), p0)
 
+        def test_algebra_scalar_mul_point_scalar_zero(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                p = cls.pnt(bs)
+                self.assertEqual(cls.mul(cls.scalar.from_int(0), p), cls.point.zero())
+
+        def test_algebra_scalar_mul_point_scalar_identity(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                p = cls.pnt(bs)
+                self.assertEqual(cls.mul(cls.scalar.from_int(1), p), p)
+
         def test_algebra_scalar_mul_point_mul_associate(self):
             sodium_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + SCALAR_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
