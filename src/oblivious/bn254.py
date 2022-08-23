@@ -405,7 +405,7 @@ class native:
         """
         Return base point multiplied by supplied scalar.
 
-        >>> bytes(native.bas(scalar.hash('123'.encode()))).hex()
+        >>> bytes(native.bas(native.scalar.hash('123'.encode()))).hex()
         'de3f74aad3b970f759d2e07d657cc1a97828c3c0c1280fed45fba4db88c92587'
         """
         return s * _ECp.__new__(native.point, get_base())
@@ -415,7 +415,7 @@ class native:
         """
         Return base point multiplied by supplied scalar.
 
-        >>> bytes(bs2(scalar.hash('123'.encode()))).hex()[50:]
+        >>> bytes(bs2(native.scalar.hash('123'.encode()))).hex()[50:]
         'd1b99a7ca5660d124528b442d33e15eca23a202df3222c542e7bd71955c7623669554af518de01'
         """
         # return s * _ECp2.__new__(native.point2, get_base2())
@@ -426,8 +426,8 @@ class native:
         """
         Compute the pairing function on two points.
 
-        >>> p = point.hash('123'.encode())
-        >>> q = point2.base(scalar.from_int(456))
+        >>> p = native.point.hash('123'.encode())
+        >>> q = native.point2.base(native.scalar.from_int(456))
         >>> z = native.par(p, q).hex()[700:]
         >>> z_mcl    = 'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
         >>> z_native = '150f663b60a9bd1c7263a988765827328bee5c78602648cb82600a4730f4fc183301'
@@ -440,12 +440,12 @@ class native:
 
         The pairing function is bilinear.
 
-        >>> p = point.random()
-        >>> s = scalar.random()
+        >>> p = native.point.random()
+        >>> s = native.scalar.random()
 
-        >>> t = scalar.random()
-        >>> q = point2.random()
-        >>> -((~s) * (s * p)) - p == scalar.from_int(-2) * p
+        >>> t = native.scalar.random()
+        >>> q = native.point2.random()
+        >>> -((~s) * (s * p)) - p == native.scalar.from_int(-2) * p
         True
         >>> s*t*p @ q == s*p @ (t*q)
         True
@@ -509,8 +509,8 @@ class native:
         """
         Return result of subtracting second point from first point.
 
-        >>> p = point.hash('123'.encode())
-        >>> q = point.hash('456'.encode())
+        >>> p = native.point.hash('123'.encode())
+        >>> q = native.point.hash('456'.encode())
         >>> native.sub(p, q).hex()[:64]
         'bf1212d1028ba42f9f47065c17afc8d07299afe483e3e7e3e39fa3f763bceb'
         >>> native.sub(native.add(p, q), q) == p
