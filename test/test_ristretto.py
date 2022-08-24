@@ -219,12 +219,19 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             sodium_hidden_and_fallback(hidden, fallback)
             return check_or_generate_operation(self, lambda _: cls.point.zero(), [1], bits)
 
-        def test_point_bytes(
+        def test_point_from_bytes(
                 self,
                 bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
             ):
             sodium_hidden_and_fallback(hidden, fallback)
-            return check_or_generate_operation(self, cls.point.bytes, [POINT_HASH_LEN], bits)
+            return check_or_generate_operation(self, cls.point.from_bytes, [POINT_HASH_LEN], bits)
+
+        def test_point_to_bytes(
+                self,
+                bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
+            ):
+            sodium_hidden_and_fallback(hidden, fallback)
+            return check_or_generate_operation(self, lambda bs: cls.point.from_bytes(bs).to_bytes(), [POINT_HASH_LEN], bits)
 
         def test_point_hash(
                 self,
@@ -239,7 +246,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             ):
             sodium_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                s = cls.scalar.bytes(bs)
+                s = cls.scalar.from_bytes(bs)
                 return cls.point.base(s) if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
@@ -262,7 +269,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             ):
             sodium_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                (s, p) = (cls.scalar.bytes(bs[:SCALAR_LEN]), cls.point.bytes(bs[SCALAR_LEN:]))
+                (s, p) = (cls.scalar.from_bytes(bs[:SCALAR_LEN]), cls.point.from_bytes(bs[SCALAR_LEN:]))
                 # pylint: disable=C2801 # Overriding overloaded method for :obj:`scalar`.
                 return p.__rmul__(s) if (s is not None and p is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_HASH_LEN], bits)
@@ -273,7 +280,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             ):
             sodium_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                (s, p) = (cls.scalar.bytes(bs[:SCALAR_LEN]), cls.point.bytes(bs[SCALAR_LEN:]))
+                (s, p) = (cls.scalar.from_bytes(bs[:SCALAR_LEN]), cls.point.from_bytes(bs[SCALAR_LEN:]))
                 # Below, ``*`` invokes :obj:`scalar.__mul__`, which delegates to :obj:`mul`
                 # due to the type of the second argument.
                 return s * p if (s is not None and p is not None) else bytes([0])
@@ -286,8 +293,8 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             sodium_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 (p1, p2) = (
-                    cls.point.bytes(bs[:POINT_HASH_LEN]),
-                    cls.point.bytes(bs[POINT_HASH_LEN:])
+                    cls.point.from_bytes(bs[:POINT_HASH_LEN]),
+                    cls.point.from_bytes(bs[POINT_HASH_LEN:])
                 )
                 return p1 + p2 if (p1 is not None and p2 is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN, POINT_HASH_LEN], bits)
@@ -299,8 +306,8 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             sodium_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 (p1, p2) = (
-                    cls.point.bytes(bs[:POINT_HASH_LEN]),
-                    cls.point.bytes(bs[POINT_HASH_LEN:])
+                    cls.point.from_bytes(bs[:POINT_HASH_LEN]),
+                    cls.point.from_bytes(bs[POINT_HASH_LEN:])
                 )
                 return p1 - p2 if (p1 is not None and p2 is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN, POINT_HASH_LEN], bits)
@@ -309,15 +316,31 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             sodium_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
                 s = cls.scalar.random()
-                self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.bytes(s) is not None)
+                self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.from_bytes(s) is not None)
 
-        def test_scalar_bytes(
+        def test_scalar_from_bytes(
                 self,
                 bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
             ):
             sodium_hidden_and_fallback(hidden, fallback)
             # pylint: disable=C3001
-            fun = lambda bs: bitlist([1 if cls.scalar.bytes(bs) is not None else 0])
+            fun = lambda bs: bitlist([1 if cls.scalar.from_bytes(bs) is not None else 0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
+
+        def test_scalar_to_bytes(
+                self,
+                bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
+            ):
+            sodium_hidden_and_fallback(hidden, fallback)
+            # pylint: disable=C3001
+            fun = lambda bs: bitlist([
+                1
+                if (
+                    cls.scalar.from_bytes(bs) is not None and
+                    cls.scalar.from_bytes(bs).to_bytes()[:-1] == bs[:-1] 
+                ) else
+                0
+            ])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
         def test_scalar_hash(
@@ -332,7 +355,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bits='0928da0180005ae247051210c18310046141618834405000c497480453000461'
             ):
             def fun(bs):
-                s = cls.scalar.bytes(bs)
+                s = cls.scalar.from_bytes(bs)
                 return int(s).to_bytes(32, 'little') if (s is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [32], bits)
 
@@ -357,7 +380,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             sodium_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
                 s = cls.scalar()
-                self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.bytes(s) is not None)
+                self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.from_bytes(s) is not None)
 
         def test_scalar_inverse(
                 self,
@@ -401,7 +424,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_types_point_bytes(self):
             sodium_hidden_and_fallback(hidden, fallback)
             (bs,) = fountains(POINT_HASH_LEN, limit=1)
-            p = cls.point.bytes(bs)
+            p = cls.point.from_bytes(bs)
             self.assertTrue(isinstance(p, cls.point))
 
         def test_types_point_hash(self):
@@ -440,7 +463,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_types_scalar_bytes(self):
             sodium_hidden_and_fallback(hidden, fallback)
             bs = bytes(cls.scalar.random())
-            self.assertTrue(isinstance(cls.scalar.bytes(bs), cls.scalar))
+            self.assertTrue(isinstance(cls.scalar.from_bytes(bs), cls.scalar))
 
         def test_types_scalar_hash(self):
             sodium_hidden_and_fallback(hidden, fallback)

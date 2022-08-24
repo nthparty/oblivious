@@ -406,11 +406,11 @@ class point(bytes):
         return bytes.__new__(cls, native.pnt())
 
     @classmethod
-    def bytes(cls, bs: bytes) -> point:
+    def from_bytes(cls, bs: bytes) -> point:
         """
         Return point object obtained by transforming supplied bytes-like object.
 
-        >>> p = point.bytes(hashlib.sha512('123'.encode()).digest())
+        >>> p = point.from_bytes(hashlib.sha512('123'.encode()).digest())
         >>> p.hex()
         '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
         """
@@ -524,9 +524,19 @@ class point(bytes):
         """
         return native.point(native.sub(self, other))
 
+    def to_bytes(self: point) -> bytes:
+        """
+        Return the bytes-like object that represents this instance.
+
+        >>> p = point()
+        >>> p.to_bytes() == p
+        True
+        """
+        return bytes(self)
+
     def to_base64(self: point) -> str:
         """
-        Return an equivalent Base64 UTF-8 string representation of this instance.
+        Return the Base64 UTF-8 string representation of this instance.
 
         >>> p = point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=')
         >>> p.to_base64()
@@ -559,13 +569,13 @@ class scalar(bytes):
         return bytes.__new__(cls, native.rnd())
 
     @classmethod
-    def bytes(cls, bs: bytes) -> Optional[scalar]:
+    def from_bytes(cls, bs: bytes) -> Optional[scalar]:
         """
         Return scalar object obtained by transforming supplied bytes-like
         object if it is possible to do; otherwise, return ``None``.
 
         >>> s = scl()
-        >>> t = scalar.bytes(s)
+        >>> t = scalar.from_bytes(s)
         >>> s.hex() == t.hex()
         True
         """
@@ -745,9 +755,19 @@ class scalar(bytes):
         """
         return int.from_bytes(self, 'little')
 
+    def to_bytes(self: scalar) -> bytes:
+        """
+        Return the bytes-like object that represents this instance.
+
+        >>> s = scalar()
+        >>> s.to_bytes() == s
+        True
+        """
+        return bytes(self)
+
     def to_base64(self: scalar) -> str:
         """
-        Return an equivalent Base64 UTF-8 string representation of this instance.
+        Return the Base64 UTF-8 string representation of this instance.
 
         >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
         >>> s.to_base64()
@@ -1132,11 +1152,11 @@ try:
             return bytes.__new__(cls, sodium.pnt())
 
         @classmethod
-        def bytes(cls, bs: bytes) -> point:
+        def from_bytes(cls, bs: bytes) -> point:
             """
             Return point object obtained by transforming supplied bytes-like object.
 
-            >>> p = point.bytes(hashlib.sha512('123'.encode()).digest())
+            >>> p = point.from_bytes(hashlib.sha512('123'.encode()).digest())
             >>> p.hex()
             '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
             """
@@ -1250,9 +1270,19 @@ try:
             """
             return sodium.point(sodium.sub(self, other))
 
+        def to_bytes(self: point) -> bytes:
+            """
+            Return the bytes-like object that represents this instance.
+
+            >>> p = point()
+            >>> p.to_bytes() == p
+            True
+            """
+            return bytes(self)
+
         def to_base64(self: point) -> str:
             """
-            Return an equivalent Base64 UTF-8 string representation of this instance.
+            Return the Base64 UTF-8 string representation of this instance.
 
             >>> p = point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=')
             >>> p.to_base64()
@@ -1285,13 +1315,13 @@ try:
             return bytes.__new__(cls, sodium.rnd())
 
         @classmethod
-        def bytes(cls, bs: bytes) -> Optional[scalar]:
+        def from_bytes(cls, bs: bytes) -> Optional[scalar]:
             """
             Return scalar object obtained by transforming supplied bytes-like
             object if it is possible to do; otherwise, return ``None``.
 
             >>> s = scl()
-            >>> t = scalar.bytes(s)
+            >>> t = scalar.from_bytes(s)
             >>> s.hex() == t.hex()
             True
             """
@@ -1466,9 +1496,19 @@ try:
             """
             return int.from_bytes(self, 'little')
 
+        def to_bytes(self: scalar) -> bytes:
+            """
+            Return the bytes-like object that represents this instance.
+
+            >>> s = scalar()
+            >>> s.to_bytes() == s
+            True
+            """
+            return bytes(self)
+
         def to_base64(self: scalar) -> str:
             """
-            Return an equivalent Base64 UTF-8 string representation of this instance.
+            Return the Base64 UTF-8 string representation of this instance.
 
             >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
             >>> s.to_base64()
