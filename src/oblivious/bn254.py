@@ -30,22 +30,15 @@ import doctest
 import hashlib
 import base64
 import secrets
-if __name__ == "__main__":
-    from _bn254.ecp import generator as get_base
-    from _bn254.ecp2 import generator as get_base2
-    from _bn254.pair import e
-    from _bn254 import big as bn, Fp12 as Fp12_
-    from _bn254.ecp import ECp as ECp_
-    from _bn254.ecp2 import ECp2 as ECp2_
-    from _bn254.curve import r
-else:
-    from bn254.ecp import generator as get_base
-    from bn254.ecp2 import generator as get_base2
-    from bn254.pair import e
-    from bn254 import big as bn, Fp12 as Fp12_
-    from bn254.ecp import ECp as ECp_
-    from bn254.ecp2 import ECp2 as ECp2_
-    from bn254.curve import r
+from bn254.ecp import generator as get_base
+from bn254.ecp2 import generator as get_base2
+from bn254.pair import e
+from bn254 import big as bn, Fp12 as Fp12_
+from bn254.ecp import ECp as ECp_
+from bn254.ecp2 import ECp2 as ECp2_
+from bn254.curve import r#, p as p_mod
+
+# pylint: disable=too-many-lines
 
 class _ECp(ECp_): # pylint: disable=invalid-name
     """Internal class."""
@@ -156,13 +149,13 @@ class _ECp(ECp_): # pylint: disable=invalid-name
         return p
 
     def hex(self):
-        return self.to_bytes().hex()
+        return self.to_bytes().hex() # pylint: disable=no-member
 
     def zero(self):
         return self.isinf()
 
     def __bytes__(self):
-        return self.to_bytes()
+        return self.to_bytes() # pylint: disable=no-member
 
 class _ECp2(ECp2_): # pylint: disable=invalid-name
     """Internal class."""
@@ -227,6 +220,7 @@ class _ECp2(ECp2_): # pylint: disable=invalid-name
         y2 = (y2 * inv_z2) % p_mod
 
         q = cls()
+        # pylint: disable=invalid-name
         Fp = q.x.a.__class__ # Could also import from the bn254 package or copy xy's from two ECp's.
         # q.x.a .x, q.y.a .x = Fp(x1), Fp(y1)
         # q.x.b .x, q.y.b .x = Fp(x2), Fp(y2)
@@ -236,7 +230,7 @@ class _ECp2(ECp2_): # pylint: disable=invalid-name
         return q
 
     def __bytes__(self):
-        return self.to_bytes()
+        return self.to_bytes() # pylint: disable=no-member
 
     def zero(self):
         return self.isinf()
@@ -301,7 +295,7 @@ class _Fp12(Fp12_): # pylint: disable=invalid-name
         return s
 
     def __bytes__(self):
-        return self.to_bytes()
+        return self.to_bytes() # pylint: disable=no-member
 
     def zero(self):
         return self.isinf() # pylint: disable=no-member
@@ -2488,7 +2482,7 @@ try:
             >>> mcl.des(mcl.ser(p)) == p
             True
             """
-            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants
+            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
             return p.tostr(IoEcProj|IoArrayRaw)[1:]
 
         @staticmethod
@@ -2507,7 +2501,7 @@ try:
             >>> mcl.ser(mcl.des(ser_p)) == ser_p
             True
             """
-            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants
+            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
             return G1.new_fromstr(b"4"+bs, IoEcProj|IoArrayRaw)
 
         @staticmethod
@@ -2519,7 +2513,7 @@ try:
             >>> mcl.sde(mcl.sse(s)) == s
             True
             """
-            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants
+            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
             return s.tostr(IoEcProj|IoArrayRaw)
 
         @staticmethod
@@ -2536,7 +2530,7 @@ try:
             >>> mcl.sse(mcl.sde(mcl.sse_s)) == mcl.sse_s
             True
             """
-            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants
+            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
             return Fr.new_fromstr(bs, IoEcProj|IoArrayRaw)
 
         @staticmethod
@@ -2558,7 +2552,7 @@ try:
             >>> mcl.ser(mcl.des2(mcl.ser_p)) == mcl.ser_p
             True
             """
-            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants
+            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
             return G2.new_fromstr(b"4"+bs, IoEcProj|IoArrayRaw)
 
         @staticmethod
@@ -2586,7 +2580,7 @@ try:
             >>> mcl.sse(mcl.sde2(sse_s)) == sse_s
             True
             """
-            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants
+            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
             return GT.new_fromstr(bs, IoEcProj|IoArrayRaw)
 
         @staticmethod
