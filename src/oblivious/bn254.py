@@ -692,12 +692,38 @@ class native:
                              _ECp.serialize(_ECp.deserialize(p).add(-1 * _ECp.deserialize(q))))
 
     @staticmethod
-    def ser(p: point) -> bytes:
+    def nrm(p: Union[point, point2]) -> None:
+        """
+        Normalize a point (in place).
+
+        >>> a = native.point.hash('123'.encode())
+        >>> p = native.add(a, a)
+        >>> p_nrm = native.add(a, a); native.nrm(p_nrm)
+
+        We may have ``ser(p_nrm) != ser(p)`` here, depending on the backend
+        implementation.  Either normalization matters, or MCl is not the backend.
+        >>> mclbn256 = False # Hardcode this for now while both backends are in use.
+        >>> (native.ser(p_nrm) != native.ser(p)) or not mclbn256
+        True
+
+        Normalization is idempotent.
+        >>> native.nrm(p); native.nrm(p_nrm)
+        >>> (          p ==           p_nrm )
+        True
+        """
+        # The point's coordinates are already in normal affine form.
+
+    @staticmethod
+    def ser(p: Union[point, point2]) -> bytes:
         """
         Return the binary representation of a point.
 
         >>> p = native.point.hash('123'.encode())
         >>> native.des(native.ser(p)) == p
+        True
+
+        >>> q = native.point2.hash('123'.encode())
+        >>> native.des(native.ser(q)) == q
         True
         """
         return bytes(b for b in p)
@@ -1191,6 +1217,38 @@ class point(bytes): # pylint: disable=W0621,E0102
         True
         """
         return native.ser(self)
+
+    def normalize(self: point) -> point:
+        """
+        Normalize this point and return it mutated.  This takes the z-coordinate,
+        which may not always be equal to 1, and multiplies all coordinates x, y, and z
+        by z's multiplicative inverse.  The resulting normalized point is unique
+        (_i.e._, two points are equal if and only if their normalized forms are equal)
+        and in the form (x/z, y/z, 1).
+
+        >>> a = native.point.hash('123'.encode())
+        >>> p = a + a + a + a
+        >>> p == p
+        True
+        >>> p.to_bytes() == p.to_bytes()
+        True
+        >>> p.to_bytes() == p.normalize().to_bytes() and not mclbn256
+        False
+        >>> p.normalize().to_bytes() == p.normalize().to_bytes()
+        True
+        >>> p.normalize().to_bytes() == p.normalize().normalize().to_bytes()
+        True
+        >>> native.point.from_bytes(p.to_bytes()) == p
+        True
+        >>> native.point.from_bytes(p.normalize().to_bytes()) == p
+        True
+        >>> native.point.from_bytes(p.to_bytes()) == native.point.from_bytes(p.normalize().to_bytes())
+        True
+        >>> type(p.normalize()) is native.point
+        True
+        """
+        native.nrm(self)
+        return self
 
     def hex(self: point) -> str:
         """
@@ -1832,6 +1890,38 @@ class point2(bytes): # pylint: disable=W0621,E0102
         """
         return native.ser(self)
 
+    def normalize(self: point2) -> point2:
+        """
+        Normalize this second-group point and return it mutated.  This takes the z-coordinate,
+        which may not always be equal to 1, and multiplies all coordinates x, y, and z
+        by z's multiplicative inverse.  The resulting normalized point is unique
+        (_i.e._, two second-group points are equal if and only if their normalized forms are equal)
+        and in the form (x1/z1, y1/z1, x2/z2, y2/z2, 1, 0).
+
+        >>> a = native.point2.hash('123'.encode())
+        >>> q = a + a + a + a
+        >>> q == q
+        True
+        >>> q.to_bytes() == q.to_bytes()
+        True
+        >>> q.to_bytes() == q.normalize().to_bytes() and not mclbn256
+        False
+        >>> q.normalize().to_bytes() == q.normalize().to_bytes()
+        True
+        >>> q.normalize().to_bytes() == q.normalize().normalize().to_bytes()
+        True
+        >>> native.point2.from_bytes(q.to_bytes()) == q
+        True
+        >>> native.point2.from_bytes(q.normalize().to_bytes()) == q
+        True
+        >>> native.point2.from_bytes(q.to_bytes()) == native.point2.from_bytes(bytes(q.normalize()))
+        True
+        >>> type(q.normalize()) is native.point2
+        True
+        """
+        native.nrm(self)
+        return self
+
     def hex(self: point2) -> str:
         """
         Generates hexadecimal representation of this instance.
@@ -2366,7 +2456,7 @@ try:
             """
             Return base point multiplied by supplied scalar.
 
-            >>> mcl.point.to_bytes(mcl.bas(mcl.scalar.hash('123'.encode())), False).hex()[:64]
+            >>> mcl.point.to_bytes(mcl.bas(mcl.scalar.hash('123'.encode())).normalize().normalize()).hex()[:64]
             '2d66076815cda25556bab4a930244ac284412267e9345aceb98d71530308401a'
             """
             return G1.base_point() * s
@@ -2380,7 +2470,7 @@ try:
             >>> s = mcl.scl(bytes.fromhex(
             ...     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
             ... ))
-            >>> mcl.point.to_bytes(mcl.mul(s, p), False).hex()[:64]
+            >>> mcl.point.to_bytes(mcl.mul(s, p).normalize().normalize()).hex()[:64]
             '68b5dd61adaa83f1511efe7b4749481cc9f86e11bf82d82960b6c56373de0d24'
             """
             return G1.__mul__(p, s)
@@ -2392,7 +2482,7 @@ try:
 
             >>> p = mcl.point.hash('123'.encode())
             >>> q = mcl.point.hash('456'.encode())
-            >>> mcl.point.to_bytes(mcl.add(p, q), False).hex()[:64]
+            >>> mcl.point.to_bytes(mcl.add(p, q).normalize().normalize()).hex()[:64]
             '1ea48cab238fece46bd0c9fb562c859e318e17a8fb75517a4750d30ca79b911c'
             """
             return G1.__add__(p, q)
@@ -2404,7 +2494,7 @@ try:
 
             >>> p = mcl.point.hash('123'.encode())
             >>> q = mcl.point.hash('456'.encode())
-            >>> mcl.point.to_bytes(mcl.sub(p, q), False).hex()[:64]
+            >>> mcl.point.to_bytes(mcl.sub(p, q).normalize().normalize()).hex()[:64]
             'a43a5ce1931b1300b62e5d7e1b0c691203bfd85fafd9585dc5e47a7e2acfea22'
             """
             return G1.__sub__(p, q)
@@ -2492,12 +2582,37 @@ try:
             return G2.__matmul__(G2.__new__(G2, p), G1.__new__(G1, q))
 
         @staticmethod
-        def ser(p: G1) -> bytes:
+        def nrm(p: Union[G1, G2]) -> None:
+            """
+            Normalize a point (in place).
+
+            >>> a = mcl.point.hash('123'.encode())
+            >>> p = mcl.add(a, a)
+            >>> p_nrm = mcl.add(a, a); mcl.nrm(p_nrm)
+
+            We may have ``ser(p_nrm) != ser(p)`` here, depending on the backend
+            implementation.  Either normalization matters, or MCl is not the backend.
+            >>> (mcl.ser(p_nrm) != mcl.ser(p)) or not mclbn256
+            True
+
+            Normalization is idempotent.
+            >>> mcl.nrm(p); mcl.nrm(p_nrm)
+            >>> (       p ==        p_nrm )
+            True
+            """
+            p.normalize_in_place()  # Sets ``(x, y, z)`` to ``(x/z, y/z, 1)`` which is unique.
+
+        @staticmethod
+        def ser(p: Union[G1, G2]) -> bytes:
             """
             Return the binary representation of a point.
 
             >>> p = mcl.point.hash('123'.encode())
             >>> mcl.des(mcl.ser(p)) == p
+            True
+
+            >>> q = mcl.point2.hash('123'.encode())
+            >>> mcl.des2(mcl.ser(q)) == q
             True
             """
             IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
@@ -2695,7 +2810,7 @@ try:
             If no byte vector is supplied, return a random second-group point.
 
             >>> p = mcl.pnt2(hashlib.sha512('123'.encode()).digest())
-            >>> mcl.point2.to_bytes(p, False).hex()[:128] == (
+            >>> mcl.point2.to_bytes(p.normalize().normalize()).hex()[:128] == (
             ...     '4c595542640a69c4a70bda55c27ef96c133cd1f4a5f83b3371e571960c018e19'
             ...     'c54aaec2069f8f10a00f12bcbb3511cdb7356201f5277ec5e47da91405be2809'
             ... )
@@ -2708,7 +2823,7 @@ try:
             """
             Return base point multiplied by supplied scalar.
 
-            >>> mcl.point2.to_bytes(mcl.bas2(mcl.scalar.hash('123'.encode())), False).hex()[:64]
+            >>> mcl.point2.to_bytes(mcl.bas2(mcl.scalar.hash('123'.encode())).normalize().normalize()).hex()[:64]
             'e7000fb12d206112c73fe1054e9d77b35c77881eba6598b7e035171d90b13e0c'
             """
             # return s * G2.__new__(point2, G2.base_point())
@@ -2723,7 +2838,7 @@ try:
             >>> s = mcl.scl(bytes.fromhex(
             ...     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
             ... ))
-            >>> mcl.point2.to_bytes(mcl.mul2(s, p), False).hex() == (
+            >>> mcl.point2.to_bytes(mcl.mul2(s, p).normalize().normalize()).hex() == (
             ...     '5f6f2ace8566ca47354fbe244ae3e6a854c37011fb6d6ac56571c94169e4ab18'
             ...     '650bea4cfed5c9603e5949fe3d7509b17e20db4ff1f05129aad0d0a3bffb0008'
             ...     '3043c5a14b986882836b1c929952ea3881d04ca44d487d1ab2d4c0b171b87d14'
@@ -2742,7 +2857,7 @@ try:
 
             >>> p = mcl.point2.hash('123'.encode())
             >>> q = mcl.point2.hash('456'.encode())
-            >>> mcl.point2.to_bytes(mcl.add2(p, q), False).hex() == (
+            >>> mcl.point2.to_bytes(mcl.add2(p, q).normalize().normalize()).hex() == (
             ...     'cb0fc423c1bac2ac2df47bf5f5548a42b0d0a0da325bc77243d15dc587a7b221'
             ...     '9808a1649991ddf770f0060333aab4d499580b123f109b5cb180f1f8a75a090e'
             ...     '83dd34d9ecdd6fd639230f7f0cf44b218fae4d879111de6c6c037e6ffdcdc823'
@@ -2761,7 +2876,7 @@ try:
 
             >>> p = mcl.point2.hash('123'.encode())
             >>> q = mcl.point2.hash('456'.encode())
-            >>> mcl.point2.to_bytes(mcl.sub2(p, q), False).hex() == (
+            >>> mcl.point2.to_bytes(mcl.sub2(p, q).normalize().normalize()).hex() == (
             ...     'e97a70c4e3a5369ebbb1dcf0cc1135c8c8e04a4ec7cffdf875ac429d66846d0b'
             ...     '191b090909c40a723027b07ac44435a6ade3813d04b3632a17c92c5c98718902'
             ...     '407c58ed13cc0c0aaa43d0eafd44080080c8199401fe4f8ed7dd0eb5fba86817'
@@ -2779,7 +2894,7 @@ try:
             Return the negation of a second-group point.
 
             >>> p = mcl.point2.hash('123'.encode())
-            >>> mcl.point2.to_bytes(mcl.neg2(p), False).hex() == (
+            >>> mcl.point2.to_bytes(mcl.neg2(p).normalize().normalize()).hex() == (
             ...     '30326199f303fce7a77cff6d2fb0b3de8cd409d1d562f3543f7d064cdc58d309'
             ...     '7e88038ad76e85e5df26e4a9486a657b0431c8e7e09b0a1abf90fc874c515207'
             ...     'e7957744bb7f9abb9e7209cd4e27ae80d8ab490a1072af125034c7b09c12281c'
@@ -2885,7 +3000,7 @@ try:
             Return base point multiplied by supplied scalar
             if the scalar is valid.
 
-            >>> mcl.point.base(mcl.scalar.hash('123'.encode())).hex(False)[:64]
+            >>> mcl.point.base(mcl.scalar.hash('123'.encode())).normalize().hex()[:64]
             '2d66076815cda25556bab4a930244ac284412267e9345aceb98d71530308401a'
             """
             p = mcl.bas(s)
@@ -2917,7 +3032,7 @@ try:
             ...     '6f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d21e'
             ...     '597c27f58b7cf87029fcdd03edc697d6c107bd5a7284d08c4116d1b72ea89a1e'
             ...     'c25ecce13dd95858edfc48e8f2a6c405d83e25f08e1fa9bf4962fa73a0d54817'
-            ... ).hex(False)[:64]
+            ... ).normalize().hex()[:64]
             'c13bfe85b48720ab3ef8b2d620f475c54967cbaa3f2e4490a9af57bf1adc560c'
             """
             return cls.from_bytes(bytes.fromhex(s))
@@ -2930,7 +3045,7 @@ try:
             >>> mcl.point.from_base64(
             ...     'Sm/7V+NmKoe3fiNu1Yj32SZ5zC2QPL/8qax+P1el5BGATA5UP+t3hgfiBdSoQObo'
             ...     'JDZ7GVerFF4u5kEZFvyFCxgWGpm5rSkSiC5FUMN3YzLe5/+lG/od8ly1yPCQZ/Aj'
-            ... ).hex(False)[:64]
+            ... ).normalize().hex()[:64]
             '850218a50447ba9cb27cf168126f2b7e6295ea2e9550feef9a78105a9c52dc01'
             """
             return cls.from_bytes(base64.standard_b64decode(s))
@@ -2948,7 +3063,7 @@ try:
             ...     '597c27f58b7cf87029fcdd03edc697d6c107bd5a7284d08c4116d1b72ea89a1e'
             ...     'c25ecce13dd95858edfc48e8f2a6c405d83e25f08e1fa9bf4962fa73a0d54817'
             ... )
-            >>> mcl.point(bs).hex(False)[:64]
+            >>> mcl.point(bs).normalize().hex()[:64]
             'c13bfe85b48720ab3ef8b2d620f475c54967cbaa3f2e4490a9af57bf1adc560c'
             >>> len(mcl.point())
             96
@@ -2972,7 +3087,7 @@ try:
 
             >>> p = mcl.point.hash('123'.encode())
             >>> s = mcl.scalar.hash('456'.encode())
-            >>> (s * p).hex(False)[:64]
+            >>> (s * p).normalize().hex()[:64]
             '6df8d29225a699b5ff3cc4b7b0a9c5003c0e1a93037cb2488b278495abfa2902'
             """
             p = mcl.mul(other, self)
@@ -2985,7 +3100,7 @@ try:
 
             >>> p = mcl.point.hash('123'.encode())
             >>> q = mcl.point.hash('456'.encode())
-            >>> (p + q).hex(False)[:64]
+            >>> (p + q).normalize().hex()[:64]
             '1ea48cab238fece46bd0c9fb562c859e318e17a8fb75517a4750d30ca79b911c'
             """
             p = mcl.add(self, other)
@@ -2998,7 +3113,7 @@ try:
 
             >>> p = mcl.point.hash('123'.encode())
             >>> q = mcl.point.hash('456'.encode())
-            >>> (p - q).hex(False)[:64]
+            >>> (p - q).normalize().hex()[:64]
             'a43a5ce1931b1300b62e5d7e1b0c691203bfd85fafd9585dc5e47a7e2acfea22'
             """
             p = mcl.sub(self, other)
@@ -3047,7 +3162,7 @@ try:
 
             >>> p = mcl.point.hash('123'.encode())
             >>> q = mcl.point.hash('456'.encode())
-            >>> (p + q).hex(False)[:64]
+            >>> (p + q).normalize().hex()[:64]
             '1ea48cab238fece46bd0c9fb562c859e318e17a8fb75517a4750d30ca79b911c'
             """
             p = mcl.neg(self)
@@ -3072,7 +3187,7 @@ try:
             """
             return self.to_bytes()
 
-        def to_bytes(self: point, preserve_z_coord=True) -> bytes:
+        def to_bytes(self: point) -> bytes:
             """
             Serialize this point and return its representation as bytes.
 
@@ -3083,11 +3198,41 @@ try:
             >>> type(bs) is bytes
             True
             """
-            if not preserve_z_coord:
-                self.normalize_in_place()  # Sets ``(x, y, z) = (x/z, y/z, 1)`` which is unique.
             return mcl.ser(self)
 
-        def hex(self: point, preserve_z_coord=True) -> str:
+        def normalize(self: point) -> point:
+            """
+            Normalize this point and return it mutated.  This takes the z-coordinate,
+            which may not always be equal to 1, and multiplies all coordinates x, y, and z
+            by z's multiplicative inverse.  The resulting normalized point is unique
+            (_i.e._, two points are equal if and only if their normalized forms are equal)
+            and in the form (x/z, y/z, 1).
+
+            >>> a = mcl.point.hash('123'.encode())
+            >>> p = a + a + a + a
+            >>> p == p
+            True
+            >>> p.to_bytes() == p.to_bytes()
+            True
+            >>> p.to_bytes() == p.normalize().to_bytes()
+            False
+            >>> p.normalize().to_bytes() == p.normalize().to_bytes()
+            True
+            >>> p.normalize().to_bytes() == p.normalize().normalize().to_bytes()
+            True
+            >>> mcl.point.from_bytes(p.to_bytes()) == p
+            True
+            >>> mcl.point.from_bytes(p.normalize().to_bytes()) == p
+            True
+            >>> mcl.point.from_bytes(p.to_bytes()) == mcl.point.from_bytes(p.normalize().to_bytes())
+            True
+            >>> type(p.normalize()) is mcl.point
+            True
+            """
+            mcl.nrm(self)
+            return self
+
+        def hex(self: point) -> str:
             """
             Return a hexadecimal representation of this instance.
 
@@ -3095,9 +3240,9 @@ try:
             >>> p.hex()[:64]
             '825aa78af4c88d6de4abaebabf1a96f668956b92876cfb5d3a44829899cb480f'
             """
-            return self.to_bytes(preserve_z_coord).hex()
+            return self.to_bytes().hex()
 
-        def to_base64(self: point, preserve_z_coord=True) -> str:
+        def to_base64(self: point) -> str:
             """
             Return an equivalent Base64 UTF-8 string representation of this instance.
 
@@ -3108,7 +3253,7 @@ try:
             >>> p.to_base64()[-64:]
             '5PqBuRzCyiRb8xYIelEII47///////8Viv//////ObnN/////y7GovX//3/ypCsh'
             """
-            return base64.standard_b64encode(self.to_bytes(preserve_z_coord)).decode('utf-8')
+            return base64.standard_b64encode(self.to_bytes()).decode('utf-8')
 
     class scalar(Fr): # pylint: disable=E0102
         """
@@ -3291,7 +3436,7 @@ try:
             ...     'Sm/7V+NmKoe3fiNu1Yj32SZ5zC2QPL/8qax+P1el5BGATA5UP+t3hgfiBdSoQObo'
             ...     'JDZ7GVerFF4u5kEZFvyFCxgWGpm5rSkSiC5FUMN3YzLe5/+lG/od8ly1yPCQZ/Aj'
             ... )
-            >>> (s * p).hex(False)[:64]
+            >>> (s * p).normalize().hex()[:64]
             'eee31d1780ea41771357da19a81eaddf2e7fa560142067b433764cbf98be9002'
             >>> isinstance(s * p, mcl.point)
             True
@@ -3300,7 +3445,7 @@ try:
             pre-empts :obj:`point2.__rmul__`.
 
             >>> p = mcl.point2.hash('123'.encode())
-            >>> (s * p).hex(False)[:128] == (
+            >>> (s * p).normalize().hex()[:128] == (
             ...     '451f144e06deecbfe5a1527f2b5cc6f12bbde91c1fdf0d5326ad79ffc53bb106'
             ...     '6d800275af625de83d72d815335832027cc60c34f22e8c5f89f953740a409702'
             ... )
@@ -3458,7 +3603,7 @@ try:
             object.
 
             >>> p = mcl.point2.bytes(hashlib.sha512('123'.encode()).digest())
-            >>> p.hex(False)[:128] == (
+            >>> p.normalize().hex()[:128] == (
             ...     '4c595542640a69c4a70bda55c27ef96c133cd1f4a5f83b3371e571960c018e19'
             ...     'c54aaec2069f8f10a00f12bcbb3511cdb7356201f5277ec5e47da91405be2809'
             ... )
@@ -3473,7 +3618,7 @@ try:
             """
             Construct an instance by hashing the supplied bytes-like object.
 
-            >>> mcl.point2.hash('123'.encode()).hex(False)[:128] == (
+            >>> mcl.point2.hash('123'.encode()).normalize().hex()[:128] == (
             ...     '30326199f303fce7a77cff6d2fb0b3de8cd409d1d562f3543f7d064cdc58d309'
             ...     '7e88038ad76e85e5df26e4a9486a657b0431c8e7e09b0a1abf90fc874c515207'
             ... )
@@ -3489,7 +3634,7 @@ try:
             Return base second-group point multiplied by the supplied scalar
             if the scalar is valid; otherwise, return ``None``.
 
-            >>> mcl.point2.base(mcl.scalar.hash('123'.encode())).hex(False)[:128] == (
+            >>> mcl.point2.base(mcl.scalar.hash('123'.encode())).normalize().hex()[:128] == (
             ...     'e7000fb12d206112c73fe1054e9d77b35c77881eba6598b7e035171d90b13e0c'
             ...     '33c8ad2c92acb446fa958f3001b6c15aaf0f00092534a9d567541f9fadc64e09'
             ... )
@@ -3528,7 +3673,7 @@ try:
             ...     'd5308fc98c4786d993a3e2e06daf5b51d2ef81a53063faf5da6c1cb57753bd12'
             ...     '41d01fcd4aea1268d8b36ea3917ee728672b33cefe13fe705b2f863a26679811'
             ... )
-            >>> p.hex(False)[:64]
+            >>> p.normalize().hex()[:64]
             'ab4efa2bcdeb825a67b12a10132ae1addca840ed248f83ae7dd987370dd47a05'
             """
             p = cls.from_bytes(bytes.fromhex(s))
@@ -3617,7 +3762,7 @@ try:
 
             >>> p = mcl.point2.hash('123'.encode())
             >>> q = mcl.point2.hash('456'.encode())
-            >>> (p + q).hex(False)[:128] == (
+            >>> (p + q).normalize().hex()[:128] == (
             ...     'cb0fc423c1bac2ac2df47bf5f5548a42b0d0a0da325bc77243d15dc587a7b221'
             ...     '9808a1649991ddf770f0060333aab4d499580b123f109b5cb180f1f8a75a090e'
             ... )
@@ -3634,7 +3779,7 @@ try:
 
             >>> p = mcl.point2.hash('123'.encode())
             >>> q = mcl.point2.hash('456'.encode())
-            >>> (p - q).hex(False)[:128] == (
+            >>> (p - q).normalize().hex()[:128] == (
             ...     'e97a70c4e3a5369ebbb1dcf0cc1135c8c8e04a4ec7cffdf875ac429d66846d0b'
             ...     '191b090909c40a723027b07ac44435a6ade3813d04b3632a17c92c5c98718902'
             ... )
@@ -3649,7 +3794,7 @@ try:
             Return the negation (additive inverse) of this instance.
 
             >>> p = mcl.point2.hash('123'.encode())
-            >>> (-p).hex(False)[:128] == (
+            >>> (-p).normalize().hex()[:128] == (
             ...     '30326199f303fce7a77cff6d2fb0b3de8cd409d1d562f3543f7d064cdc58d309'
             ...     '7e88038ad76e85e5df26e4a9486a657b0431c8e7e09b0a1abf90fc874c515207'
             ... )
@@ -3685,7 +3830,7 @@ try:
             """
             return self.to_bytes()
 
-        def to_bytes(self: point2, preserve_z_coord=True) -> bytes:
+        def to_bytes(self: point2) -> bytes:
             """
             Serialize this second-group point and return its representation as bytes.
 
@@ -3696,16 +3841,46 @@ try:
             >>> type(bs) is bytes
             True
             """
-            if not preserve_z_coord:
-                self.normalize_in_place() # Sets coord. `(x, y, z) = (x/z, y/z, 1)` which is unique.
             return mcl.ser(self)
 
-        def hex(self: point2, preserve_z_coord=True) -> str:
+        def normalize(self: point2) -> point2:
+            """
+            Normalize this second-group point and return it mutated.  This takes the z-coordinate,
+            which may not always be equal to 1, and multiplies all coordinates x, y, and z
+            by z's multiplicative inverse.  The resulting normalized point is unique (_i.e._, two
+            second-group points are equal if and only if their normalized forms are equal) and in
+            the form (x1/z1, y1/z1, x2/z2, y2/z2, 1, 0).
+
+            >>> a = mcl.point2.hash('123'.encode())
+            >>> q = a + a + a + a
+            >>> q == q
+            True
+            >>> q.to_bytes() == q.to_bytes()
+            True
+            >>> q.to_bytes() == q.normalize().to_bytes()
+            False
+            >>> q.normalize().to_bytes() == q.normalize().to_bytes()
+            True
+            >>> q.normalize().to_bytes() == q.normalize().normalize().to_bytes()
+            True
+            >>> mcl.point2.from_bytes(q.to_bytes()) == q
+            True
+            >>> mcl.point2.from_bytes(q.normalize().to_bytes()) == q
+            True
+            >>> mcl.point2.from_bytes(q.to_bytes()) == mcl.point2.from_bytes(bytes(q.normalize()))
+            True
+            >>> type(q.normalize()) is mcl.point2
+            True
+            """
+            mcl.nrm(self)
+            return self
+
+        def hex(self: point2) -> str:
             """
             Generates hexadecimal representation of this instance.
 
             >>> p = mcl.point2.hash('123'.encode())
-            >>> p.hex(False) == (
+            >>> p.normalize().hex() == (
             ...     '30326199f303fce7a77cff6d2fb0b3de8cd409d1d562f3543f7d064cdc58d309'
             ...     '7e88038ad76e85e5df26e4a9486a657b0431c8e7e09b0a1abf90fc874c515207'
             ...     '2c6a88bb448065eb748df632b1d872e02f54b6f56fdb84a7b1cb388fe551fb08'
@@ -3715,9 +3890,9 @@ try:
             ... )
             True
             """
-            return self.to_bytes(preserve_z_coord).hex()
+            return self.to_bytes().hex()
 
-        def to_base64(self: point2, preserve_z_coord=True) -> str:
+        def to_base64(self: point2) -> str:
             """
             Convert to equivalent Base64 UTF-8 string representation.
 
@@ -3730,7 +3905,7 @@ try:
             >>> p.to_base64()[-64:]
             'zf////8uxqL1//9/8qQrIQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
             """
-            return base64.standard_b64encode(self.to_bytes(preserve_z_coord)).decode('utf-8')
+            return base64.standard_b64encode(self.to_bytes()).decode('utf-8')
 
     class scalar2(GT): # pylint: disable=function-redefined
         """
