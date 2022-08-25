@@ -326,10 +326,22 @@ class native:
     primitive operations and classes exported by this module:
     :obj:`native.scl <scl>`, :obj:`native.rnd <rnd>`,
     :obj:`native.inv <inv>`, :obj:`native.smu <smu>`,
-    :obj:`native.pnt <pnt>`, :obj:`native.bas <bas>`, :obj:`native.bas2 <bas2>`,
-    :obj:`native.mul <mul>`, :obj:`native.add <add>`,
-    :obj:`native.sub <sub>`, :obj:`native.par <par>`,
-    :obj:`native.point <point>`, and :obj:`native.scalar <scalar>`.
+    :obj:`native.sad <sad>`, :obj:`native.ssb <ssb>`,
+    :obj:`native.sne <sne>`, :obj:`native.pnt <pnt>`,
+    :obj:`native.bas <bas>`, :obj:`native.mul <mul>`,
+    :obj:`native.add <add>`, :obj:`native.sub <sub>`,
+    :obj:`native.neg <neg>`, :obj:`native.par <par>`,
+    :obj:`native.ser <ser>`, :obj:`native.des <des>`,
+    :obj:`native.sse <sse>`, :obj:`native.sde <sde>`,
+    :obj:`native.rnd2 <rnd2>`, :obj:`native.scl2 <scl2>`,
+    :obj:`native.inv2 <inv2>`, :obj:`native.smu2 <smu2>`,
+    :obj:`native.sad2 <sad2>`, :obj:`native.pnt2 <pnt2>`,
+    :obj:`native.bas2 <bas2>`, :obj:`native.mul2 <mul2>`,
+    :obj:`native.add2 <add2>`, :obj:`native.sub2 <sub2>`,
+    :obj:`native.neg2 <neg2>`, :obj:`native.des2 <des2>`,
+    :obj:`native.sde2 <sde2>`,
+    :obj:`native.point <point>`, :obj:`native.scalar <scalar>`,
+    :obj:`native.point <point2>`, and :obj:`native.scalar <scalar2>`.
     For example, you can perform multiplication of scalars
     using the pure Python scalar multiplication implementation.
 
@@ -2190,18 +2202,26 @@ try:
         this module default to their pure-Python variants (*i.e.*, those
         encapsulated within :obj:`native <native>`). One way to confirm
         that a dynamic/shared library *has not been found* when this module
-        is imported is to evaluate `mcl is None`.
+        is imported is to evaluate `mcl is None` or `not mclbn256`.
 
         If a shared/dynamic library file has been loaded successfully,
         this class encapsulates shared/dynamic library variants of all
         primitive operations and classes exported by this module:
-        :obj:`mcl.scl <scl>`, :obj:`mcl.rnd <rnd>`,
-        :obj:`mcl.inv <inv>`, :obj:`mcl.smu <smu>`,
-        :obj:`mcl.pnt <pnt>`, :obj:`mcl.bas <bas>`, :obj:`mcl.bs2 <bs2>`,
-        :obj:`mcl.mul <mul>`, :obj:`mcl.add <add>`,
-        :obj:`mcl.sad <sad>`, :obj:`mcl.sad2 <sad2>`,
-        :obj:`mcl.sub <sub>`, :obj:`mcl.par <par>`,
-        :obj:`mcl.point <point>`, and :obj:`mcl.scalar <scalar>`.
+        :obj:`mcl.scl <scl>`, :obj:`mcl.rnd <rnd>`, :obj:`mcl.inv <inv>`,
+        :obj:`mcl.smu <smu>`, :obj:`mcl.sad <sad>`, :obj:`mcl.ssb <ssb>`,
+        :obj:`mcl.sne <sne>`, :obj:`mcl.pnt <pnt>`, :obj:`mcl.bas <bas>`,
+        :obj:`mcl.mul <mul>`, :obj:`mcl.add <add>`, :obj:`mcl.sub <sub>`,
+        :obj:`mcl.neg <neg>`, :obj:`mcl.par <par>`, :obj:`mcl.ser <ser>`,
+        :obj:`mcl.des <des>`, :obj:`mcl.sse <sse>`, :obj:`mcl.sde <sde>`,
+        :obj:`mcl.rnd2 <rnd2>`, :obj:`mcl.scl2 <scl2>`,
+        :obj:`mcl.inv2 <inv2>`, :obj:`mcl.smu2 <smu2>`,
+        :obj:`mcl.sad2 <sad2>`, :obj:`mcl.pnt2 <pnt2>`,
+        :obj:`mcl.bas2 <bas2>`, :obj:`mcl.mul2 <mul2>`,
+        :obj:`mcl.add2 <add2>`, :obj:`mcl.sub2 <sub2>`,
+        :obj:`mcl.neg2 <neg2>`, :obj:`mcl.des2 <des2>`,
+        :obj:`mcl.sde2 <sde2>`,
+        :obj:`mcl.point <point>`, :obj:`mcl.scalar <scalar>`,
+        :obj:`mcl.point <point2>`, and :obj:`mcl.scalar <scalar2>`.
         For example, you can perform addition of points using
         the point addition implementation found in the mclbn256
         shared/dynamic library found on the host system.
