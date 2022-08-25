@@ -444,7 +444,7 @@ class native:
         #return native.scalar2.from_int((int(s) + int(t)) % r)
 
     @staticmethod
-    def sne(s: Fr) -> Fr:
+    def sne(s: scalar) -> scalar:
         """
         Return the additive inverse of a scalar.
 
@@ -456,7 +456,7 @@ class native:
         return native.scalar.from_int(r-int(s)) # or (-int(s) % r)
 
     @staticmethod
-    def ssb(s: Fr, t: Fr) -> Fr:
+    def ssb(s: scalar, t: scalar) -> scalar:
         """
         Return the result of one scalar subtracted from another scalar.
 
@@ -696,7 +696,7 @@ class native:
         return bytes(b for b in p)
 
     @staticmethod
-    def des(bs: bytes) -> point:  # G1:     TODO: check all native signatures for mcl types
+    def des(bs: bytes) -> point:  # G1:
         """
         Return a point from its binary representation.
 
@@ -762,7 +762,7 @@ class native:
         return bytes.__new__(native.point2, bs)
 
     @staticmethod
-    def sde2(bs: bytes) -> GT:
+    def sde2(bs: bytes) -> scalar2:
         """
         Return a second-level scalar from its binary representation.
 
@@ -1286,7 +1286,7 @@ class scalar(bytes): # pylint: disable=E0102
         ... ))
         12345678
         """
-        r = 0x2523648240000001ba344d8000000007ff9f800000000010a10000000000000d#
+        #r= 0x2523648240000001ba344d8000000007ff9f800000000010a10000000000000d
         d = 0x212ba4f27ffffff5a2c62effffffffd00242ffffffffff9c39ffffffffffffb2
         return cls.bytes(int.to_bytes((i * d) % r, 32, 'little'))
 
@@ -1487,7 +1487,7 @@ class scalar(bytes): # pylint: disable=E0102
         >>> len(native.scalar())
         32
         """
-        return 32#bytes(self).__len__()
+        return bytes(self).__len__()
 
     def __bytes__(self: scalar) -> bytes:
         """
@@ -3174,7 +3174,7 @@ try:
             ... ))
             12345678
             """
-            r = 0x2523648240000001ba344d8000000007ff9f800000000010a10000000000000d#
+            #r= 0x2523648240000001ba344d8000000007ff9f800000000010a10000000000000d
             d = 0x212ba4f27ffffff5a2c62effffffffd00242ffffffffff9c39ffffffffffffb2
             return cls.bytes(int.to_bytes((i * d) % r, 32, 'little'))
 
@@ -4017,7 +4017,6 @@ try:
     mcl.scalar2 = scalar2
 
 except:  # pylint: disable=W0702 # pragma: no cover
-    raise ModuleNotFoundError("mcl failed")
     mcl = None  # pragma: no cover # Exported symbol.
 
 if __name__ == "__main__":
