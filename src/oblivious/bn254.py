@@ -603,7 +603,7 @@ class native:
         >>> z = native.par(p, q).hex()[700:]
         >>> z_mcl    = 'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
         >>> z_native = '731ff16849a86c40280717696a8aa44fbe16f565f087d003413d141de7f5d109fc0c'
-        >>> mclbn256 = p.__class__ != native.point # (Because now we test native and mcl doctests after both are defined.)
+        >>> mclbn256 = p.__class__ != native.point # (In case both native and mcl are defined.)
         >>> z == z_mcl if mclbn256 else z == z_native
         True
 
@@ -1149,7 +1149,7 @@ class point(bytes): # pylint: disable=W0621,E0102
         >>> z = (p @ q).hex()[700:]
         >>> z_mcl    = 'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
         >>> z_native = '731ff16849a86c40280717696a8aa44fbe16f565f087d003413d141de7f5d109fc0c'
-        >>> mclbn256 = p.__class__ != native.point # (Because now we test native and mcl doctests after both are defined.)
+        >>> mclbn256 = p.__class__ != native.point # (In case both native and mcl are defined.)
         >>> z == z_mcl if mclbn256 else z == z_native
         True
 
@@ -1996,7 +1996,7 @@ class scalar2(bytes): # pylint: disable=function-redefined
         >>> z = s.hex()[700:]
         >>> z_mcl    = 'd210461ad2293454f3c2e9ad5fedcb671d0f13b30ec467744b9a16c881bb572bb50c'
         >>> z_native = '141886a680e6a24930f9b3a5988a9a83212c94ba3dfcd275e8627ad5f1925ddafd23'
-        >>> mclbn256 = s.__class__ != native.scalar2 # (Because now we test native and mcl doctests after both are defined.)
+        >>> mclbn256 = s.__class__ != native.scalar2 # (In case both native and mcl are defined.)
         >>> z == z_mcl if mclbn256 else z == z_native
         True
         """
@@ -2116,7 +2116,7 @@ class scalar2(bytes): # pylint: disable=function-redefined
         >>> s_inv = bytes(s.inverse()).hex()[700:]
         >>> s_inv_mcl    = 'ec02e64a4556213eade4604303b93219233e21fd8e50f536e6421c7f73597f5bc905'
         >>> s_inv_native = 'd71413d63b9d7e08181eaecca0227b6de4dc36a8befe4e38597420345aec519c220b'
-        >>> mclbn256 = s.__class__ != native.scalar2 # (Because now we test native and mcl doctests after both are defined.)
+        >>> mclbn256 = s.__class__ != native.scalar2 # (In case both native and mcl are defined.)
         >>> s_inv == s_inv_mcl if mclbn256 else s_inv == s_inv_native
         True
         >>> ~~s == s
@@ -3161,7 +3161,7 @@ try:
             >>> z = (p @ q).hex()[700:]
             >>> z_mcl    = 'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
             >>> z_native = '731ff16849a86c40280717696a8aa44fbe16f565f087d003413d141de7f5d109fc0c'
-            >>> mclbn256 = p.__class__ != native.point # (Because now we test native and mcl doctests after both are defined.)
+            >>> mclbn256 = p.__class__ != native.point # (In case both native and mcl are defined.)
             >>> z == z_mcl if mclbn256 else z == z_native
             True
 
@@ -4008,7 +4008,7 @@ try:
             >>> z = s.hex()[700:]
             >>> z_mcl    = 'd210461ad2293454f3c2e9ad5fedcb671d0f13b30ec467744b9a16c881bb572bb50c'
             >>> z_native = '141886a680e6a24930f9b3a5988a9a83212c94ba3dfcd275e8627ad5f1925ddafd23'
-            >>> mclbn256 = s.__class__ != native.scalar2 # (Because now we test native and mcl doctests after both are defined.)
+            >>> mclbn256 = s.__class__ != native.scalar2 # (In case both native and mcl are defined.)
             >>> z == z_mcl if mclbn256 else z == z_native
             True
             """
@@ -4128,7 +4128,7 @@ try:
             >>> s_inv = bytes(s.inverse()).hex()[700:]
             >>> s_inv_mcl    = 'ec02e64a4556213eade4604303b93219233e21fd8e50f536e6421c7f73597f5bc905'
             >>> s_inv_native = 'd71413d63b9d7e08181eaecca0227b6de4dc36a8befe4e38597420345aec519c220b'
-            >>> mclbn256 = s.__class__ != native.scalar2 # (Because now we test native and mcl doctests after both are defined.)
+            >>> mclbn256 = s.__class__ != native.scalar2 # (In case both native and mcl are defined.)
             >>> s_inv == s_inv_mcl if mclbn256 else s_inv == s_inv_native
             True
             >>> ~~s == s
