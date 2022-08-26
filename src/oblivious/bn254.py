@@ -603,7 +603,7 @@ class native:
         >>> z = native.par(p, q).hex()[700:]
         >>> z_mcl    = 'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
         >>> z_native = '731ff16849a86c40280717696a8aa44fbe16f565f087d003413d141de7f5d109fc0c'
-        >>> mclbn256 = False # (Because now we test native and mcl doctests after both are defined.)
+        >>> mclbn256 = p.__class__ != native.point # (Because now we test native and mcl doctests after both are defined.)
         >>> z == z_mcl if mclbn256 else z == z_native
         True
 
@@ -702,7 +702,7 @@ class native:
 
         We may have ``ser(p_nrm) != ser(p)`` here, depending on the backend
         implementation.  Either normalization matters, or MCl is not the backend.
-        >>> mclbn256 = False # Hardcode this for now while both backends are in use.
+        >>> mclbn256 = p.__class__ != native.point # Use this for now while both backends are in use
         >>> (native.ser(p_nrm) != native.ser(p)) or not mclbn256
         True
 
@@ -745,6 +745,7 @@ class native:
         True
         """
         return bytes.__new__(native.point, bs)
+        # It may be useful to debug with _ECp.deserialize(bs).serialize() in place of just bs.
 
     @staticmethod
     def sse(s: scalar) -> bytes:
@@ -793,6 +794,7 @@ class native:
         True
         """
         return bytes.__new__(native.point2, bs)
+        # It may be useful to debug with _ECp2.deserialize(bs).serialize() in place of just bs.
 
     @staticmethod
     def sde2(bs: bytes) -> scalar2:
@@ -1018,7 +1020,7 @@ class point(bytes): # pylint: disable=W0621,E0102
         Return base point multiplied by supplied scalar
         if the scalar is valid.
 
-        >>> native.point.base(native.scalar.hash('123'.encode())).hex()[:64]
+        >>> native.point.base(native.scalar.hash('123'.encode())).normalize().hex()[:64]
         '2d66076815cda25556bab4a930244ac284412267e9345aceb98d71530308401a'
         """
         p = native.bas(s)
@@ -1047,11 +1049,11 @@ class point(bytes): # pylint: disable=W0621,E0102
         Convert the hexadecimal UTF-8 string representation of a point to a point instance.
 
         >>> native.point.from_hex(
-        ...     '6f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d21e'
-        ...     '597c27f58b7cf87029fcdd03edc697d6c107bd5a7284d08c4116d1b72ea89a1e'
-        ...     'c25ecce13dd95858edfc48e8f2a6c405d83e25f08e1fa9bf4962fa73a0d54817'
-        ... ).hex()[:64]
-        '6f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d21e'
+        ...     'b89ec91191915a72d4ec4434be7b438893975880b21720995c2b2458962c4e0a'
+        ...     'd0efebb5c303e4d1f8461b44ec768c587eca8b0abc01d4cb0d878b076154940d'
+        ...     '8effffffffffff158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b21'
+        ... ).normalize().hex()[:64]
+        'b89ec91191915a72d4ec4434be7b438893975880b21720995c2b2458962c4e0a'
         """
         return cls.from_bytes(bytes.fromhex(s))
 
@@ -1061,10 +1063,10 @@ class point(bytes): # pylint: disable=W0621,E0102
         Construct an instance from its corresponding Base64 UTF-8 string representation.
 
         >>> native.point.from_base64(
-        ...     'Sm/7V+NmKoe3fiNu1Yj32SZ5zC2QPL/8qax+P1el5BGATA5UP+t3hgfiBdSoQObo'
-        ...     'JDZ7GVerFF4u5kEZFvyFCxgWGpm5rSkSiC5FUMN3YzLe5/+lG/od8ly1yPCQZ/Aj'
-        ... ).hex()[:64]
-        '4a6ffb57e3662a87b77e236ed588f7d92679cc2d903cbffca9ac7e3f57a5e411'
+        ...     'hQIYpQRHupyyfPFoEm8rfmKV6i6VUP7vmngQWpxS3AEJD29fKVMW39l2oDLB+Ece'
+        ...     '5PqBuRzCyiRb8xYIelEII47///////8Viv//////ObnN/////y7GovX//3/ypCsh'
+        ... ).normalize().hex()[:64]
+        '850218a50447ba9cb27cf168126f2b7e6295ea2e9550feef9a78105a9c52dc01'
         """
         return cls.from_bytes(base64.standard_b64decode(s))
 
@@ -1077,12 +1079,12 @@ class point(bytes): # pylint: disable=W0621,E0102
         object.
 
         >>> bs = bytes.fromhex(
-        ...     '6f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d21e'
-        ...     '597c27f58b7cf87029fcdd03edc697d6c107bd5a7284d08c4116d1b72ea89a1e'
-        ...     'c25ecce13dd95858edfc48e8f2a6c405d83e25f08e1fa9bf4962fa73a0d54817'
+        ...     'a5db59a0a1450aee0e47e7226d992fded25f2eb5378493ba0eb3225fc7595809'
+        ...     'c76c3dc4ba5a827be515cef65823ab1b113626348415f85aa966bad842457c03'
+        ...     '8effffffffffff158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b21'
         ... )
-        >>> native.point(bs).hex()[:64]
-        '6f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d21e'
+        >>> native.point(bs).normalize().hex()[:64]
+        'a5db59a0a1450aee0e47e7226d992fded25f2eb5378493ba0eb3225fc7595809'
         >>> len(native.point())
         96
         """
@@ -1105,7 +1107,7 @@ class point(bytes): # pylint: disable=W0621,E0102
 
         >>> p = native.point.hash('123'.encode())
         >>> s = native.scalar.hash('456'.encode())
-        >>> (s * p).hex()[:64]
+        >>> (s * p).normalize().hex()[:64]
         '6df8d29225a699b5ff3cc4b7b0a9c5003c0e1a93037cb2488b278495abfa2902'
         """
         p = native.mul(other, self)
@@ -1118,7 +1120,7 @@ class point(bytes): # pylint: disable=W0621,E0102
 
         >>> p = native.point.hash('123'.encode())
         >>> q = native.point.hash('456'.encode())
-        >>> (p + q).hex()[:64]
+        >>> (p + q).normalize().hex()[:64]
         '1ea48cab238fece46bd0c9fb562c859e318e17a8fb75517a4750d30ca79b911c'
         """
         p = native.add(self, other)
@@ -1131,7 +1133,7 @@ class point(bytes): # pylint: disable=W0621,E0102
 
         >>> p = native.point.hash('123'.encode())
         >>> q = native.point.hash('456'.encode())
-        >>> (p - q).hex()[:64]
+        >>> (p - q).normalize().hex()[:64]
         'a43a5ce1931b1300b62e5d7e1b0c691203bfd85fafd9585dc5e47a7e2acfea22'
         """
         p = native.sub(self, other)
@@ -1144,8 +1146,12 @@ class point(bytes): # pylint: disable=W0621,E0102
 
         >>> p = native.point.hash('123'.encode())
         >>> q = native.point2.base(native.scalar.from_int(456))
-        >>> (p @ q).hex()[700:]
-        '731ff16849a86c40280717696a8aa44fbe16f565f087d003413d141de7f5d109fc0c'
+        >>> z = (p @ q).hex()[700:]
+        >>> z_mcl    = 'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
+        >>> z_native = '731ff16849a86c40280717696a8aa44fbe16f565f087d003413d141de7f5d109fc0c'
+        >>> mclbn256 = p.__class__ != native.point # (Because now we test native and mcl doctests after both are defined.)
+        >>> z == z_mcl if mclbn256 else z == z_native
+        True
 
         The pairing function is bilinear
         >>> p = native.point.random()
@@ -1180,7 +1186,7 @@ class point(bytes): # pylint: disable=W0621,E0102
 
         >>> p = native.point.hash('123'.encode())
         >>> q = native.point.hash('456'.encode())
-        >>> (p + q).hex()[:64]
+        >>> (p + q).normalize().hex()[:64]
         '1ea48cab238fece46bd0c9fb562c859e318e17a8fb75517a4750d30ca79b911c'
         """
         p = native.neg(self)
@@ -1232,8 +1238,7 @@ class point(bytes): # pylint: disable=W0621,E0102
         True
         >>> p.to_bytes() == p.to_bytes()
         True
-        >>> mclbn256 = False # Hardcode this for now, while both backends are in use.
-        >>> p.to_bytes() == p.normalize().to_bytes() and mclbn256
+        >>> p.to_bytes() == p.normalize().to_bytes() and p.__class__ != native.point
         False
         >>> p.normalize().to_bytes() == p.normalize().to_bytes()
         True
@@ -1266,11 +1271,11 @@ class point(bytes): # pylint: disable=W0621,E0102
         Return an equivalent Base64 UTF-8 string representation of this instance.
 
         >>> p = native.point.from_base64(
-        ...     'Sm/7V+NmKoe3fiNu1Yj32SZ5zC2QPL/8qax+P1el5BGATA5UP+t3hgfiBdSoQObo'
-        ...     'JDZ7GVerFF4u5kEZFvyFCxgWGpm5rSkSiC5FUMN3YzLe5/+lG/od8ly1yPCQZ/Aj'
+        ...     'hQIYpQRHupyyfPFoEm8rfmKV6i6VUP7vmngQWpxS3AEJD29fKVMW39l2oDLB+Ece'
+        ...     '5PqBuRzCyiRb8xYIelEII47///////8Viv//////ObnN/////y7GovX//3/ypCsh'
         ... )
         >>> p.to_base64()[-64:]
-        'JDZ7GVerFF4u5kEZFvyFCxgWGpm5rSkSiC5FUMN3YzLe5/+lG/od8ly1yPCQZ/Aj'
+        '5PqBuRzCyiRb8xYIelEII47///////8Viv//////ObnN/////y7GovX//3/ypCsh'
         """
         return base64.standard_b64encode(self.to_bytes()).decode('utf-8')
 
@@ -1452,11 +1457,11 @@ class scalar(bytes): # pylint: disable=E0102
         >>> isinstance(s * s, native.scalar)
         True
         >>> p = native.point.from_base64(
-        ...     'FIY7waTFbJ/uWtKUVptKJzVWBFl9FRU9Kd95LSuZ/xbk7jh+BRbsMFStYGYVwp4d'
-        ...     'a6b3TNlR3QFsLXzBRyorAY7///////8Viv//////ObnN/////y7GovX//3/ypCsh'
+        ...     'hQIYpQRHupyyfPFoEm8rfmKV6i6VUP7vmngQWpxS3AEJD29fKVMW39l2oDLB+Ece'
+        ...     '5PqBuRzCyiRb8xYIelEII47///////8Viv//////ObnN/////y7GovX//3/ypCsh'
         ... )
-        >>> (s * p).hex()[:64]
-        'c4d574b3652241e88b829032ff8f71b48c29a1b1f55e16632f227949c126bb23'
+        >>> (s * p).normalize().hex()[:64]
+        'eee31d1780ea41771357da19a81eaddf2e7fa560142067b433764cbf98be9002'
         >>> isinstance(s * p, native.point)
         True
 
@@ -1464,7 +1469,7 @@ class scalar(bytes): # pylint: disable=E0102
         pre-empts :obj:`point2.__rmul__`.
 
         >>> p = native.point2.hash('123'.encode())
-        >>> (s * p).hex()[:128] == (
+        >>> (s * p).normalize().hex()[:128] == (
         ...     '451f144e06deecbfe5a1527f2b5cc6f12bbde91c1fdf0d5326ad79ffc53bb106'
         ...     '6d800275af625de83d72d815335832027cc60c34f22e8c5f89f953740a409702'
         ... )
@@ -1508,9 +1513,18 @@ class scalar(bytes): # pylint: disable=E0102
         >>> isinstance(s + s, native.scalar)
         True
 
-        >>> z = native.point.base(s) @ native.point2.base(s)
+        >>> z = native.scalar2.from_base64(
+        ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
+        ...     'IYWN3i6mpQNz8YWPEShwIQmz2veiF6IKPYcmMvjO1kPTJkmyQaZ2Ab7IVb1D8HcQ'
+        ...     'iN9yK8rMj9F08WrX7xsdXmItk7fP7GOFw1PBN5Ok4Bw3HvVM2DaojhsfHhmNVm07'
+        ...     'vlqiJXNDBfFMrJr5yCE1HIazZRkBBdG35xAR0TYu1q2RM6LCxCiY6evD0WBKYI8Q'
+        ...     'hGHTeyRjtPiPDMtCe17qhxTuiPjDPa9+5KP0XKi8qRGHlWq7TSfeG0nl4Fn5BPu0'
+        ...     'dYBHFasloXMG+g4ZbzBSFTpg36BzynjeSe3qrJxUyrPQE4dQwjwLaN55JKadG6AC'
+        ...     'okrFkmIqRcWcHe1xM3lCkqCWAr1Xo2YB01Q4hG/LNw85wPp6FbNNFKtvle5b9bJr'
+        ...     '1d7x5+0HNQki1EXaB9k2Ii21uqnewVLCsrz8Rs3m/SLnAnGvihZOd+WAjOYCCVof'
+        ... )
         >>> (z + z).hex()[700:]
-        '6a0d0188bbe7de4ce8089d19e8d45baf439ef77ded6a259a913ddd23e5cbd6176e06'
+        '4a1f476a7553bd83a5dd5179f98d9acddae4c505e25e95df6734c901198d83ad9019'
         >>> isinstance(z + z, native.scalar2)
         True
         """
@@ -1651,7 +1665,7 @@ class point2(bytes): # pylint: disable=W0621,E0102
         object.
 
         >>> p = native.point2.bytes(hashlib.sha512('123'.encode()).digest())
-        >>> p.hex()[:128] == (
+        >>> p.normalize().hex()[:128] == (
         ...     '4c595542640a69c4a70bda55c27ef96c133cd1f4a5f83b3371e571960c018e19'
         ...     'c54aaec2069f8f10a00f12bcbb3511cdb7356201f5277ec5e47da91405be2809'
         ... )
@@ -1666,7 +1680,7 @@ class point2(bytes): # pylint: disable=W0621,E0102
         """
         Construct an instance by hashing the supplied bytes-like object.
 
-        >>> native.point2.hash('123'.encode()).hex()[:128] == (
+        >>> native.point2.hash('123'.encode()).normalize().hex()[:128] == (
         ...     '30326199f303fce7a77cff6d2fb0b3de8cd409d1d562f3543f7d064cdc58d309'
         ...     '7e88038ad76e85e5df26e4a9486a657b0431c8e7e09b0a1abf90fc874c515207'
         ... )
@@ -1682,7 +1696,7 @@ class point2(bytes): # pylint: disable=W0621,E0102
         Return base second-group point multiplied by the supplied scalar
         if the scalar is valid; otherwise, return ``None``.
 
-        >>> native.point2.base(native.scalar.hash('123'.encode())).hex()[:128] == (
+        >>> native.point2.base(native.scalar.hash('123'.encode())).normalize().hex()[:128] == (
         ...     'e7000fb12d206112c73fe1054e9d77b35c77881eba6598b7e035171d90b13e0c'
         ...     '33c8ad2c92acb446fa958f3001b6c15aaf0f00092534a9d567541f9fadc64e09'
         ... )
@@ -1714,15 +1728,15 @@ class point2(bytes): # pylint: disable=W0621,E0102
         Construct a second-group point from its hexadecimal UTF-8 string representation.
 
         >>> p = native.point2.from_hex(
-        ...     '9781d7e245ccc8dc53df778864f0bf278128eba1614b9adf88e0a3a7f4ac8d09'
-        ...     'baf46f54c19d1619095bfac06138925169628606bd83bc05050f49da501beb05'
-        ...     'bec8487cbb19df94a60bae19eeb29f073d5e94d68bfb3cf8c8f03204ae26f90b'
-        ...     '214ca049febe607fcf00019aaeb704fc52fe00439c5f2d1d5b506f02ccb33005'
-        ...     'd5308fc98c4786d993a3e2e06daf5b51d2ef81a53063faf5da6c1cb57753bd12'
-        ...     '41d01fcd4aea1268d8b36ea3917ee728672b33cefe13fe705b2f863a26679811'
+        ...     'ab4efa2bcdeb825a67b12a10132ae1addca840ed248f83ae7dd987370dd47a05'
+        ...     '31c10b08ada0e24c0327d85b108e826a55bf3dc3286488327fac75e05e293b20'
+        ...     '01cbf919b53884d02b85aab9b0091eeda114fa65ca5d75620da26c4d164aa509'
+        ...     '2a2d55b6f311bfe52d24adf7b4b0b6ce12ed486a37c474d35a2b373be8a3f71c'
+        ...     '8effffffffffff158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b21'
+        ...     '0000000000000000000000000000000000000000000000000000000000000000'
         ... )
-        >>> p.hex()[:64]
-        '9781d7e245ccc8dc53df778864f0bf278128eba1614b9adf88e0a3a7f4ac8d09'
+        >>> p.normalize().hex()[:64]
+        'ab4efa2bcdeb825a67b12a10132ae1addca840ed248f83ae7dd987370dd47a05'
         """
         p = cls.from_bytes(bytes.fromhex(s))
         p.__class__ = cls
@@ -1734,13 +1748,13 @@ class point2(bytes): # pylint: disable=W0621,E0102
         Construct a second-group point from its Base64 UTF-8 string representation.
 
         >>> p = native.point2.from_base64(
-        ...     '1e8RZms9smwYT3/m6wNFXUuZsf/1PrQsFvt1dBpD8x8TtwQKwEcqW444Ac3cMDBu'
-        ...     'cX0/+rq68Mb/FWVBVXkdAT4kRkPKJJu3TlvKj77P8ivMHG1ByJne8ekzkxwfqY4g'
-        ...     'IEOARXRgzA+YtIpSXaCq5f0wXf6k2rdbfCnq/k8fYCB7VCKG2FhKDtwjloplhDP+'
-        ...     'XHEcBJYGNjQ2te8BGQ0WC9zbUt6iYW+mahIKALBa95uh2VeTU/yKskgEqPHbPY4U'
+        ...     'xRuTJv/OWkIPMxRoCQIqNYoSixnWfMxeYwSJnjdJwxlp9E9f6oKefvbfYlJeygmK'
+        ...     'YDQniir3r/EYExFuClZ7H5X00GEqz7TcoqDl5EpwLDAvrTW3GNA2lOpHvc1F/eQc'
+        ...     'obJoTn35OzzK7qd/87Y3pOKNQaNENKO19DMzw9Lt+hiO////////FYr//////zm5'
+        ...     'zf////8uxqL1//9/8qQrIQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
         ... )
         >>> p.to_base64()[-64:]
-        'XHEcBJYGNjQ2te8BGQ0WC9zbUt6iYW+mahIKALBa95uh2VeTU/yKskgEqPHbPY4U'
+        'zf////8uxqL1//9/8qQrIQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
         """
         p = cls.from_bytes(base64.standard_b64decode(s))
         p.__class__ = cls
@@ -1755,12 +1769,12 @@ class point2(bytes): # pylint: disable=W0621,E0102
         is returned.
 
         >>> bs = bytes.fromhex(
-        ...     '9781d7e245ccc8dc53df778864f0bf278128eba1614b9adf88e0a3a7f4ac8d09'
-        ...     'baf46f54c19d1619095bfac06138925169628606bd83bc05050f49da501beb05'
-        ...     'bec8487cbb19df94a60bae19eeb29f073d5e94d68bfb3cf8c8f03204ae26f90b'
-        ...     '214ca049febe607fcf00019aaeb704fc52fe00439c5f2d1d5b506f02ccb33005'
-        ...     'd5308fc98c4786d993a3e2e06daf5b51d2ef81a53063faf5da6c1cb57753bd12'
-        ...     '41d01fcd4aea1268d8b36ea3917ee728672b33cefe13fe705b2f863a26679811'
+        ...     'ab4efa2bcdeb825a67b12a10132ae1addca840ed248f83ae7dd987370dd47a05'
+        ...     '31c10b08ada0e24c0327d85b108e826a55bf3dc3286488327fac75e05e293b20'
+        ...     '01cbf919b53884d02b85aab9b0091eeda114fa65ca5d75620da26c4d164aa509'
+        ...     '2a2d55b6f311bfe52d24adf7b4b0b6ce12ed486a37c474d35a2b373be8a3f71c'
+        ...     '8effffffffffff158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b21'
+        ...     '0000000000000000000000000000000000000000000000000000000000000000'
         ... )
         >>> native.point2.from_bytes(bs).hex() == bs.hex()
         True
@@ -1810,7 +1824,7 @@ class point2(bytes): # pylint: disable=W0621,E0102
 
         >>> p = native.point2.hash('123'.encode())
         >>> q = native.point2.hash('456'.encode())
-        >>> (p + q).hex()[:128] == (
+        >>> (p + q).normalize().hex()[:128] == (
         ...     'cb0fc423c1bac2ac2df47bf5f5548a42b0d0a0da325bc77243d15dc587a7b221'
         ...     '9808a1649991ddf770f0060333aab4d499580b123f109b5cb180f1f8a75a090e'
         ... )
@@ -1827,7 +1841,7 @@ class point2(bytes): # pylint: disable=W0621,E0102
 
         >>> p = native.point2.hash('123'.encode())
         >>> q = native.point2.hash('456'.encode())
-        >>> (p - q).hex()[:128] == (
+        >>> (p - q).normalize().hex()[:128] == (
         ...     'e97a70c4e3a5369ebbb1dcf0cc1135c8c8e04a4ec7cffdf875ac429d66846d0b'
         ...     '191b090909c40a723027b07ac44435a6ade3813d04b3632a17c92c5c98718902'
         ... )
@@ -1842,7 +1856,7 @@ class point2(bytes): # pylint: disable=W0621,E0102
         Return the negation (additive inverse) of this instance.
 
         >>> p = native.point2.hash('123'.encode())
-        >>> (-p).hex()[:128] == (
+        >>> (-p).normalize().hex()[:128] == (
         ...     '30326199f303fce7a77cff6d2fb0b3de8cd409d1d562f3543f7d064cdc58d309'
         ...     '7e88038ad76e85e5df26e4a9486a657b0431c8e7e09b0a1abf90fc874c515207'
         ... )
@@ -1905,8 +1919,7 @@ class point2(bytes): # pylint: disable=W0621,E0102
         True
         >>> q.to_bytes() == q.to_bytes()
         True
-        >>> mclbn256 = False # Hardcode this for now, while both backends are in use.
-        >>> q.to_bytes() == q.normalize().to_bytes() and mclbn256
+        >>> q.to_bytes() == q.normalize().to_bytes() and q.__class__ != native.point2
         False
         >>> q.normalize().to_bytes() == q.normalize().to_bytes()
         True
@@ -1929,7 +1942,7 @@ class point2(bytes): # pylint: disable=W0621,E0102
         Generates hexadecimal representation of this instance.
 
         >>> p = native.point2.hash('123'.encode())
-        >>> p.hex() == (
+        >>> p.normalize().hex() == (
         ...     '30326199f303fce7a77cff6d2fb0b3de8cd409d1d562f3543f7d064cdc58d309'
         ...     '7e88038ad76e85e5df26e4a9486a657b0431c8e7e09b0a1abf90fc874c515207'
         ...     '2c6a88bb448065eb748df632b1d872e02f54b6f56fdb84a7b1cb388fe551fb08'
@@ -1946,13 +1959,13 @@ class point2(bytes): # pylint: disable=W0621,E0102
         Convert to equivalent Base64 UTF-8 string representation.
 
         >>> p = native.point2.from_base64(
-        ...     'jlFzA78Vio9xgpo7qRM1/El9zyBR/NDDLdBDQCBnDRPrUv7i+55gzKmlYJEKy9dl'
-        ...     'L/4jTKF9V/2tQCavplpiGnqBS0cykf2tK1LwTAOqoBJusHKjvdRHgWpZuDZfe5UM'
-        ...     'fEBSjp0KAA+H81FHKAIMHdGYIHF39qvU1TAPjfKYSwATrfEHBKFj6MZrdw5eoWYt'
-        ...     'Jt3zOQjvYuf7Mkyhbo/iEUql7r8s5S4Scfxxu13bTpDr8UsIC5ZsJr3Vx0eB4AQA'
+        ...     'zn07zy59PMhe396h9AQ+FY3LqfzmaRmbVmfwKaQqTxStH2ZPqGwBjv99STlWrenq'
+        ...     'Mkfc3PCxRgM1xVaJGN+WExXhuDn4V40nkdpxtU85VFgE4aj0CMUoD99bqTEqBSYD'
+        ...     '50haF1C7mDxMRxmMXZinYDEMynRY69C1vTQ5IgcCdh+O////////FYr//////zm5'
+        ...     'zf////8uxqL1//9/8qQrIQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
         ... )
         >>> p.to_base64()[-64:]
-        'Jt3zOQjvYuf7Mkyhbo/iEUql7r8s5S4Scfxxu13bTpDr8UsIC5ZsJr3Vx0eB4AQA'
+        'zf////8uxqL1//9/8qQrIQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
         """
         return base64.standard_b64encode(self.to_bytes()).decode('utf-8')
 
@@ -1979,8 +1992,13 @@ class scalar2(bytes): # pylint: disable=function-redefined
         """
         Return an instance derived by hashing the supplied bytes-like object.
 
-        >>> native.scalar2.hash(bytes([123])).hex()[700:]
-        '141886a680e6a24930f9b3a5988a9a83212c94ba3dfcd275e8627ad5f1925ddafd23'
+        >>> s = native.scalar2.hash(bytes([123]))
+        >>> z = s.hex()[700:]
+        >>> z_mcl    = 'd210461ad2293454f3c2e9ad5fedcb671d0f13b30ec467744b9a16c881bb572bb50c'
+        >>> z_native = '141886a680e6a24930f9b3a5988a9a83212c94ba3dfcd275e8627ad5f1925ddafd23'
+        >>> mclbn256 = s.__class__ != native.scalar2 # (Because now we test native and mcl doctests after both are defined.)
+        >>> z == z_mcl if mclbn256 else z == z_native
+        True
         """
         bs = hashlib.sha512(bs).digest()
         p = native.point.hash(bs[:32])
@@ -2095,8 +2113,12 @@ class scalar2(bytes): # pylint: disable=function-redefined
         ...     'okrFkmIqRcWcHe1xM3lCkqCWAr1Xo2YB01Q4hG/LNw85wPp6FbNNFKtvle5b9bJr'
         ...     '1d7x5+0HNQki1EXaB9k2Ii21uqnewVLCsrz8Rs3m/SLnAnGvihZOd+WAjOYCCVof'
         ... )
-        >>> bytes(s.inverse()).hex()[700:]
-        'd71413d63b9d7e08181eaecca0227b6de4dc36a8befe4e38597420345aec519c220b'
+        >>> s_inv = bytes(s.inverse()).hex()[700:]
+        >>> s_inv_mcl    = 'ec02e64a4556213eade4604303b93219233e21fd8e50f536e6421c7f73597f5bc905'
+        >>> s_inv_native = 'd71413d63b9d7e08181eaecca0227b6de4dc36a8befe4e38597420345aec519c220b'
+        >>> mclbn256 = s.__class__ != native.scalar2 # (Because now we test native and mcl doctests after both are defined.)
+        >>> s_inv == s_inv_mcl if mclbn256 else s_inv == s_inv_native
+        True
         >>> ~~s == s
         True
         >>> ~s == s
@@ -2153,10 +2175,18 @@ class scalar2(bytes): # pylint: disable=function-redefined
         """
         Add this scalar with another scalar.
 
-        >>> s = native.scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
-        >>> z = native.point.base(s) @ native.point2.base(s)
+        >>> z = native.scalar2.from_base64(
+        ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
+        ...     'IYWN3i6mpQNz8YWPEShwIQmz2veiF6IKPYcmMvjO1kPTJkmyQaZ2Ab7IVb1D8HcQ'
+        ...     'iN9yK8rMj9F08WrX7xsdXmItk7fP7GOFw1PBN5Ok4Bw3HvVM2DaojhsfHhmNVm07'
+        ...     'vlqiJXNDBfFMrJr5yCE1HIazZRkBBdG35xAR0TYu1q2RM6LCxCiY6evD0WBKYI8Q'
+        ...     'hGHTeyRjtPiPDMtCe17qhxTuiPjDPa9+5KP0XKi8qRGHlWq7TSfeG0nl4Fn5BPu0'
+        ...     'dYBHFasloXMG+g4ZbzBSFTpg36BzynjeSe3qrJxUyrPQE4dQwjwLaN55JKadG6AC'
+        ...     'okrFkmIqRcWcHe1xM3lCkqCWAr1Xo2YB01Q4hG/LNw85wPp6FbNNFKtvle5b9bJr'
+        ...     '1d7x5+0HNQki1EXaB9k2Ii21uqnewVLCsrz8Rs3m/SLnAnGvihZOd+WAjOYCCVof'
+        ... )
         >>> (z + z).hex()[700:]
-        '6a0d0188bbe7de4ce8089d19e8d45baf439ef77ded6a259a913ddd23e5cbd6176e06'
+        '4a1f476a7553bd83a5dd5179f98d9acddae4c505e25e95df6734c901198d83ad9019'
         >>> isinstance(z + z, native.scalar2)
         True
         """
@@ -3031,11 +3061,11 @@ try:
             Convert the hexadecimal UTF-8 string representation of a point to a point instance.
 
             >>> mcl.point.from_hex(
-            ...     '6f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d21e'
-            ...     '597c27f58b7cf87029fcdd03edc697d6c107bd5a7284d08c4116d1b72ea89a1e'
-            ...     'c25ecce13dd95858edfc48e8f2a6c405d83e25f08e1fa9bf4962fa73a0d54817'
+            ...     'b89ec91191915a72d4ec4434be7b438893975880b21720995c2b2458962c4e0a'
+            ...     'd0efebb5c303e4d1f8461b44ec768c587eca8b0abc01d4cb0d878b076154940d'
+            ...     '8effffffffffff158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b21'
             ... ).normalize().hex()[:64]
-            'c13bfe85b48720ab3ef8b2d620f475c54967cbaa3f2e4490a9af57bf1adc560c'
+            'b89ec91191915a72d4ec4434be7b438893975880b21720995c2b2458962c4e0a'
             """
             return cls.from_bytes(bytes.fromhex(s))
 
@@ -3045,8 +3075,8 @@ try:
             Construct an instance from its corresponding Base64 UTF-8 string representation.
 
             >>> mcl.point.from_base64(
-            ...     'Sm/7V+NmKoe3fiNu1Yj32SZ5zC2QPL/8qax+P1el5BGATA5UP+t3hgfiBdSoQObo'
-            ...     'JDZ7GVerFF4u5kEZFvyFCxgWGpm5rSkSiC5FUMN3YzLe5/+lG/od8ly1yPCQZ/Aj'
+            ...     'hQIYpQRHupyyfPFoEm8rfmKV6i6VUP7vmngQWpxS3AEJD29fKVMW39l2oDLB+Ece'
+            ...     '5PqBuRzCyiRb8xYIelEII47///////8Viv//////ObnN/////y7GovX//3/ypCsh'
             ... ).normalize().hex()[:64]
             '850218a50447ba9cb27cf168126f2b7e6295ea2e9550feef9a78105a9c52dc01'
             """
@@ -3061,12 +3091,12 @@ try:
             object.
 
             >>> bs = bytes.fromhex(
-            ...     '6f6257f18b206fcc2e159cb945600be3dadc3e5d24ecc25d850f62cb2d95d21e'
-            ...     '597c27f58b7cf87029fcdd03edc697d6c107bd5a7284d08c4116d1b72ea89a1e'
-            ...     'c25ecce13dd95858edfc48e8f2a6c405d83e25f08e1fa9bf4962fa73a0d54817'
+            ...     'a5db59a0a1450aee0e47e7226d992fded25f2eb5378493ba0eb3225fc7595809'
+            ...     'c76c3dc4ba5a827be515cef65823ab1b113626348415f85aa966bad842457c03'
+            ...     '8effffffffffff158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b21'
             ... )
             >>> mcl.point(bs).normalize().hex()[:64]
-            'c13bfe85b48720ab3ef8b2d620f475c54967cbaa3f2e4490a9af57bf1adc560c'
+            'a5db59a0a1450aee0e47e7226d992fded25f2eb5378493ba0eb3225fc7595809'
             >>> len(mcl.point())
             96
             """
@@ -3128,8 +3158,12 @@ try:
 
             >>> p = mcl.point.hash('123'.encode())
             >>> q = mcl.point2.base(mcl.scalar.from_int(456))
-            >>> (p @ q).hex()[700:]
-            'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
+            >>> z = (p @ q).hex()[700:]
+            >>> z_mcl    = 'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
+            >>> z_native = '731ff16849a86c40280717696a8aa44fbe16f565f087d003413d141de7f5d109fc0c'
+            >>> mclbn256 = p.__class__ != native.point # (Because now we test native and mcl doctests after both are defined.)
+            >>> z == z_mcl if mclbn256 else z == z_native
+            True
 
             The pairing function is bilinear
             >>> p = mcl.point.random()
@@ -3216,7 +3250,7 @@ try:
             True
             >>> p.to_bytes() == p.to_bytes()
             True
-            >>> p.to_bytes() == p.normalize().to_bytes()
+            >>> p.to_bytes() == p.normalize().to_bytes() and p.__class__ != native.point
             False
             >>> p.normalize().to_bytes() == p.normalize().to_bytes()
             True
@@ -3435,8 +3469,8 @@ try:
             >>> isinstance(s * s, mcl.scalar)
             True
             >>> p = mcl.point.from_base64(
-            ...     'Sm/7V+NmKoe3fiNu1Yj32SZ5zC2QPL/8qax+P1el5BGATA5UP+t3hgfiBdSoQObo'
-            ...     'JDZ7GVerFF4u5kEZFvyFCxgWGpm5rSkSiC5FUMN3YzLe5/+lG/od8ly1yPCQZ/Aj'
+            ...     'hQIYpQRHupyyfPFoEm8rfmKV6i6VUP7vmngQWpxS3AEJD29fKVMW39l2oDLB+Ece'
+            ...     '5PqBuRzCyiRb8xYIelEII47///////8Viv//////ObnN/////y7GovX//3/ypCsh'
             ... )
             >>> (s * p).normalize().hex()[:64]
             'eee31d1780ea41771357da19a81eaddf2e7fa560142067b433764cbf98be9002'
@@ -3491,9 +3525,18 @@ try:
             >>> isinstance(s + s, mcl.scalar)
             True
 
-            >>> z = mcl.point.base(s) @ mcl.point2.base(s)
+            >>> z = mcl.scalar2.from_base64(
+            ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
+            ...     'IYWN3i6mpQNz8YWPEShwIQmz2veiF6IKPYcmMvjO1kPTJkmyQaZ2Ab7IVb1D8HcQ'
+            ...     'iN9yK8rMj9F08WrX7xsdXmItk7fP7GOFw1PBN5Ok4Bw3HvVM2DaojhsfHhmNVm07'
+            ...     'vlqiJXNDBfFMrJr5yCE1HIazZRkBBdG35xAR0TYu1q2RM6LCxCiY6evD0WBKYI8Q'
+            ...     'hGHTeyRjtPiPDMtCe17qhxTuiPjDPa9+5KP0XKi8qRGHlWq7TSfeG0nl4Fn5BPu0'
+            ...     'dYBHFasloXMG+g4ZbzBSFTpg36BzynjeSe3qrJxUyrPQE4dQwjwLaN55JKadG6AC'
+            ...     'okrFkmIqRcWcHe1xM3lCkqCWAr1Xo2YB01Q4hG/LNw85wPp6FbNNFKtvle5b9bJr'
+            ...     '1d7x5+0HNQki1EXaB9k2Ii21uqnewVLCsrz8Rs3m/SLnAnGvihZOd+WAjOYCCVof'
+            ... )
             >>> (z + z).hex()[700:]
-            '1c0daff47053fbcec33770d7c21b4c610d3a4c9c625cbec0c84493ea27a58f9aa722'
+            '4a1f476a7553bd83a5dd5179f98d9acddae4c505e25e95df6734c901198d83ad9019'
             >>> isinstance(z + z, mcl.scalar2)
             True
             """
@@ -3559,6 +3602,35 @@ try:
             True
             """
             return mcl.sse(self)
+
+        def __int__(self: scalar) -> bytes:
+            """
+            Compute the numerical representation of this scalar and return an int instance.
+
+            >>> s = mcl.scalar.from_int(123)
+            >>> n = int(s)
+            >>> mcl.scalar.from_int(n) == s
+            True
+            >>> type(n) is int
+            True
+            """
+            d_inv = 0x235f846d22752e25720e909a9e82a1b4ad47e882341d8fca46c142d23fa9bc45
+            n = (int.from_bytes(mcl.sse(self), 'little') * d_inv) % r
+            return n if (n <= r//2) else n-r
+
+        def to_int(self: scalar) -> bytes:
+            """
+            Compute the numerical representation of this scalar and return an int instance.
+
+            >>> s = mcl.scalar.from_int(123)
+            >>> n = s.to_int()
+            >>> mcl.scalar.from_int(n) == s
+            True
+            >>> type(n) is int
+            True
+            """
+            d_inv = 0x235f846d22752e25720e909a9e82a1b4ad47e882341d8fca46c142d23fa9bc45
+            return (int.from_bytes(mcl.sse(self), 'little') * d_inv) % r
 
         def hex(self: scalar) -> str:
             """
@@ -3668,12 +3740,12 @@ try:
             Construct a second-group point from its hexadecimal UTF-8 string representation.
 
             >>> p = mcl.point2.from_hex(
-            ...     '9781d7e245ccc8dc53df778864f0bf278128eba1614b9adf88e0a3a7f4ac8d09'
-            ...     'baf46f54c19d1619095bfac06138925169628606bd83bc05050f49da501beb05'
-            ...     'bec8487cbb19df94a60bae19eeb29f073d5e94d68bfb3cf8c8f03204ae26f90b'
-            ...     '214ca049febe607fcf00019aaeb704fc52fe00439c5f2d1d5b506f02ccb33005'
-            ...     'd5308fc98c4786d993a3e2e06daf5b51d2ef81a53063faf5da6c1cb57753bd12'
-            ...     '41d01fcd4aea1268d8b36ea3917ee728672b33cefe13fe705b2f863a26679811'
+            ...     'ab4efa2bcdeb825a67b12a10132ae1addca840ed248f83ae7dd987370dd47a05'
+            ...     '31c10b08ada0e24c0327d85b108e826a55bf3dc3286488327fac75e05e293b20'
+            ...     '01cbf919b53884d02b85aab9b0091eeda114fa65ca5d75620da26c4d164aa509'
+            ...     '2a2d55b6f311bfe52d24adf7b4b0b6ce12ed486a37c474d35a2b373be8a3f71c'
+            ...     '8effffffffffff158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b21'
+            ...     '0000000000000000000000000000000000000000000000000000000000000000'
             ... )
             >>> p.normalize().hex()[:64]
             'ab4efa2bcdeb825a67b12a10132ae1addca840ed248f83ae7dd987370dd47a05'
@@ -3859,7 +3931,7 @@ try:
             True
             >>> q.to_bytes() == q.to_bytes()
             True
-            >>> q.to_bytes() == q.normalize().to_bytes()
+            >>> q.to_bytes() == q.normalize().to_bytes() and q.__class__ != native.point2
             False
             >>> q.normalize().to_bytes() == q.normalize().to_bytes()
             True
@@ -3932,8 +4004,13 @@ try:
             """
             Return an instance derived by hashing the supplied bytes-like object.
 
-            >>> mcl.scalar2.hash(bytes([123])).hex()[700:]
-            'd210461ad2293454f3c2e9ad5fedcb671d0f13b30ec467744b9a16c881bb572bb50c'
+            >>> s = mcl.scalar2.hash(bytes([123]))
+            >>> z = s.hex()[700:]
+            >>> z_mcl    = 'd210461ad2293454f3c2e9ad5fedcb671d0f13b30ec467744b9a16c881bb572bb50c'
+            >>> z_native = '141886a680e6a24930f9b3a5988a9a83212c94ba3dfcd275e8627ad5f1925ddafd23'
+            >>> mclbn256 = s.__class__ != native.scalar2 # (Because now we test native and mcl doctests after both are defined.)
+            >>> z == z_mcl if mclbn256 else z == z_native
+            True
             """
             bs = hashlib.sha512(bs).digest()
             p = mcl.point.hash(bs[:32])
@@ -4048,8 +4125,12 @@ try:
             ...     'okrFkmIqRcWcHe1xM3lCkqCWAr1Xo2YB01Q4hG/LNw85wPp6FbNNFKtvle5b9bJr'
             ...     '1d7x5+0HNQki1EXaB9k2Ii21uqnewVLCsrz8Rs3m/SLnAnGvihZOd+WAjOYCCVof'
             ... )
-            >>> bytes(s.inverse()).hex()[700:]
-            'ec02e64a4556213eade4604303b93219233e21fd8e50f536e6421c7f73597f5bc905'
+            >>> s_inv = bytes(s.inverse()).hex()[700:]
+            >>> s_inv_mcl    = 'ec02e64a4556213eade4604303b93219233e21fd8e50f536e6421c7f73597f5bc905'
+            >>> s_inv_native = 'd71413d63b9d7e08181eaecca0227b6de4dc36a8befe4e38597420345aec519c220b'
+            >>> mclbn256 = s.__class__ != native.scalar2 # (Because now we test native and mcl doctests after both are defined.)
+            >>> s_inv == s_inv_mcl if mclbn256 else s_inv == s_inv_native
+            True
             >>> ~~s == s
             True
             >>> ~s == s
@@ -4106,10 +4187,18 @@ try:
             """
             Add this scalar with another scalar.
 
-            >>> s = mcl.scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
-            >>> z = mcl.point.base(s) @ mcl.point2.base(s)
+            >>> z = mcl.scalar2.from_base64(
+            ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
+            ...     'IYWN3i6mpQNz8YWPEShwIQmz2veiF6IKPYcmMvjO1kPTJkmyQaZ2Ab7IVb1D8HcQ'
+            ...     'iN9yK8rMj9F08WrX7xsdXmItk7fP7GOFw1PBN5Ok4Bw3HvVM2DaojhsfHhmNVm07'
+            ...     'vlqiJXNDBfFMrJr5yCE1HIazZRkBBdG35xAR0TYu1q2RM6LCxCiY6evD0WBKYI8Q'
+            ...     'hGHTeyRjtPiPDMtCe17qhxTuiPjDPa9+5KP0XKi8qRGHlWq7TSfeG0nl4Fn5BPu0'
+            ...     'dYBHFasloXMG+g4ZbzBSFTpg36BzynjeSe3qrJxUyrPQE4dQwjwLaN55JKadG6AC'
+            ...     'okrFkmIqRcWcHe1xM3lCkqCWAr1Xo2YB01Q4hG/LNw85wPp6FbNNFKtvle5b9bJr'
+            ...     '1d7x5+0HNQki1EXaB9k2Ii21uqnewVLCsrz8Rs3m/SLnAnGvihZOd+WAjOYCCVof'
+            ... )
             >>> (z + z).hex()[700:]
-            '1c0daff47053fbcec33770d7c21b4c610d3a4c9c625cbec0c84493ea27a58f9aa722'
+            '4a1f476a7553bd83a5dd5179f98d9acddae4c505e25e95df6734c901198d83ad9019'
             >>> isinstance(z + z, mcl.scalar2)
             True
             """
