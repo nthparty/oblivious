@@ -2290,7 +2290,7 @@ native.scalar2 = scalar2
 
 try:
     # Attempt to load mclbn256 with its (bundled) shared/dynamic library file.
-    from mclbn256 import Fr, G1, G2, GT
+    from mclbn256 import Fr, G1, G2, GT # pylint: disable=import-error
 
     # Ensure the chosen version of mclbn256 (or its substitute) has the necessary primitives.
     #mclbn256.mclbn256.assert_compatible()

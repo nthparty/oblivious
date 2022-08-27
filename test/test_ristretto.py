@@ -11,7 +11,7 @@ from bitlist import bitlist
 from fountains import fountains
 
 try:
-    from oblivious import ristretto
+    from oblivious import ristretto # pylint: disable=import-error
 except: # pylint: disable=W0702
     # To support generation of reference specifications for unit tests.
     spec = importlib.util.spec_from_file_location("ristretto", "src/oblivious/ristretto.py")
@@ -231,7 +231,8 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
             ):
             sodium_hidden_and_fallback(hidden, fallback)
-            return check_or_generate_operation(self, lambda bs: cls.point.from_bytes(bs).to_bytes(), [POINT_HASH_LEN], bits)
+            return check_or_generate_operation(self,
+                            lambda bs: cls.point.from_bytes(bs).to_bytes(), [POINT_HASH_LEN], bits)
 
         def test_point_hash(
                 self,
@@ -337,7 +338,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 1
                 if (
                     cls.scalar.from_bytes(bs) is not None and
-                    cls.scalar.from_bytes(bs).to_bytes()[:-1] == bs[:-1] 
+                    cls.scalar.from_bytes(bs).to_bytes()[:-1] == bs[:-1]
                 ) else
                 0
             ])

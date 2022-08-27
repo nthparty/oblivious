@@ -11,7 +11,7 @@ from bitlist import bitlist
 from fountains import fountains
 
 try:
-    from oblivious import bn254 #pylint: disable=E0611# allows PyLint to fail the try block's import
+    from oblivious import bn254 #pylint: disable=E0401# allows PyLint to fail the try block's import
 except: # pylint: disable=W0702
     # To support generation of reference specifications for unit tests.
     spec = importlib.util.spec_from_file_location("bn254", "src/oblivious/bn254.py")
@@ -77,9 +77,9 @@ def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R17
         cls = bn254.native if isinstance(o, bytes) else bn254.mcl
         try:
             cls.nrm(o)
-        except:
+        except AttributeError:
             pass
-        return cls.ser(o) if ('point' in str(o.__class__) or 'G' in str(o.__class__))else cls.sse(o)
+        return cls.ser(o) if ('point' in str(o.__class__) or 'G'in str(o.__class__)) else cls.sse(o)
 
     fs = fountains( # Generate the input bit stream.
         sum(lengths),
@@ -131,7 +131,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             for _ in range(TRIALS_PER_TEST):
                 bs = bytes([255] * 32)  # bytes of a number above r, the maximum scalar value
                 s = cls.scl(bs)
-                self.assertTrue(s == None)
+                self.assertTrue(s is None)
 
         def test_scl(
                 self,
