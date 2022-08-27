@@ -22,11 +22,11 @@ except: # pylint: disable=W0702
 # representation sizes of data structures (in their binary form).
 TRIALS_PER_TEST = 16
 POINT_HASH_LEN = 64 # Size of raw hash digest required to construct a point.
-POINT_LEN = 32
+POINT_LEN = 32*3 # Three 32-byte coordinate values (x, y, and z, in projective coordinates).
 SCALAR_LEN = 32 # Really ≤32, but the ``scalar.bytes(bs)`` function will never do modulo reductions.
 
 # To simulate an environment in which mcl is absent, some tests set
-# `bn254.mcl` to `None` or modify `bn254.mcl._mcl`;
+# `bn254.mcl` to `None`;
 # the references below are used for restoration.
 #mcl_lib_restore = bn254.mcl._lib # pylint: disable=W0212
 mcl_restore = bn254.mcl
@@ -71,12 +71,22 @@ def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R17
     * generates a reference output bit vector by applying the function
       to the fountains input bit stream.
     """
+    def get_bytes(o):
+        if type(o) in (bytes, bitlist, bytearray):  # `isinstance` will be wrong for `native` types.
+            return o
+        cls = bn254.native if isinstance(o, bytes) else bn254.mcl
+        try:
+            cls.nrm(o)
+        except:
+            pass
+        return cls.ser(o) if ('point' in str(o.__class__) or 'G' in str(o.__class__))else cls.sse(o)
+
     fs = fountains( # Generate the input bit stream.
         sum(lengths),
         seed=bytes(0), # This is also the default; explicit for clarity.
         limit=min(TRIALS_PER_TEST, (len(bits) * 4) if bits is not None else 256),
         bits=bits[:(TRIALS_PER_TEST // 4)] if bits is not None else None,
-        function=lambda *args, **kwargs: bytes(fun(*args, **kwargs))
+        function=lambda *args, **kwargs: get_bytes(fun(*args, **kwargs))
     )
 
     if bits is None: # There is no output reference bit vector, so test is not possible.
@@ -114,17 +124,18 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             mcl_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
                 s = cls.rnd()
-                self.assertTrue(cls.scl(s))
+                self.assertTrue(cls.scl(bytes(s)))
 
         def test_scl_none(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
-                s = cls.scl()
-                self.assertTrue(cls.scl(s))
+                bs = bytes([255] * 32)  # bytes of a number above r, the maximum scalar value
+                s = cls.scl(bs)
+                self.assertTrue(s == None)
 
         def test_scl(
                 self,
-                bits='0101'
+                bits='ffff'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             # pylint: disable=C3001
@@ -132,6 +143,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
                 # Using `b00011111` would guarantee a valid scalar, as r is between 2^253 and 2^254.
+                bs = bytes(bs)
                 r = 0x2523648240000001ba344d8000000007ff9f800000000010a10000000000000d
                 return bitlist([1 if (
                                           bool(cls.scl(bs)) == (int.from_bytes(bs, 'little') < r)
@@ -140,25 +152,27 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_inv(
                 self,
-                bits='0692'
+                bits='0aea'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 bs = bytearray(bs)
-                bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
+                bs[-1] &= 0b00011111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
+                bs = bytes(bs)
                 s = cls.scl(bs)
                 return cls.inv(s) if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
         def test_smu(
                 self,
-                bits='0800'
+                bits='dfad'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 bs = bytearray(bs)
-                bs[-1] &= 0b00111111 # Improve chance of testing with a valid (*i.e.*, ``s < r``) scalar.
-                bs[SCALAR_LEN - 1] &= 0b00111111
+                bs[-1] &= 0b00011111 # Improve chance of testing with a valid (*i.e.*, ``s < r``) scalar.
+                bs[SCALAR_LEN - 1] &= 0b00011111
+                bs = bytes(bs)
                 (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
                 return cls.smu(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
@@ -166,43 +180,45 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_pnt_none(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
-                self.assertTrue(len(cls.pnt()) == POINT_LEN)
+                self.assertTrue(len(cls.ser(cls.pnt())) == POINT_LEN)
 
         def test_pnt(
                 self,
-                bits='2fb0'
+                bits='bc3d'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             return check_or_generate_operation(self, cls.pnt, [POINT_HASH_LEN], bits)
 
         def test_bas(
                 self,
-                bits='8094'
+                bits='82d6'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
+                bs = bytes(bs)
                 s = cls.scl(bs)
                 return cls.bas(s) if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
         def test_mul(
                 self,
-                bits='6205'
+                bits='b9e1'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
-                bs[SCALAR_LEN - 1] &= 0b00111111
+                bs[SCALAR_LEN - 1] &= 0b00011111
+                bs = bytes(bs)
                 (s, p) = (cls.scl(bs[:SCALAR_LEN]), cls.pnt(bs[SCALAR_LEN:]))
                 return cls.mul(s, p) if (s is not None and p is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_HASH_LEN], bits)
 
         def test_add(
                 self,
-                bits='4889'
+                bits='40d9'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
@@ -212,7 +228,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_sub(
                 self,
-                bits='bb6e'
+                bits='71df'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
@@ -231,26 +247,27 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_point_bytes(
                 self,
-                bits='2fb0'
+                bits='bc3d'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             return check_or_generate_operation(self, cls.point.bytes, [POINT_HASH_LEN], bits)
 
         def test_point_hash(
                 self,
-                bits='ab71'
+                bits='c8ea'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             return check_or_generate_operation(self, cls.point.hash, [POINT_HASH_LEN], bits)
 
         def test_point_base(
                 self,
-                bits='8094'
+                bits='ebed'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 bs = bytearray(bs)
-                bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
+                bs[-1] &= 0b00011111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
+                bs = bytes(bs)
                 s = cls.scalar.bytes(bs)
                 return cls.point.base(s) if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
@@ -270,13 +287,14 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_point_rmul(
                 self,
-                bits='6205'
+                bits='b9e1'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
-                bs[SCALAR_LEN - 1] &= 0b00111111
+                bs[SCALAR_LEN - 1] &= 0b00011111
+                bs = bytes(bs)
                 (s, p) = (cls.scalar.bytes(bs[:SCALAR_LEN]), cls.point.bytes(bs[SCALAR_LEN:]))
                 # pylint: disable=C2801 # Overriding overloaded method for :obj:`scalar`.
                 return p.__rmul__(s) if (s is not None and p is not None) else bytes([0])
@@ -284,13 +302,14 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_point_scalar_mul_op(
                 self,
-                bits='6205'
+                bits='b9e1'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
-                bs[SCALAR_LEN - 1] &= 0b00111111
+                bs[SCALAR_LEN - 1] &= 0b00011111
+                bs = bytes(bs)
                 (s, p) = (cls.scalar.bytes(bs[:SCALAR_LEN]), cls.point.bytes(bs[SCALAR_LEN:]))
                 # Below, ``*`` invokes :obj:`scalar.__mul__`, which delegates to :obj:`mul`
                 # due to the type of the second argument.
@@ -299,7 +318,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_point_add(
                 self,
-                bits='4889'
+                bits='40d9'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
@@ -312,7 +331,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_point_sub(
                 self,
-                bits='bb6e'
+                bits='71df'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
@@ -327,17 +346,19 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             mcl_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
                 s = cls.scalar.random()
-                self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.bytes(s) is not None)
+                self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.bytes(bytes(s)) is not None)
+                self.assertTrue(len(bytes(s)) == SCALAR_LEN and len(s.to_bytes()) == SCALAR_LEN)
 
         def test_scalar_bytes(
                 self,
-                bits='0101'
+                bits='ffff'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             # pylint: disable=C3001
             def fun(bs):
                 bs = bytearray(bs)
                 bs[-1] &= 0b00011111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
+                bs = bytes(bs)
                 return bitlist([1 if cls.scalar.bytes(bs) is not None else 0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
@@ -354,17 +375,18 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 s = cls.scalar()
                 s_b64 = base64.standard_b64encode(bytes(s)).decode('utf-8')
                 self.assertEqual(s.to_base64(), s_b64)
-                self.assertEqual(cls.scalar(cls.scalar.from_base64(s_b64)), s)
+                self.assertEqual(cls.scalar.from_base64(s_b64), s)
 
         def test_scalar(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
                 s = cls.scalar()
-                self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.bytes(s) is not None)
+                self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.bytes(bytes(s)) is not None)
+                self.assertTrue(len(bytes(s)) == SCALAR_LEN and len(s.to_bytes()) == SCALAR_LEN)
 
         def test_scalar_inverse(
                 self,
-                bits='7f78'
+                bits='c4e3'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
@@ -374,7 +396,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_scalar_invert_op(
                 self,
-                bits='7f78'
+                bits='c4e3'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
@@ -384,7 +406,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_scalar_mul(
                 self,
-                bits='9788'
+                bits='93d3'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
@@ -476,6 +498,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             for bs in fountains(SCALAR_LEN, limit=TRIALS_PER_TEST):
                 bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
+                bs = bytes(bs)
                 s = cls.scl(bs)
                 if s is not None:
                     self.assertEqual(cls.inv(cls.inv(s)), s)
@@ -486,6 +509,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bs = bytearray(bs)
                 bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
                 bs[SCALAR_LEN - 1] &= 0b00111111
+                bs = bytes(bs)
                 (s, p) = (cls.scl(bs[:SCALAR_LEN]), cls.pnt(bs[SCALAR_LEN:]))
                 if s is not None:
                     self.assertEqual(cls.mul(cls.inv(s), cls.mul(s, p)), p)
@@ -496,6 +520,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bs = bytearray(bs)
                 bs[SCALAR_LEN - 1] &= 0b00111111 # Improve chance of testing with a valid scalar.
                 bs[SCALAR_LEN + SCALAR_LEN - 1] &= 0b00111111
+                bs = bytes(bs)
                 (s0, s1, p0) = (
                     cls.scl(bs[:SCALAR_LEN]),
                     cls.scl(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
@@ -525,6 +550,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bs = bytearray(bs)
                 bs[SCALAR_LEN - 1] &= 0b00111111 # Improve chance of testing with a valid scalar.
                 bs[SCALAR_LEN + SCALAR_LEN - 1] &= 0b00111111
+                bs = bytes(bs)
                 (s0, s1, p0) = (
                     cls.scl(bs[:SCALAR_LEN]),
                     cls.scl(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
@@ -541,6 +567,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             for bs in fountains(SCALAR_LEN + (2 * POINT_HASH_LEN), limit=TRIALS_PER_TEST):
                 bs = bytearray(bs)
                 bs[SCALAR_LEN - 1] &= 0b00111111  # Improve chance of testing with a valid scalar.
+                bs = bytes(bs)
                 (s0, p0, p1) = (
                     cls.scl(bs[:SCALAR_LEN]),
                     cls.pnt(bs[SCALAR_LEN: SCALAR_LEN + POINT_HASH_LEN]),
