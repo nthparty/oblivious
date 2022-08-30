@@ -19,7 +19,7 @@ jobs:
           architecture: x64
       - name: Install optional rbcl package and associated dependencies.
         run: |
-          pip install -U .[rbcl]
+          pip install -U .[rbcl,mcl]
         if: matrix.rbcl == 'install'
       - name: Lint and test module.
         run: |
