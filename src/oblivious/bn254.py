@@ -33,12 +33,10 @@ import secrets
 from bn254.ecp import generator as get_base
 from bn254.ecp2 import generator as get_base2
 from bn254.pair import e
-from bn254 import big as bn, Fp12 as Fp12_
+from bn254 import big as bn, Fp12 as Fp12_, Fp as _Fp, Fp2 as _Fp2
 from bn254.ecp import ECp as ECp_
 from bn254.ecp2 import ECp2 as ECp2_
 from bn254.curve import r#, p as p_mod
-
-# pylint: disable=too-many-lines
 
 class _ECp(ECp_): # pylint: disable=invalid-name
     """Internal class."""
@@ -66,7 +64,7 @@ class _ECp(ECp_): # pylint: disable=invalid-name
         )
 
     @classmethod
-    def deserialize_compressed(cls, bs) -> bytes:
+    def deserialize_compressed(cls, bs) -> _ECp:
         return _ECp(
             (1 - 2 * (bs[31] >> 7)) *
             cls.mapfrom(bs[:31] + bytes([bs[31] & 0b01111111]))
@@ -213,20 +211,13 @@ class _ECp2(ECp2_): # pylint: disable=invalid-name
         z2 = z2-(z2&1)+1  # 1 if z2==0 else z2
 
         # Compute affine coordinates
-        inv_z1 = bn.invmodp(z1, p_mod)
-        x1 = (x1 * inv_z1) % p_mod
-        y1 = (y1 * inv_z1) % p_mod
-        inv_z2 = bn.invmodp(z2, p_mod)
-        x2 = (x2 * inv_z2) % p_mod
-        y2 = (y2 * inv_z2) % p_mod
+        inv_z1, inv_z2 = bn.invmodp(z1, p_mod), bn.invmodp(z2, p_mod)
+        x1, x2 = (x1 * inv_z1) % p_mod, (x2 * inv_z2) % p_mod
+        y1, y2 = (y1 * inv_z1) % p_mod, (y2 * inv_z2) % p_mod
 
         q = cls()
         # pylint: disable=invalid-name
-        Fp = q.x.a.__class__ # Could also import from the bn254 package or copy xy's from two ECp's.
-        # q.x.a .x, q.y.a .x = Fp(x1), Fp(y1)
-        # q.x.b .x, q.y.b .x = Fp(x2), Fp(y2)
-        Fp2 = q.get()[0].__class__
-        assert q.set(Fp2(Fp(x1), Fp(y1)), Fp2(Fp(x2), Fp(y2))) \
+        assert q.set(_Fp2(_Fp(x1), _Fp(y1)), _Fp2(_Fp(x2), _Fp(y2))) \
                or (x1 == 0 and y1 == 0 and x2 == 0 and y2 == 0)
         return q
 
@@ -243,8 +234,6 @@ class _ECp2(ECp2_): # pylint: disable=invalid-name
     @classmethod
     def mapfrom(cls, h) -> _ECp2:
         return cls((int.from_bytes(h, 'little') % r) * get_base2())
-        #raise NotImplementedError("no native support for direct mapping into point2")
-
 
 class _Fp12(Fp12_): # pylint: disable=invalid-name
     """Internal class."""
@@ -286,7 +275,6 @@ class _Fp12(Fp12_): # pylint: disable=invalid-name
         d_inv = 0x1a7344bac91f117ea513ec0ed5682406b6c15140174d61b28b762ae9cf6d3b46
         decode = lambda ns: (int.from_bytes(ns, 'little') * d_inv) % p_mod
         s = _Fp12()
-        # s.set(Fp2(Fp(),),)
         s.a.a.a.x, s.a.a.b.x = decode(bs[32*0:(32*0)+32]), decode(bs[32*1:(32*1)+32])
         s.a.b.a.x, s.a.b.b.x = decode(bs[32*2:(32*2)+32]), decode(bs[32*3:(32*3)+32])
         s.b.a.a.x, s.b.a.b.x = decode(bs[32*4:(32*4)+32]), decode(bs[32*5:(32*5)+32])
@@ -448,7 +436,6 @@ class native:
         """
         return bytes.__new__(native.scalar2,
                              _Fp12(_Fp12.deserialize(s) + _Fp12.deserialize(t)).serialize())
-        #return native.scalar2.from_int((int(s) + int(t)) % r)
 
     @staticmethod
     def sne(s: scalar) -> scalar:
@@ -496,12 +483,9 @@ class native:
         >>> bytes(native.bas(native.scalar.hash('123'.encode()))).hex()[:64]
         '2d66076815cda25556bab4a930244ac284412267e9345aceb98d71530308401a'
         """
-        # Faster: _ECp.deserialize_compressed(bytes.fromhex(
-        #   '12000000000000a7130000000000216108000000804d34ba01000040826423a5')).serialize()
-        # Or: 8500000000000091890000000000e7a73a000000801e6e170c0000c08fbff7038effffffffffff
-        #     158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b218effffffffffff158affffffffff
-        #     39b9cdffffffff2ec6a2f5ffff7ff2a42b21
-        return bytes.__new__(native.point, _ECp(int(s) * get_base()).serialize())
+        # return bytes.__new__(native.point, _ECp(int(s) * get_base()).serialize())
+        return s * native.point.from_base64('hQAAAAAAAJGJAAAAAADnpzoAAACAHm4XDAAAwI+/9wO'
+            'O////////FYr//////zm5zf////8uxqL1//9/8qQrIY7///////8Viv//////ObnN/////y7GovX//3/ypCsh')
 
     @staticmethod
     def bas2(s: scalar) -> point2:  # G2:
@@ -2765,7 +2749,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             """
             Construct an instance from its hexadecimal UTF-8 string representation.
 
-            >>> s = scalar2.from_hex(
+            >>> s_hex = (
             ...     '18d0e065798ffa4ecca0a7cc6e2b8d6d3269f7eb413525e59b731332b02ea805'
             ...     '4b90c89ce93e4452557f53aae5f8f13221858dde2ea6a50373f1858f11287021'
             ...     '09b3daf7a217a20a3d872632f8ced643d32649b241a67601bec855bd43f07710'
@@ -2779,20 +2763,8 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             ...     '39c0fa7a15b34d14ab6f95ee5bf5b26bd5def1e7ed07350922d445da07d93622'
             ...     '2db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
             ... )
-            >>> s.hex() == (
-            ...     '18d0e065798ffa4ecca0a7cc6e2b8d6d3269f7eb413525e59b731332b02ea805'
-            ...     '4b90c89ce93e4452557f53aae5f8f13221858dde2ea6a50373f1858f11287021'
-            ...     '09b3daf7a217a20a3d872632f8ced643d32649b241a67601bec855bd43f07710'
-            ...     '88df722bcacc8fd174f16ad7ef1b1d5e622d93b7cfec6385c353c13793a4e01c'
-            ...     '371ef54cd836a88e1b1f1e198d566d3bbe5aa225734305f14cac9af9c821351c'
-            ...     '86b365190105d1b7e71011d1362ed6ad9133a2c2c42898e9ebc3d1604a608f10'
-            ...     '8461d37b2463b4f88f0ccb427b5eea8714ee88f8c33daf7ee4a3f45ca8bca911'
-            ...     '87956abb4d27de1b49e5e059f904fbb475804715ab25a17306fa0e196f305215'
-            ...     '3a60dfa073ca78de49edeaac9c54cab3d0138750c23c0b68de7924a69d1ba002'
-            ...     'a24ac592622a45c59c1ded7133794292a09602bd57a36601d35438846fcb370f'
-            ...     '39c0fa7a15b34d14ab6f95ee5bf5b26bd5def1e7ed07350922d445da07d93622'
-            ...     '2db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
-            ... )
+            >>> s = scalar2.from_hex(s_hex)
+            >>> s.hex() == s_hex
             True
             """
             return cls.from_bytes(bytes.fromhex(s))
