@@ -36,4 +36,4 @@ jobs:
       - name: Test auto-generation of documentation.
         run: |
           pip install -U .[docs]
-          cd docs && sphinx-apidoc -f -E --templatedir=_templates -o _source .. && make html && cd ..
+          cd docs && sphinx-apidoc -f -E --templatedir=_templates -o _source ../src && make html && cd ..
