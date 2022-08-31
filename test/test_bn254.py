@@ -606,7 +606,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
     Test_algebra_native_no_mcl
 ) = define_classes(bn254.native, hidden=True)
 
-if bn254.mclbn256 is not None:
+if bn254.mcl is not None and bn254.mclbn256 is True:
     (
         Test_primitives_mcl_mclbn256_no_mcl,
         Test_classes_mcl_mclbn256_no_mcl,
@@ -617,8 +617,9 @@ if bn254.mclbn256 is not None:
 (Test_primitives_native, Test_classes_native, Test_types_native, Test_algebra_native) = \
     define_classes(bn254.native)
 
-(Test_primitives_mcl, Test_classes_mcl, Test_types_mcl, Test_algebra_mcl) = \
-    define_classes(bn254.mcl)
+if bn254.mcl is not None:
+    (Test_primitives_mcl, Test_classes_mcl, Test_types_mcl, Test_algebra_mcl) = \
+        define_classes(bn254.mcl)
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.
