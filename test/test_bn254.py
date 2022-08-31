@@ -76,7 +76,7 @@ def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R17
             return o
         cls = bn254.native if isinstance(o, bytes) else bn254.mcl
         try:
-            cls.nrm(o)
+            cls.can(o)
         except AttributeError:
             pass
         return cls.ser(o) if ('point' in str(o.__class__) or 'G'in str(o.__class__)) else cls.sse(o)

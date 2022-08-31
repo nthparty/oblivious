@@ -499,6 +499,30 @@ class native:
         return bytes.__new__(native.point2, _ECp2(int(s) * get_base2()).serialize())
 
     @staticmethod
+    def can(p: Union[point, point2]) -> Union[point, point2]:
+        """
+        Normalize the representation of a point into its canonical form (in-place).
+
+        >>> a = native.point.hash('123'.encode())
+        >>> p = native.add(a, a)
+        >>> p_can = native.can(native.add(a, a))
+
+        We may have ``ser(p_can) != ser(p)`` here, depending on the backend
+        implementation.  Either normalization matters, or MCl is not the backend.
+
+        >>> mclbn256 = p.__class__ != native.point # Use this for now while both backends are in use
+        >>> (native.ser(p_can) != native.ser(p)) or not mclbn256
+        True
+
+        Normalization is idempotent.
+
+        >>> native.can(p) == native.can(p_can)
+        True
+        """
+        # The point's coordinates are already in normal affine form.
+        return p
+
+    @staticmethod
     def mul2(s: scalar, p: point2) -> point2:
         """
         Multiply a second-group point by a scalar.
@@ -674,28 +698,6 @@ class native:
         """
         return bytes.__new__(native.point,
                              _ECp.serialize(_ECp.deserialize(p).add(-1 * _ECp.deserialize(q))))
-
-    @staticmethod
-    def nrm(p: Union[point, point2]) -> None:
-        """
-        Normalize a point (in place).
-
-        >>> a = native.point.hash('123'.encode())
-        >>> p = native.add(a, a)
-        >>> p_nrm = native.add(a, a); native.nrm(p_nrm)
-
-        We may have ``ser(p_nrm) != ser(p)`` here, depending on the backend
-        implementation.  Either normalization matters, or MCl is not the backend.
-        >>> mclbn256 = p.__class__ != native.point # Use this for now while both backends are in use
-        >>> (native.ser(p_nrm) != native.ser(p)) or not mclbn256
-        True
-
-        Normalization is idempotent.
-        >>> native.nrm(p); native.nrm(p_nrm)
-        >>> (          p ==           p_nrm )
-        True
-        """
-        # The point's coordinates are already in normal affine form.
 
     @staticmethod
     def ser(p: Union[point, point2]) -> bytes:
@@ -920,6 +922,7 @@ ssb = native.ssb
 sne = native.sne
 pnt = native.pnt
 bas = native.bas
+can = native.can
 mul = native.mul
 add = native.add
 sub = native.sub
@@ -1079,8 +1082,7 @@ try:
             ``r = 16798108731015832284940804142231733909759579603404752749028378864165570215949``
             in the prime field *F*\_*r*.
 
-            >>> s = mcl.scl()
-            >>> p = mcl.pnt()
+            >>> (s, p) = (mcl.scl(), mcl.pnt())
             >>> mcl.mul(mcl.inv(s), mcl.mul(s, p)) == p
             True
             """
@@ -1091,8 +1093,7 @@ try:
             """
             Return scalar multiplied by another scalar.
 
-            >>> s = mcl.scl()
-            >>> t = mcl.scl()
+            >>> (s, t) = (mcl.scl(), mcl.scl())
             >>> mcl.smu(s, t) == mcl.smu(t, s)
             True
             """
@@ -1103,8 +1104,7 @@ try:
             """
             Return scalar added to another scalar.
 
-            >>> s = mcl.scl()
-            >>> t = mcl.scl()
+            >>> (s, t) = (mcl.scl(), mcl.scl())
             >>> mcl.sad(s, t) == mcl.sad(t, s)
             True
             """
@@ -1115,8 +1115,7 @@ try:
             """
             Return the additive inverse of a scalar.
 
-            >>> s = mcl.scl()
-            >>> t = mcl.scl()
+            >>> (s, t) = (mcl.scl(), mcl.scl())
             >>> mcl.sne(mcl.sne(s)) == s
             True
             """
@@ -1127,8 +1126,7 @@ try:
             """
             Return the result of one scalar subtracted from another scalar.
 
-            >>> s = mcl.scl()
-            >>> t = mcl.scl()
+            >>> (s, t) = (mcl.scl(), mcl.scl())
             >>> mcl.ssb(s, t) == mcl.sad(s, mcl.sne(t))
             True
             >>> mcl.ssb(s, t) == mcl.sne(mcl.ssb(t, s))
@@ -1161,6 +1159,29 @@ try:
             '2d66076815cda25556bab4a930244ac284412267e9345aceb98d71530308401a'
             """
             return G1.base_point() * s
+
+        @staticmethod
+        def can(p: Union[G1, G2]) -> Union[G1, G2]:
+            """
+            Normalize the representation of a point into its canonical form (in-place).
+
+            >>> a = mcl.point.hash('123'.encode())
+            >>> p = mcl.add(a, a)
+            >>> p_can = mcl.can(mcl.add(a, a))
+
+            We may have ``ser(p_can) != ser(p)`` here, depending on the backend
+            implementation.  Either normalization matters, or MCl is not the backend.
+
+            >>> (mcl.ser(p_can) != mcl.ser(p)) or not mclbn256
+            True
+
+            Normalization is idempotent.
+
+            >>> mcl.can(p) == mcl.can(p_can)
+            True
+            """
+            p.normalize_in_place()  # Sets ``(x, y, z)`` to ``(x/z, y/z, 1)`` which is unique.
+            return p
 
         @staticmethod
         def mul(s: Fr, p: G1) -> G1:
@@ -1291,27 +1312,6 @@ try:
                 return G1.__matmul__(G1.__new__(G1, p), G2.__new__(G2, q))
 
             return G2.__matmul__(G2.__new__(G2, p), G1.__new__(G1, q))
-
-        @staticmethod
-        def nrm(p: Union[G1, G2]) -> None:
-            """
-            Normalize a point (in place).
-
-            >>> a = mcl.point.hash('123'.encode())
-            >>> p = mcl.add(a, a)
-            >>> p_nrm = mcl.add(a, a); mcl.nrm(p_nrm)
-
-            We may have ``ser(p_nrm) != ser(p)`` here, depending on the backend
-            implementation.  Either normalization matters, or MCl is not the backend.
-            >>> (mcl.ser(p_nrm) != mcl.ser(p)) or not mclbn256
-            True
-
-            Normalization is idempotent.
-            >>> mcl.nrm(p); mcl.nrm(p_nrm)
-            >>> (       p ==        p_nrm )
-            True
-            """
-            p.normalize_in_place()  # Sets ``(x, y, z)`` to ``(x/z, y/z, 1)`` which is unique.
 
         @staticmethod
         def ser(p: Union[G1, G2]) -> bytes:
@@ -1524,7 +1524,7 @@ try:
 
             >>> p = mcl.pnt2(hashlib.sha512('123'.encode()).digest())
             >>> p.__class__ = point2
-            >>> mcl.point2.to_bytes(p.normalize().normalize()).hex()[:128] == (
+            >>> mcl.point2.to_bytes(p.canonical().canonical()).hex()[:128] == (
             ...     '4c595542640a69c4a70bda55c27ef96c133cd1f4a5f83b3371e571960c018e19'
             ...     'c54aaec2069f8f10a00f12bcbb3511cdb7356201f5277ec5e47da91405be2809'
             ... )
@@ -1640,6 +1640,7 @@ try:
     sne = mcl.sne
     pnt = mcl.pnt
     bas = mcl.bas
+    can = mcl.can
     mul = mcl.mul
     add = mcl.add
     sub = mcl.sub
@@ -1735,7 +1736,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             Return base point multiplied by supplied scalar
             if the scalar is valid.
 
-            >>> point.base(scalar.hash('123'.encode())).normalize().hex()[:64]
+            >>> point.base(scalar.hash('123'.encode())).canonical().hex()[:64]
             '2d66076815cda25556bab4a930244ac284412267e9345aceb98d71530308401a'
             """
             p = cls._implementation.bas(s)
@@ -1767,7 +1768,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             ...     'b89ec91191915a72d4ec4434be7b438893975880b21720995c2b2458962c4e0a'
             ...     'd0efebb5c303e4d1f8461b44ec768c587eca8b0abc01d4cb0d878b076154940d'
             ...     '8effffffffffff158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b21'
-            ... ).normalize().hex()[:64]
+            ... ).canonical().hex()[:64]
             'b89ec91191915a72d4ec4434be7b438893975880b21720995c2b2458962c4e0a'
             """
             return cls.from_bytes(bytes.fromhex(s))
@@ -1780,7 +1781,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> point.from_base64(
             ...     'hQIYpQRHupyyfPFoEm8rfmKV6i6VUP7vmngQWpxS3AEJD29fKVMW39l2oDLB+Ece'
             ...     '5PqBuRzCyiRb8xYIelEII47///////8Viv//////ObnN/////y7GovX//3/ypCsh'
-            ... ).normalize().hex()[:64]
+            ... ).canonical().hex()[:64]
             '850218a50447ba9cb27cf168126f2b7e6295ea2e9550feef9a78105a9c52dc01'
             """
             return cls.from_bytes(base64.standard_b64decode(s))
@@ -1798,12 +1799,44 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             ...     'c76c3dc4ba5a827be515cef65823ab1b113626348415f85aa966bad842457c03'
             ...     '8effffffffffff158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b21'
             ... )
-            >>> point(bs).normalize().hex()[:64]
+            >>> point(bs).canonical().hex()[:64]
             'a5db59a0a1450aee0e47e7226d992fded25f2eb5378493ba0eb3225fc7595809'
             >>> len(point())
             96
             """
             return cls.from_bytes(bs) if bs is not None else cls.random()
+
+        def canonical(self: point) -> point:
+            """
+            Normalize the representation of this point into its canonical form and return
+            the same instance (but mutated). This takes the z-coordinate, which may not
+            always be equal to 1, and multiplies all coordinates x, y, and z by z's
+            multiplicative inverse. The resulting canonical point is unique (_i.e._,
+            two points are equal if and only if their canonical forms are equal) and in
+            the form (x/z, y/z, 1).
+
+            >>> a = point.hash('123'.encode())
+            >>> p = a + a + a + a
+            >>> p == p
+            True
+            >>> p.to_bytes() == p.to_bytes()
+            True
+            >>> p.to_bytes() == p.canonical().to_bytes() and p.__class__ != native.point
+            False
+            >>> p.canonical().to_bytes() == p.canonical().to_bytes()
+            True
+            >>> p.canonical().to_bytes() == p.canonical().canonical().to_bytes()
+            True
+            >>> point.from_bytes(p.to_bytes()) == p
+            True
+            >>> point.from_bytes(p.canonical().to_bytes()) == p
+            True
+            >>> point.from_bytes(p.to_bytes()) == point.from_bytes(p.canonical().to_bytes())
+            True
+            >>> type(p.canonical()) is point
+            True
+            """
+            return self._implementation.can(self)
 
         def __mul__(self: point, other):
             """
@@ -1822,7 +1855,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
             >>> p = point.hash('123'.encode())
             >>> s = scalar.hash('456'.encode())
-            >>> (s * p).normalize().hex()[:64]
+            >>> (s * p).canonical().hex()[:64]
             '6df8d29225a699b5ff3cc4b7b0a9c5003c0e1a93037cb2488b278495abfa2902'
             """
             p = self._implementation.mul(other, self)
@@ -1835,7 +1868,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> (p + q).normalize().hex()[:64]
+            >>> (p + q).canonical().hex()[:64]
             '1ea48cab238fece46bd0c9fb562c859e318e17a8fb75517a4750d30ca79b911c'
             """
             p = self._implementation.add(self, other)
@@ -1848,7 +1881,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> (p - q).normalize().hex()[:64]
+            >>> (p - q).canonical().hex()[:64]
             'a43a5ce1931b1300b62e5d7e1b0c691203bfd85fafd9585dc5e47a7e2acfea22'
             """
             p = self._implementation.sub(self, other)
@@ -1901,7 +1934,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> (p + q).normalize().hex()[:64]
+            >>> (p + q).canonical().hex()[:64]
             '1ea48cab238fece46bd0c9fb562c859e318e17a8fb75517a4750d30ca79b911c'
             """
             p = self._implementation.neg(self)
@@ -1938,38 +1971,6 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             """
             return self._implementation.ser(self)
-
-        def normalize(self: point) -> point:
-            """
-            Normalize this point and return it mutated.  This takes the z-coordinate,
-            which may not always be equal to 1, and multiplies all coordinates x, y, and z
-            by z's multiplicative inverse.  The resulting normalized point is unique
-            (_i.e._, two points are equal if and only if their normalized forms are equal)
-            and in the form (x/z, y/z, 1).
-
-            >>> a = point.hash('123'.encode())
-            >>> p = a + a + a + a
-            >>> p == p
-            True
-            >>> p.to_bytes() == p.to_bytes()
-            True
-            >>> p.to_bytes() == p.normalize().to_bytes() and p.__class__ != native.point
-            False
-            >>> p.normalize().to_bytes() == p.normalize().to_bytes()
-            True
-            >>> p.normalize().to_bytes() == p.normalize().normalize().to_bytes()
-            True
-            >>> point.from_bytes(p.to_bytes()) == p
-            True
-            >>> point.from_bytes(p.normalize().to_bytes()) == p
-            True
-            >>> point.from_bytes(p.to_bytes()) == point.from_bytes(p.normalize().to_bytes())
-            True
-            >>> type(p.normalize()) is point
-            True
-            """
-            self._implementation.nrm(self)
-            return self
 
         def hex(self: point) -> str:
             """
@@ -2177,7 +2178,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             ...     'hQIYpQRHupyyfPFoEm8rfmKV6i6VUP7vmngQWpxS3AEJD29fKVMW39l2oDLB+Ece'
             ...     '5PqBuRzCyiRb8xYIelEII47///////8Viv//////ObnN/////y7GovX//3/ypCsh'
             ... )
-            >>> (s * p).normalize().hex()[:64]
+            >>> (s * p).canonical().hex()[:64]
             'eee31d1780ea41771357da19a81eaddf2e7fa560142067b433764cbf98be9002'
             >>> isinstance(s * p, point)
             True
@@ -2186,7 +2187,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             pre-empts :obj:`point2.__rmul__`.
 
             >>> p = point2.hash('123'.encode())
-            >>> (s * p).normalize().hex()[:128] == (
+            >>> (s * p).canonical().hex()[:128] == (
             ...     '451f144e06deecbfe5a1527f2b5cc6f12bbde91c1fdf0d5326ad79ffc53bb106'
             ...     '6d800275af625de83d72d815335832027cc60c34f22e8c5f89f953740a409702'
             ... )
@@ -2384,7 +2385,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             object.
 
             >>> p = point2.bytes(hashlib.sha512('123'.encode()).digest())
-            >>> p.normalize().hex()[:128] == (
+            >>> p.canonical().hex()[:128] == (
             ...     '4c595542640a69c4a70bda55c27ef96c133cd1f4a5f83b3371e571960c018e19'
             ...     'c54aaec2069f8f10a00f12bcbb3511cdb7356201f5277ec5e47da91405be2809'
             ... )
@@ -2399,7 +2400,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             """
             Construct an instance by hashing the supplied bytes-like object.
 
-            >>> point2.hash('123'.encode()).normalize().hex()[:128] == (
+            >>> point2.hash('123'.encode()).canonical().hex()[:128] == (
             ...     '30326199f303fce7a77cff6d2fb0b3de8cd409d1d562f3543f7d064cdc58d309'
             ...     '7e88038ad76e85e5df26e4a9486a657b0431c8e7e09b0a1abf90fc874c515207'
             ... )
@@ -2415,7 +2416,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             Return base second-group point multiplied by the supplied scalar
             if the scalar is valid; otherwise, return ``None``.
 
-            >>> point2.base(scalar.hash('123'.encode())).normalize().hex()[:128] == (
+            >>> point2.base(scalar.hash('123'.encode())).canonical().hex()[:128] == (
             ...     'e7000fb12d206112c73fe1054e9d77b35c77881eba6598b7e035171d90b13e0c'
             ...     '33c8ad2c92acb446fa958f3001b6c15aaf0f00092534a9d567541f9fadc64e09'
             ... )
@@ -2454,7 +2455,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             ...     '8effffffffffff158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b21'
             ...     '0000000000000000000000000000000000000000000000000000000000000000'
             ... )
-            >>> p.normalize().hex()[:64]
+            >>> p.canonical().hex()[:64]
             'ab4efa2bcdeb825a67b12a10132ae1addca840ed248f83ae7dd987370dd47a05'
             """
             p = cls.from_bytes(bytes.fromhex(s))
@@ -2504,6 +2505,38 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             p.__class__ = cls # = point2
             return p
 
+        def canonical(self: point2) -> point2:
+            """
+            Normalize the representation of this point into its canonical form and return
+            the same instance (but mutated). This takes the z-coordinate, which may not
+            always be equal to 1, and multiplies all coordinates x, y, and z by z's
+            multiplicative inverse. The resulting canonical point is unique (_i.e._,
+            two second-level points are equal if and only if their canonical forms are
+            equal) and in the form (x1/z1, y1/z1, x2/z2, y2/z2, 1, 0).
+
+            >>> a = point2.hash('123'.encode())
+            >>> q = a + a + a + a
+            >>> q == q
+            True
+            >>> q.to_bytes() == q.to_bytes()
+            True
+            >>> q.to_bytes() == q.canonical().to_bytes() and q.__class__ != native.point2
+            False
+            >>> q.canonical().to_bytes() == q.canonical().to_bytes()
+            True
+            >>> q.canonical().to_bytes() == q.canonical().canonical().to_bytes()
+            True
+            >>> point2.from_bytes(q.to_bytes()) == q
+            True
+            >>> point2.from_bytes(q.canonical().to_bytes()) == q
+            True
+            >>> point2.from_bytes(q.to_bytes()) == point2.from_bytes(bytes(q.canonical()))
+            True
+            >>> type(q.canonical()) is point2
+            True
+            """
+            return self._implementation.can(self)
+
         def __mul__(self: point, other):
             """
             Use of this method is not permitted. A point cannot be a left-hand argument.
@@ -2543,7 +2576,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
             >>> p = point2.hash('123'.encode())
             >>> q = point2.hash('456'.encode())
-            >>> (p + q).normalize().hex()[:128] == (
+            >>> (p + q).canonical().hex()[:128] == (
             ...     'cb0fc423c1bac2ac2df47bf5f5548a42b0d0a0da325bc77243d15dc587a7b221'
             ...     '9808a1649991ddf770f0060333aab4d499580b123f109b5cb180f1f8a75a090e'
             ... )
@@ -2560,7 +2593,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
             >>> p = point2.hash('123'.encode())
             >>> q = point2.hash('456'.encode())
-            >>> (p - q).normalize().hex()[:128] == (
+            >>> (p - q).canonical().hex()[:128] == (
             ...     'e97a70c4e3a5369ebbb1dcf0cc1135c8c8e04a4ec7cffdf875ac429d66846d0b'
             ...     '191b090909c40a723027b07ac44435a6ade3813d04b3632a17c92c5c98718902'
             ... )
@@ -2575,7 +2608,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             Return the negation (additive inverse) of this instance.
 
             >>> p = point2.hash('123'.encode())
-            >>> (-p).normalize().hex()[:128] == (
+            >>> (-p).canonical().hex()[:128] == (
             ...     '30326199f303fce7a77cff6d2fb0b3de8cd409d1d562f3543f7d064cdc58d309'
             ...     '7e88038ad76e85e5df26e4a9486a657b0431c8e7e09b0a1abf90fc874c515207'
             ... )
@@ -2624,44 +2657,12 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             """
             return self._implementation.ser(self)
 
-        def normalize(self: point2) -> point2:
-            """
-            Normalize this second-group point and return it mutated.  This takes the z-coordinate,
-            which may not always be equal to 1, and multiplies all coordinates x, y, and z
-            by z's multiplicative inverse.  The resulting normalized point is unique (_i.e._, two
-            second-group points are equal if and only if their normalized forms are equal) and in
-            the form (x1/z1, y1/z1, x2/z2, y2/z2, 1, 0).
-
-            >>> a = point2.hash('123'.encode())
-            >>> q = a + a + a + a
-            >>> q == q
-            True
-            >>> q.to_bytes() == q.to_bytes()
-            True
-            >>> q.to_bytes() == q.normalize().to_bytes() and q.__class__ != native.point2
-            False
-            >>> q.normalize().to_bytes() == q.normalize().to_bytes()
-            True
-            >>> q.normalize().to_bytes() == q.normalize().normalize().to_bytes()
-            True
-            >>> point2.from_bytes(q.to_bytes()) == q
-            True
-            >>> point2.from_bytes(q.normalize().to_bytes()) == q
-            True
-            >>> point2.from_bytes(q.to_bytes()) == point2.from_bytes(bytes(q.normalize()))
-            True
-            >>> type(q.normalize()) is point2
-            True
-            """
-            self._implementation.nrm(self)
-            return self
-
         def hex(self: point2) -> str:
             """
             Generates hexadecimal representation of this instance.
 
             >>> p = point2.hash('123'.encode())
-            >>> p.normalize().hex() == (
+            >>> p.canonical().hex() == (
             ...     '30326199f303fce7a77cff6d2fb0b3de8cd409d1d562f3543f7d064cdc58d309'
             ...     '7e88038ad76e85e5df26e4a9486a657b0431c8e7e09b0a1abf90fc874c515207'
             ...     '2c6a88bb448065eb748df632b1d872e02f54b6f56fdb84a7b1cb388fe551fb08'

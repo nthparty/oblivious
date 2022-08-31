@@ -288,6 +288,18 @@ class native:
         return ge25519.ge25519_p3.scalar_mult_base(t).to_bytes_ristretto255()
 
     @staticmethod
+    def can(p: bytes) -> bytes:
+        """
+        Normalize the representation of a point into its canonical form.
+
+        >>> p = point.hash('123'.encode())
+        >>> can(p) == p
+        True
+        """
+        # In this module, the canonical representation is used at all times.
+        return p
+
+    @staticmethod
     def mul(s: bytes, p: bytes) -> bytes:
         """
         Multiply the point by the supplied scalar and return the result.
@@ -361,6 +373,7 @@ inv = native.inv
 smu = native.smu
 pnt = native.pnt
 bas = native.bas
+can = native.can
 mul = native.mul
 add = native.add
 sub = native.sub
@@ -637,6 +650,18 @@ try:
             )
 
         @staticmethod
+        def can(p: bytes) -> bytes:
+            """
+            Normalize the representation of a point into its canonical form.
+
+            >>> p = point.hash('123'.encode())
+            >>> can(p) == p
+            True
+            """
+            # In this module, the canonical representation is used at all times.
+            return p
+
+        @staticmethod
         def mul(s: bytes, p: bytes) -> bytes:
             """
             Multiply the point by the supplied scalar and return the result.
@@ -693,6 +718,7 @@ try:
     smu = sodium.smu
     pnt = sodium.pnt
     bas = sodium.bas
+    can = sodium.can
     mul = sodium.mul
     add = sodium.add
     sub = sodium.sub
@@ -809,6 +835,17 @@ for _implementation in [native] + ([sodium] if sodium is not None else []):
             32
             """
             return bytes.__new__(cls, bs) if bs is not None else cls.random()
+
+        def canonical(self: point) -> point:
+            """
+            Normalize the representation of this point into its canonical form.
+
+            >>> p = point.hash('123'.encode())
+            >>> p.canonical() == p
+            True
+            """
+            # In this module, the canonical representation is used at all times.
+            return self
 
         def __mul__(self: point, other: Any) -> NoReturn:
             """
