@@ -519,8 +519,7 @@ class native:
         >>> native.can(p) == native.can(p_can)
         True
         """
-        # The point's coordinates are already in normal affine form.
-        return p
+        return p # This instance's coordinates are already in normal affine form.
 
     @staticmethod
     def mul2(s: scalar, p: point2) -> point2:
@@ -1180,8 +1179,7 @@ try:
             >>> mcl.can(p) == mcl.can(p_can)
             True
             """
-            p.normalize_in_place()  # Sets ``(x, y, z)`` to ``(x/z, y/z, 1)`` which is unique.
-            return p
+            return p.normalize() # Sets ``(x, y, z)`` to unique vector ``(x/z, y/z, 1)``.
 
         @staticmethod
         def mul(s: Fr, p: G1) -> G1:
@@ -1836,7 +1834,9 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> type(p.canonical()) is point
             True
             """
-            return self._implementation.can(self)
+            p = self._implementation.can(self)
+            p.__class__ = point
+            return p
 
         def __mul__(self: point, other):
             """
@@ -2535,7 +2535,9 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> type(q.canonical()) is point2
             True
             """
-            return self._implementation.can(self)
+            p = self._implementation.can(self)
+            p.__class__ = point2
+            return p
 
         def __mul__(self: point, other):
             """
