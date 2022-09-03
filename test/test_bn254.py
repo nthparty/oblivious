@@ -65,21 +65,26 @@ class Test_namespace(TestCase):
 
 def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R1710
     """
-    This function does either of two things depending on `bits`:
-    * checks that test inputs drawn from the fountains input bit stream
+    This function does either of two things depending on the parameter ``bits``:
+    * checks that test inputs drawn from the :obj:`fountains` input bit stream
       produce the bits provided in the reference output bit vector, or
     * generates a reference output bit vector by applying the function
-      to the fountains input bit stream.
+      to the :obj:`fountains` input bit stream.
     """
     def get_bytes(o):
-        if type(o) in (bytes, bitlist, bytearray):  # `isinstance` will be wrong for `native` types.
+        if type(o) in (bytes, bytearray, bitlist):
             return o
+
         cls = bn254.native if isinstance(o, bytes) else bn254.mcl
-        try:
+
+        if 'point' in str(o.__class__) or 'G' in str(o.__class__):
             o = cls.can(o)
-        except AttributeError:
-            pass
-        return cls.ser(o) if ('point' in str(o.__class__) or 'G'in str(o.__class__)) else cls.sse(o)
+
+        return (
+            cls.ser(o)
+            if ('point' in str(o.__class__) or 'G' in str(o.__class__)) else
+            cls.sse(o)
+        )
 
     fs = fountains( # Generate the input bit stream.
         sum(lengths),

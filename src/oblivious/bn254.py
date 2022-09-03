@@ -41,41 +41,9 @@ from bn254.curve import r#, p as p_mod
 class _ECp(ECp_): # pylint: disable=invalid-name
     """Internal class."""
     # pylint: disable=missing-function-docstring
-    def __new__(cls, *args, **kwargs):
-        p = ECp_.__new__(cls)
-        _ECp.__init__(p, *args, **kwargs)
-        return p
-
-    def __init__(self, p=None):
-        ECp_.__init__(self) #super(ECp_, self).__init__() # pylint: disable=bad-super-call
-        if isinstance(p, (ECp_, _ECp)):
-            self.setxy(*p.get())
-        elif isinstance(p, native.point):
-            self.setxy(*_ECp.deserialize(p).get())  # -or- `self.__class__.deserialize`
-
-    def serialize_compressed(self) -> bytes:
-        # pylint: disable=unnecessary-direct-lambda-call
-        return bytes(
-            (lambda x, y:
-                (lambda xs:
-                    (lambda ret,_: ret)(xs, xs.append(xs.pop() ^ ((y % 2) << 7)))
-                )(list(x.to_bytes(32, 'little')))
-            )(*self.get())
-        )
-
     @classmethod
-    def deserialize_compressed(cls, bs) -> _ECp:
-        return _ECp(
-            (1 - 2 * (bs[31] >> 7)) *
-            cls.mapfrom(bs[:31] + bytes([bs[31] & 0b01111111]))
-        )
-
-    def serialize(self) -> bytes:
-        d = 0x212ba4f27ffffff5a2c62effffffffcdb939ffffffffff8a15ffffffffffff8e
-        p = 0x2523648240000001ba344d80000000086121000000000013a700000000000013
-        x, y, z = (*self.get(), 1)
-        encode = lambda n: (n * d % p).to_bytes(32, 'little')
-        return encode(x) + encode(y) + encode(z)
+    def random(cls) -> _ECp:
+        return cls(int(native.scalar.random()) * get_base())
 
     @classmethod
     def deserialize(cls, bs) -> _ECp:
@@ -92,10 +60,6 @@ class _ECp(ECp_): # pylint: disable=invalid-name
         p = cls()
         assert p.setxy(x, y) or (x == 0 and y == 0)
         return p
-
-    @classmethod
-    def random(cls) -> _ECp:
-        return cls(int(native.scalar.random()) * get_base())
 
     @classmethod
     def mapfrom(cls, bs) -> _ECp:
@@ -127,14 +91,14 @@ class _ECp(ECp_): # pylint: disable=invalid-name
                     for m in range(r_):
                         if t == 1:
                             break
-                        t = pow(t, 2, p_mod)
+                        t = pow(t, 2, p_mod) # pragma: no cover
                     if m == 0:
                         break
-                    gs = pow(g, 2**(r_ - m - 1), p_mod)
-                    g = (gs * gs) % p_mod
-                    y = (y * gs) % p_mod
-                    b = (b * g) % p_mod
-                    r_ = m
+                    gs = pow(g, 2**(r_ - m - 1), p_mod) # pragma: no cover
+                    g = (gs * gs) % p_mod # pragma: no cover
+                    y = (y * gs) % p_mod # pragma: no cover
+                    b = (b * g) % p_mod # pragma: no cover
+                    r_ = m # pragma: no cover
             if y is not None:
                 # pylint: disable=invalid-unary-operand-type
                 if y % 2 == 1:
@@ -146,60 +110,31 @@ class _ECp(ECp_): # pylint: disable=invalid-name
         assert p.setxy(x, y) or (x == 0 and y == 0)
         return p
 
-    def hex(self):
-        return self.to_bytes().hex() # pylint: disable=no-member
+    def __new__(cls, *args, **kwargs):
+        p = ECp_.__new__(cls)
+        _ECp.__init__(p, *args, **kwargs)
+        return p
 
-    def zero(self):
-        return self.isinf()
+    def __init__(self, p=None):
+        ECp_.__init__(self) #super(ECp_, self).__init__() # pylint: disable=bad-super-call
+        if isinstance(p, (ECp_, _ECp)):
+            self.setxy(*p.get())
+        elif isinstance(p, native.point):
+            self.setxy(*_ECp.deserialize(p).get())  # -or- `self.__class__.deserialize`
 
-    def __bytes__(self):
-        return self.to_bytes() # pylint: disable=no-member
+    def serialize(self) -> bytes:
+        d = 0x212ba4f27ffffff5a2c62effffffffcdb939ffffffffff8a15ffffffffffff8e
+        p = 0x2523648240000001ba344d80000000086121000000000013a700000000000013
+        x, y, z = (*self.get(), 1)
+        encode = lambda n: (n * d % p).to_bytes(32, 'little')
+        return encode(x) + encode(y) + encode(z)
 
 class _ECp2(ECp2_): # pylint: disable=invalid-name
     """Internal class."""
     # pylint: disable=missing-function-docstring
-    def __new__(cls, *args, **kwargs):
-        q = ECp2_.__new__(cls)
-        _ECp2.__init__(q, *args, **kwargs)
-        return q
-
-    def __init__(self, q=None):
-        ECp2_.__init__(self)# super(ECp2_, self).__init__() # pylint: disable=bad-super-call
-        if isinstance(q, (ECp2_, _ECp2)):
-            self.set(*q.get())
-        elif isinstance(q, native.point2):
-            self.set(*_ECp2.deserialize(bytes(q)).get())  # -or- `self.__class__.deserialize`
-
-    def __hex__(self):
-        return self.toBytes(1).hex()
-
-    def hex(self):
-        return self.toBytes(1).hex()
-
-    def serialize_compressed(self) -> bytes:
-        # pylint: disable=unnecessary-direct-lambda-call
-        return bytes(
-            (lambda f, x1, y1, x2, y2: f(x1, y1) + f(x2, y2))(
-                (lambda x, y:
-                 (lambda xs:
-                  (lambda ret, _: ret)(
-                      xs, xs.append(xs.pop() ^ ((y % 2) << 7))
-                  ))(
-                     list(x.to_bytes(32, 'little'))
-                 )
-                 ),
-                self.x.a.int(), self.y.a.int(),
-                self.x.b.int(), self.y.b.int()
-            )
-        )
-
-    def serialize(self) -> bytes:
-        d = 0x212ba4f27ffffff5a2c62effffffffcdb939ffffffffff8a15ffffffffffff8e
-        p = 0x2523648240000001ba344d80000000086121000000000013a700000000000013# BN254 modulus of F_p
-        p1, p2 = (*self.get(),)
-        x1, y1, z1, x2, y2, z2 = (*p1.get(), 1, *p2.get(), 0)
-        encode = lambda n: (n * d % p).to_bytes(32, 'little')
-        return encode(x1) + encode(y1) + encode(x2) + encode(y2) + encode(z1) + encode(z2)
+    @classmethod
+    def random(cls) -> _ECp2:
+        return cls(int(native.scalar.random()) * get_base2())
 
     @classmethod
     def deserialize(cls, bs) -> _ECp2:
@@ -221,54 +156,33 @@ class _ECp2(ECp2_): # pylint: disable=invalid-name
                or (x1 == 0 and y1 == 0 and x2 == 0 and y2 == 0)
         return q
 
-    def __bytes__(self):
-        return self.to_bytes() # pylint: disable=no-member
-
-    def zero(self):
-        return self.isinf()
-
-    @classmethod
-    def random(cls) -> _ECp2:
-        return cls(int(native.scalar.random()) * get_base2())
-
     @classmethod
     def mapfrom(cls, h) -> _ECp2:
         return cls((int.from_bytes(h, 'little') % r) * get_base2())
 
-class _Fp12(Fp12_): # pylint: disable=invalid-name
-    """Internal class."""
-    # pylint: disable=missing-function-docstring
     def __new__(cls, *args, **kwargs):
-        q = Fp12_.__new__(cls)
-        _Fp12.__init__(q, *args, **kwargs)
+        q = ECp2_.__new__(cls)
+        _ECp2.__init__(q, *args, **kwargs)
         return q
 
-    def __init__(self, s=None):
-        Fp12_.__init__(self) #super(Fp12_, self).__init__() # pylint: disable=bad-super-call
-        if isinstance(s, (Fp12_, _Fp12)):
-            self.set(*s.get())
-        elif isinstance(s, native.scalar2):
-            self.set(*_Fp12.deserialize(s).get())  # -or- `self.__class__.deserialize`
-
-    def __hex__(self):
-        return self.toBytes(1).hex() # pylint: disable=too-many-function-args
-
-    def hex(self):
-        return self.toBytes(1).hex() # pylint: disable=too-many-function-args
+    def __init__(self, q=None):
+        ECp2_.__init__(self)# super(ECp2_, self).__init__() # pylint: disable=bad-super-call
+        if isinstance(q, (ECp2_, _ECp2)):
+            self.set(*q.get())
+        elif isinstance(q, native.point2):
+            self.set(*_ECp2.deserialize(bytes(q)).get())  # -or- `self.__class__.deserialize`
 
     def serialize(self) -> bytes:
         d = 0x212ba4f27ffffff5a2c62effffffffcdb939ffffffffff8a15ffffffffffff8e
         p = 0x2523648240000001ba344d80000000086121000000000013a700000000000013# BN254 modulus of F_p
+        p1, p2 = (*self.get(),)
+        x1, y1, z1, x2, y2, z2 = (*p1.get(), 1, *p2.get(), 0)
         encode = lambda n: (n * d % p).to_bytes(32, 'little')
-        return bytes(
-            encode(self.a.a.a.int()) + encode(self.a.a.b.int()) +
-            encode(self.a.b.a.int()) + encode(self.a.b.b.int()) +
-            encode(self.b.a.a.int()) + encode(self.b.a.b.int()) +
-            encode(self.b.b.a.int()) + encode(self.b.b.b.int()) +
-            encode(self.c.a.a.int()) + encode(self.c.a.b.int()) +
-            encode(self.c.b.a.int()) + encode(self.c.b.b.int())
-        )
+        return encode(x1) + encode(y1) + encode(x2) + encode(y2) + encode(z1) + encode(z2)
 
+class _Fp12(Fp12_): # pylint: disable=invalid-name
+    """Internal class."""
+    # pylint: disable=missing-function-docstring
     @classmethod
     def deserialize(cls, bs) -> _Fp12:
         p_mod = 0x2523648240000001ba344d80000000086121000000000013a700000000000013
@@ -283,15 +197,30 @@ class _Fp12(Fp12_): # pylint: disable=invalid-name
         s.c.b.a.x, s.c.b.b.x = decode(bs[32*10:(32*10)+32]), decode(bs[32*11:(32*11)+32])
         return s
 
-    def __bytes__(self):
-        return self.to_bytes() # pylint: disable=no-member
+    def __new__(cls, *args, **kwargs):
+        q = Fp12_.__new__(cls)
+        _Fp12.__init__(q, *args, **kwargs)
+        return q
 
-    def zero(self):
-        return self.isinf() # pylint: disable=no-member
+    def __init__(self, s=None):
+        Fp12_.__init__(self) #super(Fp12_, self).__init__() # pylint: disable=bad-super-call
+        if isinstance(s, (Fp12_, _Fp12)):
+            self.set(*s.get())
+        elif isinstance(s, native.scalar2):
+            self.set(*_Fp12.deserialize(s).get()) # pragma: no cover
 
-    @classmethod
-    def random(cls) -> _Fp12:
-        return _Fp12(int(native.scalar.random()) * get_base2())
+    def serialize(self) -> bytes:
+        d = 0x212ba4f27ffffff5a2c62effffffffcdb939ffffffffff8a15ffffffffffff8e
+        p = 0x2523648240000001ba344d80000000086121000000000013a700000000000013# BN254 modulus of F_p
+        encode = lambda n: (n * d % p).to_bytes(32, 'little')
+        return bytes(
+            encode(self.a.a.a.int()) + encode(self.a.a.b.int()) +
+            encode(self.a.b.a.int()) + encode(self.a.b.b.int()) +
+            encode(self.b.a.a.int()) + encode(self.b.a.b.int()) +
+            encode(self.b.b.a.int()) + encode(self.b.b.b.int()) +
+            encode(self.c.a.a.int()) + encode(self.c.a.b.int()) +
+            encode(self.c.b.a.int()) + encode(self.c.b.b.int())
+        )
 
 #
 # An attempt will be made later to import mclbn256. If the MCl shared/dynamic
@@ -630,25 +559,40 @@ class native:
         >>> s*t*p @ q == s*p @ (t*q)
         True
 
-        >>> x = y = p
-
         Suppose there are two points: one multiplied by the scalar ``s`` and the other
         multiplied by the scalar ``t``. Their equality can be determined by using a
         balancing point: ``g**(~s * t)``.  If the pairing of ``t * x`` with ``g`` is the
         same as the pairing with ``s * y`` and ``g**(~s * t)``, then ``x`` equals ``y``.
 
+        >>> x = y = p
         >>> g = native.point2.base(native.scalar.from_int(1))
         >>> b = native.point2.base(~s * t)
         >>> (t * x) @ g == (s * y) @ b
         True
+
+        Any attempt to to pair values or objects that do not have compatible types
+        raises an exception.
+
+        >>> b @ b
+        Traceback (most recent call last):
+          ...
+        TypeError: pairing is defined only for a point and a second-level point
         """
-        _p, _q = (p, q) if (isinstance(p, native.point) and isinstance(q, native.point2)) else (
-            (q, p) if (isinstance(q, native.point) and isinstance(p, native.point2)) else (None, None)
+        (_p, _q) = (
+            (p, q)
+            if (isinstance(p, native.point) and isinstance(q, native.point2)) else
+            (
+                (q, p)
+                if (isinstance(q, native.point) and isinstance(p, native.point2)) else
+                (None, None)
+            )
         )
+
         if type(_p) is type(None): # pylint: disable=unidiomatic-typecheck
             raise TypeError(
-                "can only pair points of types point/ECp/G1 and point(2)/ECp2/G2 to each other"
+                'pairing is defined only for a point and a second-level point'
             )
+
         p_ = _ECp.__new__(ECp_, _p)
         q_ = _ECp2.__new__(ECp2_, _q)
         z_ = e(q_, p_)
@@ -849,7 +793,6 @@ class native:
 
         try:
             return bytes.__new__(native.scalar2, s)
-
         except ValueError: # pragma: no cover
             return None
 
@@ -1070,7 +1013,6 @@ try:
             try:
                 s = cls.sde(bs)
                 return s
-
             except ValueError: # pragma: no cover
                 return None
 
@@ -1250,6 +1192,15 @@ try:
             >>> mcl.scalar2.to_bytes(r).hex()[700:]
             'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
 
+            The order of the two arguments is not important (as long as exactly
+            one argument is an instance of :obj:`point` and the other is an
+            instance of :obj:`point2`).
+
+            >>> r = mcl.par(q, p)
+            >>> r.__class__ = mcl.scalar2
+            >>> mcl.scalar2.to_bytes(r).hex()[700:]
+            'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
+
             The pairing function is bilinear.
 
             >>> p = mcl.point.random()
@@ -1262,29 +1213,29 @@ try:
             >>> s * t * p @ q == s * p @ (t * q)
             True
 
-            >>> x = y = p
-
             Suppose there are two points: one multiplied by the scalar ``s`` and the other
             multiplied by the scalar ``t``. Their equality can be determined by using a
             balancing point: ``g**(~s * t)``.  If the pairing of ``t * x`` with ``g`` is the
             same as the pairing with ``s * y`` and ``g**(~s * t)``, then ``x`` equals ``y``.
 
+            >>> x = y = p
             >>> g = mcl.point2.base(mcl.scalar.from_int(1))
             >>> b = mcl.point2.base(~s * t)
             >>> (t * x) @ g == (s * y) @ b
             True
 
-            Pairing is defined as ``e: (G1 x G2) -> GT``. This operation accepts a point and
-            a second-group point.
+            This operation is defined only for a point and a second-level point.
+            Any attempt to invoke the operation on values or objects of other types
+            raises an exception.
 
             >>> p @ (p + p)
             Traceback (most recent call last):
               ...
-            ValueError: arguments must be from distinct groups
+            TypeError: pairing is defined only for a point and a second-level point
             >>> g @ b
             Traceback (most recent call last):
               ...
-            ValueError: arguments must be from distinct groups
+            TypeError: pairing is defined only for a point and a second-level point
 
             Pairing is intended to be nonsingular.
 
@@ -1304,7 +1255,9 @@ try:
                 (isinstance(p, G1) and isinstance(q, G1)) or
                 (isinstance(p, G2) and isinstance(q, G2))
             ):
-                raise ValueError('arguments must be from distinct groups')
+                raise TypeError(
+                    'pairing is defined only for a point and a second-level point'
+                )
 
             if isinstance(p, G1):
                 return G1.__matmul__(G1.__new__(G1, p), G2.__new__(G2, q))
@@ -1468,7 +1421,6 @@ try:
 
             try:
                 return GT.deserialize(s)
-
             except ValueError: # pragma: no cover
                 return None
 
@@ -1666,8 +1618,8 @@ try:
     # successfully been defined.
     mclbn256 = True
 
-except:  # pylint: disable=W0702 # pragma: no cover
-    mcl = None  # pragma: no cover # Exported symbol.
+except: # pylint: disable=W0702 # pragma: no cover
+    mcl = None # Exported symbol.
 
 #
 # Dedicated point and scalar data structures for each implementation.
@@ -2192,6 +2144,14 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             ...     '6d800275af625de83d72d815335832027cc60c34f22e8c5f89f953740a409702'
             ... )
             True
+
+            Any attempt to multiply a value or object of an incompatible type by this
+            instance raises an exception.
+
+            >>> s * 2
+            Traceback (most recent call last):
+              ...
+            TypeError: multiplication by a scalar is defined only for scalars and points
             """
             if isinstance(other, self._implementation.scalar):
                 s = self._implementation.smu(self, other)
@@ -2200,15 +2160,17 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
             if isinstance(other, self._implementation.point):
                 p = self._implementation.mul(self, other)
-                p.__class__ = other.__class__ # = point
+                p.__class__ = other.__class__
                 return p
 
             if isinstance(other, self._implementation.point2):
                 p = self._implementation.mul2(self, other)
-                p.__class__ = other.__class__ # = point2
+                p.__class__ = other.__class__
                 return p
 
-            return None
+            raise TypeError(
+                'multiplication by a scalar is defined only for scalars and points'
+            )
 
         def __rmul__(self: scalar, other: Union[scalar, point]):
             """
@@ -2999,4 +2961,4 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
     _implementation.scalar2 = scalar2
 
 if __name__ == "__main__":
-    doctest.testmod()  # pragma: no cover
+    doctest.testmod() # pragma: no cover

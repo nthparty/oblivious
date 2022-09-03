@@ -173,6 +173,16 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 return cls.bas(s) if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
+        def test_can(
+                self,
+                bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
+            ):
+            sodium_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                p = cls.pnt(bs)
+                return cls.can(p)
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
+
         def test_mul(
                 self,
                 bits='0240281c2c0429000440190404c00003082024e160cca1002800a00108100002'
