@@ -52,12 +52,12 @@ class Test_namespace(TestCase):
 
     def test_modules(self):
         module = importlib.import_module('oblivious.bn254')
-        self.assertTrue('native' in module.__dict__)
+        self.assertTrue('python' in module.__dict__)
         self.assertTrue('mcl' in module.__dict__)
         self.assertTrue(api_methods().issubset(module.__dict__.keys()))
 
-    def test_native(self):
-        self.assertTrue(api_methods().issubset(set(dir(bn254.native))))
+    def test_python(self):
+        self.assertTrue(api_methods().issubset(set(dir(bn254.python))))
 
     def test_mcl(self):
         if bn254.mcl is not None:
@@ -75,7 +75,7 @@ def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R17
         if type(o) in (bytes, bytearray, bitlist):
             return o
 
-        cls = bn254.native if isinstance(o, bytes) else bn254.mcl
+        cls = bn254.python if isinstance(o, bytes) else bn254.mcl
 
         if 'point' in str(o.__class__) or 'G' in str(o.__class__):
             o = cls.can(o)
@@ -119,7 +119,7 @@ def mcl_hidden_and_fallback(hidden=False, fallback=False):
 def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
     """
     Define and return four classes of unit tests given a wrapper
-    class (`native` or `mcl`) for primitive operations.
+    class (``python`` or ``mcl``) for primitive operations.
     """
     class Test_primitives(TestCase):
         """
@@ -605,11 +605,11 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 # The instantiated test classes below are discovered by the testing framework and
 # executed in alphabetical order.
 (
-    Test_primitives_native_no_mcl,
-    Test_classes_native_no_mcl,
-    Test_types_native_no_mcl,
-    Test_algebra_native_no_mcl
-) = define_classes(bn254.native, hidden=True)
+    Test_primitives_python_no_mcl,
+    Test_classes_python_no_mcl,
+    Test_types_python_no_mcl,
+    Test_algebra_python_no_mcl
+) = define_classes(bn254.python, hidden=True)
 
 if bn254.mcl is not None and bn254.mclbn256 is True:
     (
@@ -619,8 +619,8 @@ if bn254.mcl is not None and bn254.mclbn256 is True:
         Test_algebra_mcl_mclbn256_no_mcl
     ) = define_classes(bn254.mcl, fallback=True)
 
-(Test_primitives_native, Test_classes_native, Test_types_native, Test_algebra_native) = \
-    define_classes(bn254.native)
+(Test_primitives_python, Test_classes_python, Test_types_python, Test_algebra_python) = \
+    define_classes(bn254.python)
 
 if bn254.mcl is not None:
     (Test_primitives_mcl, Test_classes_mcl, Test_types_mcl, Test_algebra_mcl) = \
@@ -628,7 +628,7 @@ if bn254.mcl is not None:
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.
-    for tests in [Test_primitives_native(), Test_classes_native()]:
+    for tests in [Test_primitives_python(), Test_classes_python()]:
         print(
             '\nUnit test reference bit vectors for ' +
             tests.__class__.__name__ + ' methods...'

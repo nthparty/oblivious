@@ -52,12 +52,12 @@ class Test_namespace(TestCase):
 
     def test_modules(self):
         module = importlib.import_module('oblivious.ristretto')
-        self.assertTrue('native' in module.__dict__)
+        self.assertTrue('python' in module.__dict__)
         self.assertTrue('sodium' in module.__dict__)
         self.assertTrue(api_methods().issubset(module.__dict__.keys()))
 
-    def test_native(self):
-        self.assertTrue(api_methods().issubset(set(dir(ristretto.native))))
+    def test_python(self):
+        self.assertTrue(api_methods().issubset(set(dir(ristretto.python))))
 
     def test_sodium(self):
         if ristretto.sodium is not None:
@@ -104,7 +104,7 @@ def sodium_hidden_and_fallback(hidden=False, fallback=False):
 def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
     """
     Define and return four classes of unit tests given a wrapper
-    class (`native` or `sodium`) for primitive operations.
+    class (``python`` or ``sodium``) for primitive operations.
     """
     class Test_primitives(TestCase):
         """
@@ -611,11 +611,11 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 # The instantiated test classes below are discovered by the testing framework and
 # executed in alphabetical order.
 (
-    Test_primitives_native_no_sodium,
-    Test_classes_native_no_sodium,
-    Test_types_native_no_sodium,
-    Test_algebra_native_no_sodium
-) = define_classes(ristretto.native, hidden=True)
+    Test_primitives_python_no_sodium,
+    Test_classes_python_no_sodium,
+    Test_types_python_no_sodium,
+    Test_algebra_python_no_sodium
+) = define_classes(ristretto.python, hidden=True)
 
 if ristretto.rbcl is not None:
     (
@@ -625,15 +625,15 @@ if ristretto.rbcl is not None:
         Test_algebra_sodium_rbcl_no_sodium
     ) = define_classes(ristretto.sodium, fallback=True)
 
-(Test_primitives_native, Test_classes_native, Test_types_native, Test_algebra_native) = \
-    define_classes(ristretto.native)
+(Test_primitives_python, Test_classes_python, Test_types_python, Test_algebra_python) = \
+    define_classes(ristretto.python)
 
 (Test_primitives_sodium, Test_classes_sodium, Test_types_sodium, Test_algebra_sodium) = \
     define_classes(ristretto.sodium)
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.
-    for tests in [Test_primitives_native(), Test_classes_native()]:
+    for tests in [Test_primitives_python(), Test_classes_python()]:
         print(
             '\nUnit test reference bit vectors for ' +
             tests.__class__.__name__ + ' methods...'

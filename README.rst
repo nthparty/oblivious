@@ -99,19 +99,19 @@ For more information and background about the underlying mathematical structures
 Using Pure Python or a Shared/Dynamic Library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. |native| replace:: ``native``
-.. _native: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.native
+.. |python| replace:: ``python``
+.. _python: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.python
 
 .. |sodium| replace:: ``sodium``
 .. _sodium: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.sodium
 
-In addition to the operations and classes exported by the |ristretto|_ module, two wrapper classes/namespaces are also exported: |native|_ and |sodium|_. These encapsulate pure-Python implementations and shared/dynamic library (*i.e.*, libsodium) wrappers, respectively, of all operations and classes available in the |ristretto|_ module. This makes it possible to explicitly choose whether an operation requires only Python or also requires the presence of a compiled copy of libsodium on the host system.
+Each module within this library can export two variants of its primitives and data structures: one corresponding to pure-Python implementations and another corresponding to shared/dynamic library wrappers. For example, the |ristretto|_ module exports two container classes/namespaces: |python|_ and |sodium|_. These encapsulate pure-Python implementations and shared/dynamic library (*i.e.*, libsodium) wrappers, respectively, of all operations and classes available in the |ristretto|_ module. This makes it possible to explicitly choose whether an operation requires only Python or also requires the presence of a compiled copy of libsodium on the host system.
 
-The example below uses native Python implementations of the scalar multiplication operation (relying on the `ge25519 <https://pypi.org/project/ge25519>`__ library)::
+The example below uses pure-Python implementations of the scalar multiplication operation (relying on the `ge25519 <https://pypi.org/project/ge25519>`__ library)::
 
-    >>> from oblivious.ristretto import native
-    >>> p = native.point.hash('abc'.encode())
-    >>> s = native.scalar.hash('123'.encode())
+    >>> from oblivious.ristretto import python
+    >>> p = python.point.hash('abc'.encode())
+    >>> s = python.scalar.hash('123'.encode())
     >>> (s * p).to_base64()
     'SrC7vA9sSR5f4E27ALxk14MPotTYR6B33B4ZN+mQXFA='
 
@@ -133,7 +133,7 @@ In the example below, the scalar multiplication operation invokes a binding for 
 
 The operations and class methods exported by the |ristretto|_ module directly (*e.g.*, the method |add|_ within the class |point|_ that is imported via the statement ``from oblivious.ristretto import point``) correspond either (A) to libsodium wrappers if an instance of libsodium is found and loaded or (B) to pure-Python implementations if all attempts to load a working instances of libsodium fail. The ordered list below summarizes what definitions are exported under various conditions and the ordered sequence of attempts to locate and load an instance of libsodium.
 
-1. Under all conditions, the wrapper class |native|_ is defined and encapsulates a pure-Python variant of every operation and class method available in the |ristretto|_ module. **As a starting default**, all operations and classes exported directly by the |ristretto|_ module correspond to the pure-Python implementations.
+1. Under all conditions, the wrapper class |python|_ is defined and encapsulates a pure-Python variant of every operation and class method available in the |ristretto|_ module. **As a starting default**, all operations and classes exported directly by the |ristretto|_ module correspond to the pure-Python implementations.
 
 2. If a shared/dynamic library instance of libsodium is found on the system and successfully loaded during one of the attempts below, then the wrapper class |sodium|_ is defined:
 
@@ -141,7 +141,7 @@ The operations and class methods exported by the |ristretto|_ module directly (*
    b. a file ``libsodium.so`` or ``libsodium.dll`` in the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH`` environment variables is found and loaded successfully; or
    c. the optional `rbcl <https://pypi.org/project/rbcl>`__ package is installed and the compiled subset of libsodium included in that package is loaded successfully.
 
-3. If ``sodium`` is **not** ``None``, then the |sodium|_ class encapsulates libsodium wrappers for every operation and class supported by the |ristretto|_ module. Furthermore, **those operations and classes exported directly by the library are redefined** to use the bindings available in the loaded instance of libsodium. The |native|_ class is still exported, as well, and all operations and class methods encapsulated within |native|_ remain as-is (*i.e.*, pure-Python implementations).
+3. If ``sodium`` is **not** ``None``, then the |sodium|_ class encapsulates libsodium wrappers for every operation and class supported by the |ristretto|_ module. Furthermore, **those operations and classes exported directly by the library are redefined** to use the bindings available in the loaded instance of libsodium. The |python|_ class is still exported, as well, and all operations and class methods encapsulated within |python|_ remain as-is (*i.e.*, pure-Python implementations).
 
 .. |bn254| replace:: ``bn254``
 .. _bn254: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.bn254.html
@@ -157,9 +157,10 @@ The classes that implement and wrap the functionalities within the `mcl <https:/
 .. image:: https://raw.githubusercontent.com/gist/wyatt-howe/557ddf0efe0fee21f0ae3163b34f9889/raw/57a96d2193177bdf7ee139e4bc5d3761c8142193/diagrambn.svg?sanitize=true
   :alt: Oblivious BN-254 data model
   :width: 92%
-:sup:`†` scalar-point multiplication (denoted ``*``) is only non-invertible when the scalar is secret
 
-The Ristretto255 curve does not have a computable pairing function, so the |ristretto|_ module does not have a secondary |point2|_ or |scalar2|_ class like the |bn254|_ module does.
+:sup:`†` Multiplication of a point by a scalar (denoted by ``*``) is non-invertible only for secret scalars.
+
+The Ristretto255 curve does not have a computable pairing function, so the |ristretto|_ module does not export second-level point and scalar classes (|point2|_ and |scalar2|_) that are found in the |bn254|_ module.
 
 Development
 -----------

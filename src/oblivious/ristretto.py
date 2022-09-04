@@ -4,29 +4,28 @@
 ristretto module
 ================
 
-This module exports a collection of primitive operations for working
-with elliptic curve points and scalars, classes for representing points,
-classes for representing scalars, and two wrapper classes/namespaces that
-encapsulate pure-Python and shared/dynamic library variants of the above.
+This module exports a collection of primitive operations for working with
+elliptic curve points and scalars, classes for representing points, classes
+for representing scalars, and two wrapper classes/namespaces that encapsulate
+pure-Python and shared/dynamic library variants of the above.
 
-* Under all conditions, the wrapper class :obj:`~oblivious.ristretto.native`
+* Under all conditions, the wrapper class :obj:`~oblivious.ristretto.python`
   is defined and exports a pure-Python variant of every operation and class
   method exported by this module as a whole.
 
 * If a shared/dynamic library instance of the
-  `libsodium <https://doc.libsodium.org>`__ library is found on the
-  system (and successfully loaded at the time this module is imported) or
-  the optional `rbcl <https://pypi.org/project/rbcl>`__ package is
-  installed, then the wrapper class :obj:`~oblivious.ristretto.sodium` is
-  defined and exports a wrapper around the appropriate function in the
-  dynamic/shared library for every operation and class method exported by
-  this module as a whole. Otherwise, the exported variable ``sodium`` is
-  assigned ``None``.
+  `libsodium <https://doc.libsodium.org>`__ library is found on the system
+  (and successfully loaded at the time this module is imported) or the
+  optional `rbcl <https://pypi.org/project/rbcl>`__ package is installed,
+  then the wrapper class :obj:`~oblivious.ristretto.sodium` is defined and
+  exports a wrapper around the appropriate function in the dynamic/shared
+  library for every operation and class method exported by this module as a
+  whole. Otherwise, the exported variable ``sodium`` is assigned ``None``.
 
 * All operations and class methods exported by this module correspond to
-  the variants defined by :obj:`~oblivious.ristretto.sodium` if a
+  the variants defined within :obj:`~oblivious.ristretto.sodium` if a
   dynamic/shared library is loaded. Otherwise, they correspond to the
-  variants defined by :obj:`~oblivious.ristretto.native`.
+  variants defined within :obj:`~oblivious.ristretto.python`.
 """
 from __future__ import annotations
 from typing import Any, NoReturn, Union, Optional
@@ -42,7 +41,7 @@ import ge25519
 
 #
 # Attempt to load rbcl. If no local libsodium shared/dynamic library file
-# is found, only native Python implementations of the functions and methods
+# is found, only pure-Python implementations of the functions and methods
 # will be available.
 #
 
@@ -64,7 +63,7 @@ except: # pylint: disable=W0702 # pragma: no cover
     rbcl = None
 
 #
-# Use native Python implementations of primitives by default.
+# Use pure-Python implementations of primitives by default.
 #
 
 def _zero(n: bytes) -> bool:
@@ -165,41 +164,39 @@ def _ristretto255_is_canonical(s: bytes) -> bool:
     d = ((0xed - 1 - s[0]) >> 8) % 256
     return (1 - (((c & d) | s[0]) & 1)) == 1
 
-class native:
+class python:
     """
-    Wrapper class for native Python implementations of
-    primitive operations.
+    Wrapper class for pure-Python implementations of primitive operations.
 
-    This class encapsulates pure-Python variants of all
-    primitive operations and classes exported by this module:
-    :obj:`native.scl <scl>`, :obj:`native.rnd <rnd>`,
-    :obj:`native.inv <inv>`, :obj:`native.smu <smu>`,
-    :obj:`native.pnt <pnt>`, :obj:`native.bas <bas>`,
-    :obj:`native.mul <mul>`, :obj:`native.add <add>`,
-    :obj:`native.sub <sub>`, :obj:`native.point <point>`,
-    and :obj:`native.scalar <scalar>`.
+    This class encapsulates pure-Python variants of all primitive operations
+    and classes exported by this module:
+    :obj:`python.scl <scl>`, :obj:`python.rnd <rnd>`,
+    :obj:`python.inv <inv>`, :obj:`python.smu <smu>`,
+    :obj:`python.pnt <pnt>`, :obj:`python.bas <bas>`,
+    :obj:`python.can <can>`, :obj:`python.mul <mul>`,
+    :obj:`python.add <add>`, :obj:`python.sub <sub>`,
+    :obj:`python.point <point>`, and :obj:`python.scalar <scalar>`.
     For example, you can perform addition of points using
     the pure-Python point addition implementation.
 
-    >>> p = native.pnt()
-    >>> q = native.pnt()
-    >>> native.add(p, q) == native.add(q, p)
+    >>> p = python.pnt()
+    >>> q = python.pnt()
+    >>> python.add(p, q) == python.add(q, p)
     True
 
-    Pure-Python variants of the :obj:`native.point <point>` and
-    :obj:`native.scalar <scalar>` classes always employ pure-Python
+    Pure-Python variants of the :obj:`python.point <point>` and
+    :obj:`python.scalar <scalar>` classes always employ pure-Python
     implementations of operations when their methods are invoked.
 
-    >>> p = native.point()
-    >>> q = native.point()
+    >>> p = python.point()
+    >>> q = python.point()
     >>> p + q == q + p
     True
 
-    Nevertheless, all bytes-like objects, :obj:`point` objects,
-    and :obj:`scalar` objects accepted and emitted by the various
-    operations and class methods in :obj:`native` and compatible
-    with those accepted and emitted by the operations and class
-    methods in :obj:`sodium`.
+    Nevertheless, all bytes-like objects, :obj:`point` objects, and
+    :obj:`scalar` objects accepted and emitted by the various operations and
+    class methods in :obj:`python` are compatible with those accepted and
+    emitted by the operations and class methods in :obj:`sodium`.
     """
     @staticmethod
     def rnd() -> bytes:
@@ -271,7 +268,7 @@ class native:
         '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
         """
         return ge25519.ge25519_p3.from_hash_ristretto255(
-            hashlib.sha512(native.rnd()).digest() if h is None else h
+            hashlib.sha512(python.rnd()).digest() if h is None else h
         )
 
     @staticmethod
@@ -296,8 +293,7 @@ class native:
         >>> can(p) == p
         True
         """
-        # In this module, the canonical representation is used at all times.
-        return p
+        return p # In this module, the canonical representation is used at all times.
 
     @staticmethod
     def mul(s: bytes, p: bytes) -> bytes:
@@ -367,20 +363,21 @@ class native:
         return r_p3.to_bytes_ristretto255()
 
 # Top-level best-effort synonyms.
-scl = native.scl
-rnd = native.rnd
-inv = native.inv
-smu = native.smu
-pnt = native.pnt
-bas = native.bas
-can = native.can
-mul = native.mul
-add = native.add
-sub = native.sub
+scl = python.scl
+rnd = python.rnd
+inv = python.inv
+smu = python.smu
+pnt = python.pnt
+bas = python.bas
+can = python.can
+mul = python.mul
+add = python.add
+sub = python.sub
 
 #
 # Attempt to load primitives from libsodium, if it is present;
-# otherwise, use the rbcl library.
+# otherwise, use the rbcl library, if it is present. Otherwise,
+# silently assign ``None`` to ``sodium``.
 #
 
 try:
@@ -471,7 +468,8 @@ try:
             crypto_scalarmult_ristretto255_base_allow_scalar_zero
         )
 
-    # Ensure the chosen version of libsodium (or its substitute) has the necessary primitives.
+    # Ensure the chosen version of libsodium (or its substitute) has the
+    # necessary primitives.
     assert hasattr(_sodium, 'crypto_core_ristretto255_bytes')
     assert hasattr(_sodium, 'crypto_core_ristretto255_scalarbytes')
     assert hasattr(_sodium, 'crypto_core_ristretto255_scalar_random')
@@ -486,41 +484,40 @@ try:
     # Exported symbol.
     class sodium:
         """
-        Wrapper class for binary implementations of primitive
-        operations.
+        Wrapper class for binary implementations of primitive operations.
 
-        When this module is imported, it makes a number of attempts
-        to locate an instance of the shared/dynamic library file of the
+        When this module is imported, it makes a number of attempts to
+        locate an instance of the shared/dynamic library file of the
         `libsodium <https://doc.libsodium.org>`__ library on the host
         system. The sequence of attempts is listed below, in order.
 
-        1. It uses ``ctypes.util.find_library`` to look for ``'sodium'``
-           or ``'libsodium'``.
+        1. It uses ``ctypes.util.find_library`` to look for ``'sodium'`` or
+        ``'libsodium'``.
 
-        2. It attempts to find a file ``libsodium.so`` or ``libsodium.dll``
-           in the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH``
+        2. It attempts to find a file ``libsodium.so`` or ``libsodium.dll`` in
+           the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH``
            environment variables.
 
         3. If the `rbcl <https://pypi.org/project/rbcl>`__ package is
-           installed, it reverts to the compiled subset of libsodium
-           included in that package.
+           installed, it reverts to the compiled subset of libsodium included
+           in that package.
 
-        If all of the above fail, then :obj:`sodium` is assigned
-        the value ``None`` and all functions and class methods exported by
-        this module default to their pure-Python variants (*i.e.*, those
-        encapsulated within :obj:`native <native>`). One way to confirm
-        that a dynamic/shared library *has not been found* when this module
-        is imported is to evaluate `sodium is None`.
+        If all of the above fail, then :obj:`sodium` is assigned the value
+        ``None`` and all functions and class methods exported by this module
+        default to their pure-Python variants (*i.e.*, those encapsulated
+        within :obj:`python`). One way to confirm that a dynamic/shared
+        library *has been found* when this module is imported is to evaluate
+        the expression ``sodium is not None``.
 
-        If a shared/dynamic library file has been loaded successfully,
-        this class encapsulates shared/dynamic library variants of all
-        primitive operations and classes exported by this module:
+        If a shared/dynamic library file has been loaded successfully, this
+        class encapsulates shared/dynamic library variants of all primitive
+        operations and classes exported by this module:
         :obj:`sodium.scl <scl>`, :obj:`sodium.rnd <rnd>`,
         :obj:`sodium.inv <inv>`, :obj:`sodium.smu <smu>`,
         :obj:`sodium.pnt <pnt>`, :obj:`sodium.bas <bas>`,
-        :obj:`sodium.mul <mul>`, :obj:`sodium.add <add>`,
-        :obj:`sodium.sub <sub>`, :obj:`sodium.point <point>`,
-        and :obj:`sodium.scalar <scalar>`.
+        :obj:`sodium.can <can>`, :obj:`sodium.mul <mul>`,
+        :obj:`sodium.add <add>`, :obj:`sodium.sub <sub>`,
+        :obj:`sodium.point <point>`, and :obj:`sodium.scalar <scalar>`.
         For example, you can perform addition of points using
         the point addition implementation found in the libsodium
         shared/dynamic library found on the host system.
@@ -540,11 +537,10 @@ try:
         >>> p + q == q + p
         True
 
-        Nevertheless, all bytes-like objects, :obj:`point` objects,
-        and :obj:`scalar` objects accepted and emitted by the various
-        operations and class methods in :obj:`sodium` and compatible
-        with those accepted and emitted by the operations and class
-        methods in :obj:`native`.
+        Nevertheless, all bytes-like objects, :obj:`point` objects, and
+        :obj:`scalar` objects accepted and emitted by the various operations
+        and class methods in :obj:`sodium` are compatible with those accepted
+        and emitted by the operations and class methods in :obj:`python`.
         """
         _lib = _sodium
         _call_unwrapped = _call_variant_unwrapped
@@ -567,8 +563,9 @@ try:
         @classmethod
         def scl(cls, s: bytes = None) -> Optional[bytes]:
             """
-            Return supplied byte vector if it is a valid scalar; otherwise, return
-            ``None``. If no byte vector is supplied, return a random scalar.
+            Return supplied byte vector if it is a valid scalar; otherwise,
+            return ``None``. If no byte vector is supplied, return a random
+            scalar.
 
             >>> s = scl()
             >>> t = scl(s)
@@ -731,7 +728,7 @@ except: # pylint: disable=W0702 # pragma: no cover
 # Dedicated point and scalar data structures derived from `bytes`.
 #
 
-for _implementation in [native] + ([sodium] if sodium is not None else []):
+for _implementation in [python] + ([sodium] if sodium is not None else []):
     # pylint: disable=cell-var-from-loop
     class point(bytes): # pylint: disable=E0102
         """
@@ -1103,7 +1100,7 @@ for _implementation in [native] + ([sodium] if sodium is not None else []):
             True
             """
             if (
-                isinstance(other, native.scalar) or
+                isinstance(other, python.scalar) or
                 (sodium is not None and isinstance(other, sodium.scalar))
             ):
                 return self._implementation.scalar(self._implementation.smu(self, other))
