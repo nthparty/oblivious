@@ -786,8 +786,8 @@ class python:
         """
         Return the binary representation of a second-level point.
 
-        >>> q = python.point2.hash('123'.encode())
-        >>> python.des(python.ser(q)) == q
+        >>> p = python.point2.hash('123'.encode())
+        >>> python.des2(python.ser2(p)) == p
         True
         """
         return bytes(b for b in p)
@@ -1548,8 +1548,8 @@ try:
             """
             Return the binary representation of a second-level point.
 
-            >>> q = mcl.point2.hash('123'.encode())
-            >>> mcl.des2(mcl.ser(q)) == q
+            >>> p = mcl.point2.hash('123'.encode())
+            >>> mcl.des2(mcl.ser2(p)) == p
             True
             """
             IoEcProj, IoArrayRaw = 1024, 64 # Constants from mcl library. # pylint: disable=C0103
