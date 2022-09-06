@@ -253,12 +253,13 @@ class python:
     :obj:`python.add <add>`, :obj:`python.sub <sub>`,
     :obj:`python.neg <neg>`, :obj:`python.par <par>`,
     :obj:`python.rnd2 <rnd2>`, :obj:`python.scl2 <scl2>`,
-    :obj:`python.sde2 <sde2>`, :obj:`python.inv2 <inv2>`,
-    :obj:`python.smu2 <smu2>`, :obj:`python.sad2 <sad2>`,
-    :obj:`python.pnt2 <pnt2>`, :obj:`python.bas2 <bas2>`,
-    :obj:`python.des2 <des2>`, :obj:`python.mul2 <mul2>`,
-    :obj:`python.add2 <add2>`, :obj:`python.sub2 <sub2>`,
-    :obj:`python.neg2 <neg2>`,
+    :obj:`python.sse2 <sse2>`, :obj:`python.sde2 <sde2>`,
+    :obj:`python.inv2 <inv2>`, :obj:`python.smu2 <smu2>`,
+    :obj:`python.sad2 <sad2>`, :obj:`python.pnt2 <pnt2>`,
+    :obj:`python.bas2 <bas2>`, :obj:`python.can2 <can2>`,
+    :obj:`python.ser2 <ser2>`, :obj:`python.des2 <des2>`,
+    :obj:`python.mul2 <mul2>`, :obj:`python.add2 <add2>`,
+    :obj:`python.sub2 <sub2>`, :obj:`python.neg2 <neg2>`,
     :obj:`python.point <point>`, :obj:`python.scalar <scalar>`,
     :obj:`python.point <point2>`, and :obj:`python.scalar <scalar2>`.
     For example, you can perform multiplication of scalars
@@ -279,7 +280,6 @@ class python:
     >>> p * q == q * p
     True
     """
-
     @staticmethod
     def rnd() -> scalar:
         """
@@ -420,28 +420,30 @@ class python:
                              (_ECp.random() if h is None else _ECp.mapfrom(h)).serialize())
 
     @staticmethod
-    def bas(s: scalar) -> point:  # G1:
+    def bas(s: scalar) -> point:
         """
         Return base point multiplied by supplied scalar.
 
         >>> bytes(python.bas(python.scalar.hash('123'.encode()))).hex()[:64]
         '2d66076815cda25556bab4a930244ac284412267e9345aceb98d71530308401a'
         """
-        # return bytes.__new__(python.point, _ECp(int(s) * get_base()).serialize())
-        return s * python.point.from_base64('hQAAAAAAAJGJAAAAAADnpzoAAACAHm4XDAAAwI+/9wO'
-            'O////////FYr//////zm5zf////8uxqL1//9/8qQrIY7///////8Viv//////ObnN/////y7GovX//3/ypCsh')
+        return s * python.point.from_base64(
+            'hQAAAAAAAJGJAAAAAADnpzoAAACAHm4XDAAAwI+/9wO'
+            'O////////FYr//////zm5zf////8uxqL1//9/8qQrIY7///////8Viv//////ObnN/////y7GovX//3/ypCsh'
+        )
 
     @staticmethod
-    def can(p: Union[point, point2]) -> Union[point, point2]:
+    def can(p: point) -> point:
         """
-        Normalize the representation of a point into its canonical form (in-place).
+        Normalize the representation of a point into its canonical form.
 
         >>> a = python.point.hash('123'.encode())
         >>> p = python.add(a, a)
         >>> p_can = python.can(python.add(a, a))
 
         We may have ``ser(p_can) != ser(p)`` here, depending on the backend
-        implementation.  Either normalization matters, or MCl is not the backend.
+        implementation.  Either normalization matters, or the mcl library
+        has not been loaded.
 
         >>> mclbn256 = p.__class__ != python.point # Use this for now while both backends are in use
         >>> (python.ser(p_can) != python.ser(p)) or not mclbn256
@@ -455,13 +457,9 @@ class python:
         return p # This instance's coordinates are already in normal affine form.
 
     @staticmethod
-    def ser(p: Union[point, point2]) -> bytes:
+    def ser(p: point) -> bytes:
         """
         Return the binary representation of a point.
-
-        >>> p = python.point.hash('123'.encode())
-        >>> python.des(python.ser(p)) == p
-        True
 
         >>> q = python.point2.hash('123'.encode())
         >>> python.des(python.ser(q)) == q
@@ -657,6 +655,17 @@ class python:
             return None
 
     @staticmethod
+    def sse2(s: scalar2) -> bytes:
+        """
+        Return the binary representation of a second-level scalar.
+
+        >>> s = python.scalar2.hash('123'.encode())
+        >>> python.sde2(python.sse2(s)) == s
+        True
+        """
+        return bytes(b for b in s)
+
+    @staticmethod
     def sde2(bs: bytes) -> scalar2:
         """
         Return a second-level scalar from its binary representation.
@@ -744,8 +753,10 @@ class python:
         ... )
         True
         """
-        return bytes.__new__(python.point2,
-                             (_ECp2.random() if h is None else _ECp2.mapfrom(h)).serialize())
+        return bytes.__new__(
+            python.point2,
+            (_ECp2.random() if h is None else _ECp2.mapfrom(h)).serialize()
+        )
 
     @staticmethod
     def bas2(s: scalar) -> point2:  # G2:
@@ -757,6 +768,29 @@ class python:
         """
         # return s * _ECp2.__new__(python.point2, get_base2())
         return bytes.__new__(python.point2, _ECp2(int(s) * get_base2()).serialize())
+
+    @staticmethod
+    def can2(p: point2) -> point2:
+        """
+        Normalize the representation of a second-level point into its canonical
+        form.
+
+        >>> p = bas2(scalar.from_int(1))
+        >>> ser(python.can2(p)).hex()[:64]
+        '669e6563afaa45af7cbc013d23f092bb3763d4dc41b97aef555bdf61de713f17'
+        """
+        return p # This instance's coordinates are already in normal affine form.
+
+    @staticmethod
+    def ser2(p: point2) -> bytes:
+        """
+        Return the binary representation of a second-level point.
+
+        >>> q = python.point2.hash('123'.encode())
+        >>> python.des(python.ser(q)) == q
+        True
+        """
+        return bytes(b for b in p)
 
     @staticmethod
     def des2(bs: bytes) -> point2:
@@ -885,12 +919,15 @@ neg = python.neg
 par = python.par
 rnd2 = python.rnd2
 scl2 = python.scl2
+sse2 = python.sse2
 sde2 = python.sde2
 inv2 = python.inv2
 smu2 = python.smu2
 sad2 = python.sad2
 pnt2 = python.pnt2
 bas2 = python.bas2
+can2 = python.can2
+ser2 = python.ser2
 des2 = python.des2
 mul2 = python.mul2
 add2 = python.add2
@@ -956,12 +993,13 @@ try:
         :obj:`mcl.add <add>`, :obj:`mcl.sub <sub>`,
         :obj:`mcl.neg <neg>`, :obj:`mcl.par <par>`,
         :obj:`mcl.rnd2 <rnd2>`, :obj:`mcl.scl2 <scl2>`,
-        :obj:`mcl.sde2 <sde2>`, :obj:`mcl.inv2 <inv2>`,
-        :obj:`mcl.smu2 <smu2>`, :obj:`mcl.sad2 <sad2>`,
-        :obj:`mcl.pnt2 <pnt2>`, :obj:`mcl.bas2 <bas2>`,
-        :obj:`mcl.des2 <des2>`, :obj:`mcl.mul2 <mul2>`,
-        :obj:`mcl.add2 <add2>`, :obj:`mcl.sub2 <sub2>`,
-        :obj:`mcl.neg2 <neg2>`,
+        :obj:`mcl.sse2 <sse2>`, :obj:`mcl.sde2 <sde2>`,
+        :obj:`mcl.inv2 <inv2>`, :obj:`mcl.smu2 <smu2>`,
+        :obj:`mcl.sad2 <sad2>`, :obj:`mcl.pnt2 <pnt2>`,
+        :obj:`mcl.bas2 <bas2>`, :obj:`mcl.can2 <can2>`,
+        :obj:`mcl.ser2 <ser2>`, :obj:`mcl.des2 <des2>`,
+        :obj:`mcl.mul2 <mul2>`, :obj:`mcl.add2 <add2>`,
+        :obj:`mcl.sub2 <sub2>`, :obj:`mcl.neg2 <neg2>`,
         :obj:`mcl.point <point>`, :obj:`mcl.scalar <scalar>`,
         :obj:`mcl.point <point2>`, and :obj:`mcl.scalar <scalar2>`.
         For example, you can perform addition of points using
@@ -1038,7 +1076,7 @@ try:
             >>> mcl.sde(mcl.sse(s)) == s
             True
             """
-            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
+            IoEcProj, IoArrayRaw = 1024, 64 # Constants from mcl library. # pylint: disable=C0103
             return s.tostr(IoEcProj|IoArrayRaw)
 
         @staticmethod
@@ -1144,9 +1182,9 @@ try:
             return G1.base_point() * s
 
         @staticmethod
-        def can(p: Union[G1, G2]) -> Union[G1, G2]:
+        def can(p: G1) -> G1:
             """
-            Normalize the representation of a point into its canonical form (in-place).
+            Normalize the representation of a point into its canonical form.
 
             >>> a = mcl.point.hash('123'.encode())
             >>> p = mcl.add(a, a)
@@ -1166,19 +1204,15 @@ try:
             return p.normalize() # Sets ``(x, y, z)`` to unique vector ``(x/z, y/z, 1)``.
 
         @staticmethod
-        def ser(p: Union[G1, G2]) -> bytes:
+        def ser(p: G1) -> bytes:
             """
             Return the binary representation of a point.
 
             >>> p = mcl.point.hash('123'.encode())
             >>> mcl.des(mcl.ser(p)) == p
             True
-
-            >>> q = mcl.point2.hash('123'.encode())
-            >>> mcl.des2(mcl.ser(q)) == q
-            True
             """
-            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
+            IoEcProj, IoArrayRaw = 1024, 64 # Constants from mcl library. # pylint: disable=C0103
             return p.tostr(IoEcProj|IoArrayRaw)[1:]
 
         @staticmethod
@@ -1388,6 +1422,18 @@ try:
                 return None
 
         @staticmethod
+        def sse2(s: scalar2) -> bytes:
+            """
+            Return the binary representation of a second-level scalar.
+
+            >>> s = scalar2.hash('123'.encode())
+            >>> sde2(sse2(s)) == s
+            True
+            """
+            IoEcProj, IoArrayRaw = 1024, 64 # Constants from mcl library. # pylint: disable=C0103
+            return s.tostr(IoEcProj|IoArrayRaw)
+
+        @staticmethod
         def sde2(bs: bytes) -> GT:
             """
             Return a second-level scalar from its binary representation.
@@ -1485,6 +1531,29 @@ try:
             """
             # return s * G2.__new__(point2, G2.base_point())
             return G2.base_point() * s
+
+        @staticmethod
+        def can2(p: G2) -> G2:
+            """
+            Normalize the representation of a second-level point into its canonical form.
+
+            >>> p = bas2(scalar.from_int(1))
+            >>> ser(can2(p)).hex()[:64]
+            '669e6563afaa45af7cbc013d23f092bb3763d4dc41b97aef555bdf61de713f17'
+            """
+            return p.normalize() # Sets ``(x, y, z)`` to unique vector ``(x/z, y/z, 1)``.
+
+        @staticmethod
+        def ser2(p: G2) -> bytes:
+            """
+            Return the binary representation of a second-level point.
+
+            >>> q = mcl.point2.hash('123'.encode())
+            >>> mcl.des2(mcl.ser(q)) == q
+            True
+            """
+            IoEcProj, IoArrayRaw = 1024, 64 # Constants from mcl library. # pylint: disable=C0103
+            return p.tostr(IoEcProj|IoArrayRaw)[1:]
 
         @staticmethod
         def des2(bs: bytes) -> G2:
@@ -1615,12 +1684,15 @@ try:
     par = mcl.par
     rnd2 = mcl.rnd2
     scl2 = mcl.scl2
+    sse2 = mcl.sse2
     sde2 = mcl.sde2
     inv2 = mcl.inv2
     smu2 = mcl.smu2
     sad2 = mcl.sad2
     pnt2 = mcl.pnt2
     bas2 = mcl.bas2
+    can2 = mcl.can2
+    ser2 = mcl.ser2
     des2 = mcl.des2
     mul2 = mcl.mul2
     add2 = mcl.add2

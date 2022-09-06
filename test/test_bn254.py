@@ -77,7 +77,11 @@ def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R17
 
         cls = bn254.python if isinstance(o, bytes) else bn254.mcl
 
-        if 'point' in str(o.__class__) or 'G' in str(o.__class__):
+        # Transform points to canonical form.
+        cls_str = str(o.__class__)
+        if 'point2' in cls_str or 'G2' in cls_str:
+            o = cls.can2(o)
+        elif 'point' in cls_str or 'G1' in cls_str:
             o = cls.can(o)
 
         return (
