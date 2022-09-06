@@ -78,12 +78,13 @@ autodoc_preserve_defaults = True
 def autodoc_skip_member_handler(app, what, name, obj, skip, options):
     # Avoid emitting entries within ``native``, ``sodium``, and ``mcl``
     # that are duplicates of the top-level definitions.
-    if name in ('sodium', 'mcl', 'native'):
+    if name in ('python', 'sodium', 'mcl'):
         for method in [
-          'scl', 'rnd', 'inv', 'smu', 'pnt',
-          'bas', 'bs2', 
-          'mul', 'add', 'sub', 'par',
-          'point', 'scalar'
+          'rnd', 'scl', 'sse', 'sde', 'inv', 'smu', 'sad', 'ssb', 'sne',
+          'pnt', 'bas', 'can', 'ser', 'des', 'mul', 'add', 'sub', 'neg', 'par',
+          'rnd2', 'scl2', 'sse2', 'sde2', 'inv2', 'smu2', 'sad2', 'pnt2', 'bas2',
+          'can2', 'ser2', 'des2', 'mul2', 'add2', 'sub2', 'neg2',
+          'point', 'scalar', 'point2', 'scalar2'
         ]:
             if hasattr(obj, method):
                 delattr(obj, method)

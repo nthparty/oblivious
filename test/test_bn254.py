@@ -36,9 +36,11 @@ def api_methods():
     API symbols that should be available to users upon module import.
     """
     return {
-        'point', 'scalar',
-        'scl', 'rnd', 'inv', 'smu',
-        'pnt', 'bas', 'mul', 'add', 'sub'
+        'rnd', 'scl', 'sse', 'sde', 'inv', 'smu', 'sad', 'ssb', 'sne',
+        'pnt', 'bas', 'can', 'ser', 'des', 'mul', 'add', 'sub', 'neg', 'par',
+        'rnd2', 'scl2', 'sse2', 'sde2', 'inv2', 'smu2', 'sad2', 'pnt2', 'bas2',
+        'can2', 'ser2', 'des2', 'mul2', 'add2', 'sub2', 'neg2',
+        'point', 'scalar', 'point2', 'scalar2'
     }
 
 class Test_namespace(TestCase):

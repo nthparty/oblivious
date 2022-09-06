@@ -38,7 +38,7 @@ def api_methods():
     return {
         'point', 'scalar',
         'scl', 'rnd', 'inv', 'smu',
-        'pnt', 'bas', 'mul', 'add', 'sub'
+        'pnt', 'bas', 'can', 'mul', 'add', 'sub'
     }
 
 class Test_namespace(TestCase):
