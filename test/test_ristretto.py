@@ -31,15 +31,21 @@ SCALAR_LEN = 32
 sodium_lib_restore = ristretto.sodium._lib # pylint: disable=W0212
 sodium_restore = ristretto.sodium
 
-def api_methods():
+def api_functions():
     """
-    API symbols that should be available to users upon module import.
+    Low-level functions that should be available to users within each of the two
+    namespaces.
     """
     return {
-        'point', 'scalar',
         'scl', 'rnd', 'inv', 'smu',
         'pnt', 'bas', 'can', 'mul', 'add', 'sub'
     }
+
+def api_classes():
+    """
+    Classes that should be available to users upon module import.
+    """
+    return {'point', 'scalar'}
 
 class Test_namespace(TestCase):
     """
@@ -54,14 +60,16 @@ class Test_namespace(TestCase):
         module = importlib.import_module('oblivious.ristretto')
         self.assertTrue('python' in module.__dict__)
         self.assertTrue('sodium' in module.__dict__)
-        self.assertTrue(api_methods().issubset(module.__dict__.keys()))
+        self.assertTrue(api_classes().issubset(module.__dict__.keys()))
 
     def test_python(self):
-        self.assertTrue(api_methods().issubset(set(dir(ristretto.python))))
+        self.assertTrue(api_functions().issubset(set(dir(ristretto.python))))
+        self.assertTrue(api_classes().issubset(set(dir(ristretto.python))))
 
     def test_sodium(self):
         if ristretto.sodium is not None:
-            self.assertTrue(api_methods().issubset(set(dir(ristretto.sodium))))
+            self.assertTrue(api_functions().issubset(set(dir(ristretto.sodium))))
+            self.assertTrue(api_classes().issubset(set(dir(ristretto.sodium))))
 
 def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R1710
     """

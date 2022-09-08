@@ -62,6 +62,7 @@ autodoc_member_order = 'bysource'
 autodoc_default_options = {
     'special-members': True,
     'exclude-members': ','.join([
+        '__new__',
         '__init__',
         '__weakref__',
         '__module__',
@@ -73,26 +74,39 @@ autodoc_default_options = {
 autodoc_preserve_defaults = True
 
 # Avoid emitting duplicate documentation entries for classes and methods
-# that have identical interfaces.
+# that have identical interfaces, and conceal some base classes.
 
 def autodoc_skip_member_handler(app, what, name, obj, skip, options):
-    # Avoid emitting entries within ``native``, ``sodium``, and ``mcl``
-    # that are duplicates of the top-level definitions.
+    # Avoid emitting method entries for classes within ``native``,
+    # ``sodium``, and ``mcl`` that are duplicates of the methods in
+    # the top-level definitions of the classes.
     if name in ('python', 'sodium', 'mcl'):
-        for method in [
-          'rnd', 'scl', 'sse', 'sde', 'inv', 'smu', 'sad', 'ssb', 'sne',
-          'pnt', 'bas', 'can', 'ser', 'des', 'mul', 'add', 'sub', 'neg', 'par',
-          'rnd2', 'scl2', 'sse2', 'sde2', 'inv2', 'smu2', 'sad2', 'pnt2', 'bas2',
-          'can2', 'ser2', 'des2', 'mul2', 'add2', 'sub2', 'neg2',
-          'point', 'scalar', 'point2', 'scalar2'
-        ]:
-            if hasattr(obj, method):
-                delattr(obj, method)
+        for attribute in ['point', 'scalar', 'point2', 'scalar2']:
+            if hasattr(obj, attribute):
+                cls = getattr(obj, attribute)
+                cls = type(
+                    cls.__name__,
+                    cls.__bases__,
+                    dict(
+                        (name, method) 
+                        for (name, method) in cls.__dict__.items() 
+                        if name in ('__module__', '__new__')
+                    )
+                )
+                setattr(obj, attribute, cls)
 
     return skip
 
+def autodoc_process_bases_handler(app, name, obj, options, bases):
+    # Conceal the base class (replacing it with the universal object base
+    # class) of every class that is not derived from ``bytes``.
+    if bases[0] != bytes:
+        bases.pop()
+        bases.append(type('', (), {}).__bases__[0])
+
 def setup(app):
     app.connect('autodoc-skip-member', autodoc_skip_member_handler)
+    app.connect('autodoc-process-bases', autodoc_process_bases_handler)
 
 # Allow references/links to definitions found in the Python documentation
 # and in the documentation for this package's dependencies.

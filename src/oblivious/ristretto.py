@@ -4,28 +4,37 @@
 ristretto module
 ================
 
-This module exports a collection of primitive operations for working with
-elliptic curve points and scalars, classes for representing points, classes
-for representing scalars, and two wrapper classes/namespaces that encapsulate
-pure-Python and shared/dynamic library variants of the above.
+This module exports the classes :obj:`~oblivious.ristretto.point` and
+:obj:`~oblivious.ristretto.scalar` for representing points and scalars. It
+also exports the two wrapper classes/namespaces
+:obj:`~oblivious.ristretto.python` and :obj:`~oblivious.ristretto.sodium`
+that encapsulate pure-Python and shared/dynamic library variants of the
+above (respectively) and also include low-level operations that correspond
+more directly to the functions found in the underlying libraries.
 
 * Under all conditions, the wrapper class :obj:`~oblivious.ristretto.python`
-  is defined and exports a pure-Python variant of every operation and class
-  method exported by this module as a whole.
+  is defined and encapsulates a pure-Python variant of every class exported
+  by this module as a whole. It also includes pure-Python variants of low-level
+  operations that correspond to functions found in the underlying libraries.
 
 * If a shared/dynamic library instance of the
   `libsodium <https://doc.libsodium.org>`__ library is found on the system
   (and successfully loaded at the time this module is imported) or the
   optional `rbcl <https://pypi.org/project/rbcl>`__ package is installed,
-  then the wrapper class :obj:`~oblivious.ristretto.sodium` is defined and
-  exports a wrapper around the appropriate function in the dynamic/shared
-  library for every operation and class method exported by this module as a
-  whole. Otherwise, the exported variable ``sodium`` is assigned ``None``.
+  then the wrapper class :obj:`~oblivious.ristretto.sodium` is defined.
+  Otherwise, the exported variable ``sodium`` is assigned ``None``.
 
-* All operations and class methods exported by this module correspond to
-  the variants defined within :obj:`~oblivious.ristretto.sodium` if a
-  dynamic/shared library is loaded. Otherwise, they correspond to the
+* If a dynamic/shared library instance is loaded, all classes exported by
+  this module correspond to the variants defined within
+  :obj:`~oblivious.ristretto.sodium`. Otherwise, they correspond to the
   variants defined within :obj:`~oblivious.ristretto.python`.
+
+For most users, the classes :obj:`~oblivious.ristretto.point` and
+:obj:`~oblivious.ristretto.scalar` should be sufficient. When using the
+low-level operations that correspond to a specific implementation (*e.g.*,
+:obj:`oblivious.ristretto.sodium.add`), users are responsible for ensuring
+that inputs have the type and/or representation appropriate for that
+operation.
 """
 from __future__ import annotations
 from typing import Any, NoReturn, Union, Optional
@@ -168,8 +177,8 @@ class python:
     """
     Wrapper class for pure-Python implementations of primitive operations.
 
-    This class encapsulates pure-Python variants of all primitive operations
-    and classes exported by this module:
+    This class encapsulates pure-Python variants of all low-level functions
+    and of both classes exported by this module:
     :obj:`python.scl <scl>`, :obj:`python.rnd <rnd>`,
     :obj:`python.inv <inv>`, :obj:`python.smu <smu>`,
     :obj:`python.pnt <pnt>`, :obj:`python.bas <bas>`,
@@ -203,7 +212,7 @@ class python:
         """
         Return random non-zero scalar.
 
-        >>> len(rnd())
+        >>> len(python.rnd())
         32
         """
         while True:
@@ -218,11 +227,11 @@ class python:
         Return supplied byte vector if it is a valid scalar; otherwise, return
         ``None``. If no byte vector is supplied, return a random scalar.
 
-        >>> s = scl()
-        >>> t = scl(s)
+        >>> s = python.scl()
+        >>> t = python.scl(s)
         >>> s == t
         True
-        >>> scl(bytes([255] * 32)) is None
+        >>> python.scl(bytes([255] * 32)) is None
         True
         """
         if s is None:
@@ -239,9 +248,9 @@ class python:
         Return inverse of scalar modulo
         ``2**252 + 27742317777372353535851937790883648493``.
 
-        >>> s = scl()
-        >>> p = pnt()
-        >>> mul(inv(s), mul(s, p)) == p
+        >>> s = python.scl()
+        >>> p = python.pnt()
+        >>> python.mul(python.inv(s), python.mul(s, p)) == p
         True
         """
         return _sc25519_invert(s)
@@ -251,9 +260,9 @@ class python:
         """
         Return scalar multiplied by another scalar.
 
-        >>> s = scl()
-        >>> t = scl()
-        >>> smu(s, t) == smu(t, s)
+        >>> s = python.scl()
+        >>> t = python.scl()
+        >>> python.smu(s, t) == python.smu(t, s)
         True
         """
         return _sc25519_mul(s, t)
@@ -263,7 +272,7 @@ class python:
         """
         Return point from 64-byte vector (normally obtained via hashing).
 
-        >>> p = pnt(hashlib.sha512('123'.encode()).digest())
+        >>> p = python.pnt(hashlib.sha512('123'.encode()).digest())
         >>> p.hex()
         '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
         """
@@ -276,7 +285,7 @@ class python:
         """
         Return base point multiplied by supplied scalar.
 
-        >>> bas(scalar.hash('123'.encode())).hex()
+        >>> python.bas(scalar.hash('123'.encode())).hex()
         '4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005'
         """
         t = bytearray(s)
@@ -290,7 +299,7 @@ class python:
         Normalize the representation of a point into its canonical form.
 
         >>> p = point.hash('123'.encode())
-        >>> can(p) == p
+        >>> python.can(p) == p
         True
         """
         return p # In this module, the canonical representation is used at all times.
@@ -300,11 +309,11 @@ class python:
         """
         Multiply the point by the supplied scalar and return the result.
 
-        >>> p = pnt(hashlib.sha512('123'.encode()).digest())
-        >>> s = scl(bytes.fromhex(
+        >>> p = python.pnt(hashlib.sha512('123'.encode()).digest())
+        >>> s = python.scl(bytes.fromhex(
         ...     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
         ... ))
-        >>> mul(s, p).hex()
+        >>> python.mul(s, p).hex()
         '183a06e0fe6af5d7913afb40baefc4dd52ae718fee77a3a0af8777c89fe16210'
         """
         p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
@@ -323,7 +332,7 @@ class python:
 
         >>> p = point.hash('123'.encode())
         >>> q = point.hash('456'.encode())
-        >>> add(p, q).hex()
+        >>> python.add(p, q).hex()
         '7076739c9df665d416e68b9512f5513bf1d0181a2aacefdeb1b7244528a4dd77'
         """
         p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
@@ -346,7 +355,7 @@ class python:
 
         >>> p = point.hash('123'.encode())
         >>> q = point.hash('456'.encode())
-        >>> sub(p, q).hex()
+        >>> python.sub(p, q).hex()
         '1a3199ca7debfe31a90171696d8bab91b99eb23a541b822a7061b09776e1046c'
         """
         p_p3 = ge25519.ge25519_p3.from_bytes_ristretto255(p)
@@ -361,18 +370,6 @@ class python:
         r_p1p1 = ge25519.ge25519_p1p1.sub(p_p3, q_cached)
         r_p3 = ge25519.ge25519_p3.from_p1p1(r_p1p1)
         return r_p3.to_bytes_ristretto255()
-
-# Top-level best-effort synonyms.
-scl = python.scl
-rnd = python.rnd
-inv = python.inv
-smu = python.smu
-pnt = python.pnt
-bas = python.bas
-can = python.can
-mul = python.mul
-add = python.add
-sub = python.sub
 
 #
 # Attempt to load primitives from libsodium, if it is present;
@@ -510,8 +507,8 @@ try:
         the expression ``sodium is not None``.
 
         If a shared/dynamic library file has been loaded successfully, this
-        class encapsulates shared/dynamic library variants of all primitive
-        operations and classes exported by this module:
+        class encapsulates shared/dynamic library variants of low-level
+        functions and of both classes exported by this module:
         :obj:`sodium.scl <scl>`, :obj:`sodium.rnd <rnd>`,
         :obj:`sodium.inv <inv>`, :obj:`sodium.smu <smu>`,
         :obj:`sodium.pnt <pnt>`, :obj:`sodium.bas <bas>`,
@@ -552,7 +549,7 @@ try:
             """
             Return random non-zero scalar.
 
-            >>> len(rnd())
+            >>> len(sodium.rnd())
             32
             """
             return sodium._call(
@@ -567,11 +564,11 @@ try:
             return ``None``. If no byte vector is supplied, return a random
             scalar.
 
-            >>> s = scl()
-            >>> t = scl(s)
+            >>> s = sodium.scl()
+            >>> t = sodium.scl(s)
             >>> s == t
             True
-            >>> scl(bytes([255] * 32)) is None
+            >>> sodium.scl(bytes([255] * 32)) is None
             True
             """
             if s is None:
@@ -588,9 +585,9 @@ try:
             Return inverse of scalar modulo
             ``2**252 + 27742317777372353535851937790883648493``.
 
-            >>> s = scl()
-            >>> p = pnt()
-            >>> mul(inv(s), mul(s, p)) == p
+            >>> s = sodium.scl()
+            >>> p = sodium.pnt()
+            >>> sodium.mul(sodium.inv(s), sodium.mul(s, p)) == p
             True
             """
             return sodium._call(
@@ -604,9 +601,9 @@ try:
             """
             Return scalar multiplied by another scalar.
 
-            >>> s = scl()
-            >>> t = scl()
-            >>> smu(s, t) == smu(t, s)
+            >>> s = sodium.scl()
+            >>> t = sodium.scl()
+            >>> sodium.smu(s, t) == sodium.smu(t, s)
             True
             """
             return sodium._call(
@@ -620,7 +617,7 @@ try:
             """
             Return point from 64-byte vector (normally obtained via hashing).
 
-            >>> p = pnt(hashlib.sha512('123'.encode()).digest())
+            >>> p = sodium.pnt(hashlib.sha512('123'.encode()).digest())
             >>> p.hex()
             '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
             """
@@ -637,7 +634,7 @@ try:
             """
             Return base point multiplied by supplied scalar.
 
-            >>> bas(scalar.hash('123'.encode())).hex()
+            >>> sodium.bas(scalar.hash('123'.encode())).hex()
             '4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005'
             """
             return sodium._call(
@@ -652,7 +649,7 @@ try:
             Normalize the representation of a point into its canonical form.
 
             >>> p = point.hash('123'.encode())
-            >>> can(p) == p
+            >>> sodium.can(p) == p
             True
             """
             # In this module, the canonical representation is used at all times.
@@ -663,11 +660,11 @@ try:
             """
             Multiply the point by the supplied scalar and return the result.
 
-            >>> p = pnt(hashlib.sha512('123'.encode()).digest())
-            >>> s = scl(bytes.fromhex(
+            >>> p = sodium.pnt(hashlib.sha512('123'.encode()).digest())
+            >>> s = sodium.scl(bytes.fromhex(
             ...     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
             ... ))
-            >>> mul(s, p).hex()
+            >>> sodium.mul(s, p).hex()
             '183a06e0fe6af5d7913afb40baefc4dd52ae718fee77a3a0af8777c89fe16210'
             """
             return sodium._call(
@@ -683,7 +680,7 @@ try:
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> add(p, q).hex()
+            >>> sodium.add(p, q).hex()
             '7076739c9df665d416e68b9512f5513bf1d0181a2aacefdeb1b7244528a4dd77'
             """
             return sodium._call(
@@ -699,7 +696,7 @@ try:
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
-            >>> sub(p, q).hex()
+            >>> sodium.sub(p, q).hex()
             '1a3199ca7debfe31a90171696d8bab91b99eb23a541b822a7061b09776e1046c'
             """
             return sodium._call(
@@ -707,18 +704,6 @@ try:
                 sodium._lib.crypto_core_ristretto255_sub,
                 bytes(p), bytes(q)
             )
-
-    # Top-level best-effort synonyms.
-    scl = sodium.scl
-    rnd = sodium.rnd
-    inv = sodium.inv
-    smu = sodium.smu
-    pnt = sodium.pnt
-    bas = sodium.bas
-    can = sodium.can
-    mul = sodium.mul
-    add = sodium.add
-    sub = sodium.sub
 
 except: # pylint: disable=W0702 # pragma: no cover
     # Exported symbol.
@@ -950,7 +935,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             Return scalar object obtained by transforming supplied bytes-like
             object if it is possible to do; otherwise, return ``None``.
 
-            >>> s = scl()
+            >>> s = python.scl()
             >>> t = scalar.from_bytes(s)
             >>> s.hex() == t.hex()
             True
@@ -1023,7 +1008,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             scalar). If no argument is supplied, return a random scalar
             object.
 
-            >>> s = scl()
+            >>> s = python.scl()
             >>> t = scalar(s)
             >>> s.hex() == t.hex()
             True
@@ -1154,6 +1139,11 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
     # exported as the unqualified symbols.
     _implementation.point = point
     _implementation.scalar = scalar
+
+# Redefine top-level wrapper classes to ensure that they appear at the end of
+# the auto-generated documentation.
+python = python # pylint: disable=self-assigning-variable
+sodium = sodium # pylint: disable=self-assigning-variable
 
 if __name__ == "__main__":
     doctest.testmod() # pragma: no cover

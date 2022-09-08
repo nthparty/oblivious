@@ -4,27 +4,41 @@
 bn254 module
 ============
 
-This module exports a collection of primitive operations for working with
-elliptic curve points and scalars, classes for representing points, classes
-for representing scalars, and two wrapper classes/namespaces that encapsulate
-pure-Python and shared/dynamic library variants of the above.
+This module exports the classes :obj:`~oblivious.bn254.point`,
+:obj:`~oblivious.bn254.scalar`, :obj:`~oblivious.bn254.point2`,
+and :obj:`~oblivious.bn254.scalar2` for representing points and scalars. It
+also exports the two wrapper classes/namespaces :obj:`~oblivious.bn254.python`
+and :obj:`~oblivious.bn254.mcl` that encapsulate pure-Python and shared/dynamic
+library variants of the above (respectively) and also include low-level
+operations that correspond more directly to the functions found in the
+underlying libraries.
 
 * Under all conditions, the wrapper class :obj:`~oblivious.bn254.python`
-  is defined and exports a pure-Python variant of every operation and class
-  method exported by this module as a whole.
+  is defined and encapsulates a pure-Python variant of class exported by this
+  module as a whole. It also includes pure-Python variants of low-level
+  operations that correspond to functions found in the underlying libraries.
 
-* If the optional `mclbn256 <https://pypi.org/project/mclbn256>`__ package
-  is installed (which includes a bundled instance of the
-  `mcl <https://github.com/herumi/mcl>`__ dynamic/shared libray), then the
-  wrapper class :obj:`~oblivious.bn254.mcl` is defined and exports a wrapper
-  around the appropriate function in the dynamic/shared library for every
-  operation and class method exported by this module as a whole. Otherwise,
-  the exported variable ``mcl`` is assigned ``None``.
+* If the `mclbn256 <https://pypi.org/project/mclbn256>`__ package is installed
+  (which includes a bundled copy of the `mcl <https://github.com/herumi/mcl>`__
+  dynamic/shared libray), then the wrapper class :obj:`~oblivious.bn254.mcl`
+  is defined. Otherwise, the exported variable ``mcl`` is assigned ``None``.
 
-* All operations and class methods exported by this module correspond to
-  the variants defined within :obj:`~oblivious.bn254.mcl` if a dynamic/shared
-  library is loaded. Otherwise, they correspond to the variants defined
-  within :obj:`~oblivious.bn254.python`.
+* If the `mclbn256 <https://pypi.org/project/mclbn256>`__ package is installed,
+  all classes exported by this module correspond to the variants defined in
+  :obj:`~oblivious.bn254.mcl`. Otherwise, they correspond to the variants
+  defined in :obj:`~oblivious.bn254.python`.
+
+For most users, the classes :obj:`~oblivious.bn254.point`,
+:obj:`~oblivious.bn254.scalar`, :obj:`~oblivious.bn254.point2`,
+and :obj:`~oblivious.bn254.scalar2` should be sufficient. When using the
+classes within :obj:`~oblivious.bn254.python` and/or :obj:`~oblivious.bn254.mcl`,
+users should be aware that objects corresponding to one implementation (*e.g.*,
+instances of :obj:`oblivious.bn254.mcl.point`) are not compatible with instances
+of another (*e.g.*, the methods of the :obj:`oblivious.bn254.python.point`
+class). When using the primitive operations that correspond to a specific
+implementation (*e.g.*, :obj:`oblivious.bn254.mcl.add`), users are responsible
+for ensuring that inputs have the type and/or representation appropriate for
+that operation's internal implementation.
 """
 from __future__ import annotations
 from typing import Union, Optional
@@ -775,8 +789,8 @@ class python:
         Normalize the representation of a second-level point into its canonical
         form.
 
-        >>> p = bas2(scalar.from_int(1))
-        >>> ser(python.can2(p)).hex()[:64]
+        >>> p = python.bas2(scalar.from_int(1))
+        >>> python.ser(python.can2(p)).hex()[:64]
         '669e6563afaa45af7cbc013d23f092bb3763d4dc41b97aef555bdf61de713f17'
         """
         return p # This instance's coordinates are already in normal affine form.
@@ -897,43 +911,6 @@ class python:
         """
         return bytes.__new__(python.point2, _ECp2(-1 * _ECp2.deserialize(p)).serialize())
 
-# Encapsulate pure-Python backend functions with their top-level best-effort synonyms.
-rnd = python.rnd
-scl = python.scl
-sse = python.sse
-sde = python.sde
-inv = python.inv
-smu = python.smu
-sad = python.sad
-ssb = python.ssb
-sne = python.sne
-pnt = python.pnt
-bas = python.bas
-can = python.can
-ser = python.ser
-des = python.des
-mul = python.mul
-add = python.add
-sub = python.sub
-neg = python.neg
-par = python.par
-rnd2 = python.rnd2
-scl2 = python.scl2
-sse2 = python.sse2
-sde2 = python.sde2
-inv2 = python.inv2
-smu2 = python.smu2
-sad2 = python.sad2
-pnt2 = python.pnt2
-bas2 = python.bas2
-can2 = python.can2
-ser2 = python.ser2
-des2 = python.des2
-mul2 = python.mul2
-add2 = python.add2
-sub2 = python.sub2
-neg2 = python.neg2
-
 # Indicate that data structures based on the dynamic/shared library
 # in mclbn256 have not (yet, at least) been defined.
 mclbn256 = False
@@ -1020,12 +997,6 @@ try:
         >>> q = mcl.point()
         >>> p + q == q + p
         True
-
-        Nevertheless, all bytes-like objects, :obj:`point` objects,
-        and :obj:`scalar` objects accepted and emitted by the various
-        operations and class methods in :obj:`mcl` and compatible
-        with those accepted and emitted by the operations and class
-        methods in :obj:`~oblivious.bn254.python`.
         """
         # pylint: disable=too-many-public-methods
 
@@ -1427,7 +1398,7 @@ try:
             Return the binary representation of a second-level scalar.
 
             >>> s = scalar2.hash('123'.encode())
-            >>> sde2(sse2(s)) == s
+            >>> mcl.sde2(mcl.sse2(s)) == s
             True
             """
             IoEcProj, IoArrayRaw = 1024, 64 # Constants from mcl library. # pylint: disable=C0103
@@ -1537,8 +1508,8 @@ try:
             """
             Normalize the representation of a second-level point into its canonical form.
 
-            >>> p = bas2(scalar.from_int(1))
-            >>> ser(can2(p)).hex()[:64]
+            >>> p = mcl.bas2(scalar.from_int(1))
+            >>> mcl.ser(mcl.can2(p)).hex()[:64]
             '669e6563afaa45af7cbc013d23f092bb3763d4dc41b97aef555bdf61de713f17'
             """
             return p.normalize() # Sets ``(x, y, z)`` to unique vector ``(x/z, y/z, 1)``.
@@ -1661,43 +1632,6 @@ try:
             True
             """
             return G2.__neg__(p)
-
-    # Top-level best-effort synonyms.
-    rnd = mcl.rnd
-    scl = mcl.scl
-    sse = mcl.sse
-    sde = mcl.sde
-    inv = mcl.inv
-    smu = mcl.smu
-    sad = mcl.sad
-    ssb = mcl.ssb
-    sne = mcl.sne
-    pnt = mcl.pnt
-    bas = mcl.bas
-    can = mcl.can
-    ser = mcl.ser
-    des = mcl.des
-    mul = mcl.mul
-    add = mcl.add
-    sub = mcl.sub
-    neg = mcl.neg
-    par = mcl.par
-    rnd2 = mcl.rnd2
-    scl2 = mcl.scl2
-    sse2 = mcl.sse2
-    sde2 = mcl.sde2
-    inv2 = mcl.inv2
-    smu2 = mcl.smu2
-    sad2 = mcl.sad2
-    pnt2 = mcl.pnt2
-    bas2 = mcl.bas2
-    can2 = mcl.can2
-    ser2 = mcl.ser2
-    des2 = mcl.des2
-    mul2 = mcl.mul2
-    add2 = mcl.add2
-    sub2 = mcl.sub2
-    neg2 = mcl.neg2
 
     # Indicate that data structures based on the dynamic/shared library have
     # successfully been defined.
@@ -3044,6 +2978,11 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
     _implementation.scalar = scalar
     _implementation.point2 = point2
     _implementation.scalar2 = scalar2
+
+# Redefine top-level wrapper classes to ensure that they appear at the end of
+# the auto-generated documentation.
+python = python # pylint: disable=self-assigning-variable
+mcl = mcl # pylint: disable=self-assigning-variable
 
 if __name__ == "__main__":
     doctest.testmod() # pragma: no cover

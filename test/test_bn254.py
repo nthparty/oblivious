@@ -31,17 +31,23 @@ SCALAR_LEN = 32 # Really ≤32, but the ``scalar.bytes(bs)`` function will never
 #mcl_lib_restore = bn254.mcl._lib # pylint: disable=W0212
 mcl_restore = bn254.mcl
 
-def api_methods():
+def api_functions():
     """
-    API symbols that should be available to users upon module import.
+    Low-level functions that should be available to users within each of the two
+    namespaces.
     """
     return {
         'rnd', 'scl', 'sse', 'sde', 'inv', 'smu', 'sad', 'ssb', 'sne',
         'pnt', 'bas', 'can', 'ser', 'des', 'mul', 'add', 'sub', 'neg', 'par',
         'rnd2', 'scl2', 'sse2', 'sde2', 'inv2', 'smu2', 'sad2', 'pnt2', 'bas2',
-        'can2', 'ser2', 'des2', 'mul2', 'add2', 'sub2', 'neg2',
-        'point', 'scalar', 'point2', 'scalar2'
+        'can2', 'ser2', 'des2', 'mul2', 'add2', 'sub2', 'neg2'
     }
+
+def api_classes():
+    """
+    Classes that should be available to users upon module import.
+    """
+    return {'point', 'scalar', 'point2', 'scalar2'}
 
 class Test_namespace(TestCase):
     """
@@ -56,14 +62,16 @@ class Test_namespace(TestCase):
         module = importlib.import_module('oblivious.bn254')
         self.assertTrue('python' in module.__dict__)
         self.assertTrue('mcl' in module.__dict__)
-        self.assertTrue(api_methods().issubset(module.__dict__.keys()))
+        self.assertTrue(api_classes().issubset(module.__dict__.keys()))
 
     def test_python(self):
-        self.assertTrue(api_methods().issubset(set(dir(bn254.python))))
+        self.assertTrue(api_functions().issubset(set(dir(bn254.python))))
+        self.assertTrue(api_classes().issubset(set(dir(bn254.python))))
 
     def test_mcl(self):
         if bn254.mcl is not None:
-            self.assertTrue(api_methods().issubset(set(dir(bn254.mcl))))
+            self.assertTrue(api_functions().issubset(set(dir(bn254.mcl))))
+            self.assertTrue(api_classes().issubset(set(dir(bn254.mcl))))
 
 def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R1710
     """
