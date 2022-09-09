@@ -30,15 +30,29 @@ underlying libraries.
 
 For most users, the classes :obj:`~oblivious.bn254.point`,
 :obj:`~oblivious.bn254.scalar`, :obj:`~oblivious.bn254.point2`,
-and :obj:`~oblivious.bn254.scalar2` should be sufficient. When using the
-classes within :obj:`~oblivious.bn254.python` and/or :obj:`~oblivious.bn254.mcl`,
-users should be aware that objects corresponding to one implementation (*e.g.*,
-instances of :obj:`oblivious.bn254.mcl.point`) are not compatible with instances
-of another (*e.g.*, the methods of the :obj:`oblivious.bn254.python.point`
-class). When using the primitive operations that correspond to a specific
-implementation (*e.g.*, :obj:`oblivious.bn254.mcl.add`), users are responsible
-for ensuring that inputs have the type and/or representation appropriate for
-that operation's internal implementation.
+and :obj:`~oblivious.bn254.scalar2` should be sufficient. The diagram below
+illustrates the relationships between these classes and the operations they
+support.
+
+.. figure:: ../../diagram-bn254-classes.svg
+  :alt: Diagram illustrating the classes and operations found in the :obj:`~oblivious.bn254` module.
+  :width: 100%
+
+  Diagram illustrating the relationships between the classes and operations
+  found in the :obj:`~oblivious.bn254` module. Note that multiplication of a
+  point by a scalar (denoted by ``*`` and corresponding to the method
+  :obj:`oblivious.bn254.point.__rmul__`) is computationally difficult to invert
+  only if the scalar is not known.
+
+When using the classes within :obj:`~oblivious.bn254.python` and/or
+:obj:`~oblivious.bn254.mcl`, users should be aware that objects corresponding
+to one implementation (*e.g.*, instances of :obj:`oblivious.bn254.mcl.point`)
+are not compatible with instances corresponding to the other implementation
+(*e.g.*, the methods of the :obj:`oblivious.bn254.python.point` class). When
+using the primitive operations that correspond to a specific implementation
+(*e.g.*, :obj:`oblivious.bn254.mcl.add`), users are responsible for ensuring
+that inputs have the type and/or representation appropriate for that
+operation's internal implementation.
 """
 from __future__ import annotations
 from typing import Union, Optional

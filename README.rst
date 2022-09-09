@@ -146,21 +146,7 @@ The operations and class methods exported by the |ristretto|_ module directly (*
 .. |bn254| replace:: ``bn254``
 .. _bn254: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.bn254.html
 
-.. |point2| replace:: ``point2``
-.. _point2: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.bn254.html#oblivious.bn254.point2
-
-.. |scalar2| replace:: ``scalar2``
-.. _scalar2: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.bn254.html#oblivious.bn254.scalar2
-
-The classes that implement and wrap the functionalities within the `mcl <https://github.com/herumi/mcl>`__ library are organized in a similar manner. More information is available in the documentation for the |bn254|_ module.
-
-.. image:: https://raw.githubusercontent.com/gist/wyatt-howe/557ddf0efe0fee21f0ae3163b34f9889/raw/57a96d2193177bdf7ee139e4bc5d3761c8142193/diagrambn.svg?sanitize=true
-  :alt: Oblivious BN-254 data model
-  :width: 92%
-
-:sup:`†` Multiplication of a point by a scalar (denoted by ``*``) is non-invertible only for secret scalars.
-
-The Ristretto255 curve does not have a computable pairing function, so the |ristretto|_ module does not export second-level point and scalar classes (|point2|_ and |scalar2|_) that are found in the |bn254|_ module.
+The classes within the |bn254|_ module that implement and wrap the functionalities within the `mcl <https://github.com/herumi/mcl>`__ library are organized in a similar manner. More information is available in the documentation for the |bn254|_ module.
 
 Development
 -----------
