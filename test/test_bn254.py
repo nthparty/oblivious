@@ -314,6 +314,21 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 return p.canonical()
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
 
+        def test_point_rmul(
+                self,
+                bits='b9e1'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                bs = bytearray(bs)
+                bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
+                bs[SCALAR_LEN - 1] &= 0b00011111
+                bs = bytes(bs)
+                (s, p) = (cls.scalar.bytes(bs[:SCALAR_LEN]), cls.point.bytes(bs[SCALAR_LEN:]))
+                # pylint: disable=C2801 # Overriding overloaded method for :obj:`scalar`.
+                return p.__rmul__(s) if (s is not None and p is not None) else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_HASH_LEN], bits)
+
         def test_point_scalar_mul_op(
                 self,
                 bits='b9e1'
