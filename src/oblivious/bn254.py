@@ -1820,7 +1820,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             """
             p = self._implementation.can(self)
-            p.__class__ = point
+            p.__class__ = self.__class__
             return p
 
         def __mul__(self: point, other):
@@ -1834,9 +1834,10 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             """
             raise TypeError('point must be on right-hand side of multiplication operator')
 
-        def __rmul__(self: point, other: scalar) -> point:
+        def __rmul__(self: point, other: scalar) -> point: # pragma: no cover
             """
             Multiply this point by the supplied scalar and return the result.
+            This method should normally be preempted by :obj:`scalar.__mul__`.
 
             >>> p = point.hash('123'.encode())
             >>> s = scalar.hash('456'.encode())
@@ -1844,7 +1845,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             '6df8d29225a699b5ff3cc4b7b0a9c5003c0e1a93037cb2488b278495abfa2902'
             """
             p = self._implementation.mul(other, self)
-            p.__class__ = self.__class__ # = point
+            p.__class__ = self.__class__
             return p
 
         def __add__(self: point, other: point) -> point:
@@ -1857,7 +1858,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             '1ea48cab238fece46bd0c9fb562c859e318e17a8fb75517a4750d30ca79b911c'
             """
             p = self._implementation.add(self, other)
-            p.__class__ = self.__class__ # = point
+            p.__class__ = self.__class__
             return p
 
         def __sub__(self: point, other: point) -> point:
@@ -1870,7 +1871,20 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             'a43a5ce1931b1300b62e5d7e1b0c691203bfd85fafd9585dc5e47a7e2acfea22'
             """
             p = self._implementation.sub(self, other)
-            p.__class__ = self.__class__ # = point
+            p.__class__ = self.__class__
+            return p
+
+        def __neg__(self: point) -> point:
+            """
+            Return the negation (additive inverse) of this point
+
+            >>> p = point.hash('123'.encode())
+            >>> q = point.hash('456'.encode())
+            >>> (p + q).canonical().hex()[:64]
+            '1ea48cab238fece46bd0c9fb562c859e318e17a8fb75517a4750d30ca79b911c'
+            """
+            p = self._implementation.neg(self)
+            p.__class__ = self.__class__
             return p
 
         def __matmul__(self: point, other: point2) -> scalar2:
@@ -1912,19 +1926,6 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             s = self._implementation.par(self, other)
             s.__class__ = self._implementation.scalar2
             return s
-
-        def __neg__(self: point) -> point:
-            """
-            Return the negation (additive inverse) of this point
-
-            >>> p = point.hash('123'.encode())
-            >>> q = point.hash('456'.encode())
-            >>> (p + q).canonical().hex()[:64]
-            '1ea48cab238fece46bd0c9fb562c859e318e17a8fb75517a4750d30ca79b911c'
-            """
-            p = self._implementation.neg(self)
-            p.__class__ = self.__class__ # = point
-            return p
 
         def __len__(self: point) -> int:
             """
@@ -2531,7 +2532,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             """
             p = self._implementation.can(self)
-            p.__class__ = point2
+            p.__class__ = self.__class__
             return p
 
         def __mul__(self: point, other):
