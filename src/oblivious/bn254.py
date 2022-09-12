@@ -678,7 +678,7 @@ class python:
             return python.rnd2() # cls.rnd2
 
         try:
-            return bytes.__new__(python.scalar2, s)
+            return python.sde2(s)
         except ValueError: # pragma: no cover
             return None
 
@@ -817,6 +817,9 @@ class python:
         >>> p = python.point2.hash('123'.encode())
         >>> python.des2(python.ser2(p)) == p
         True
+
+        It is the responsibility of the user to ensure that only canonical
+        representations of points are serialized.
         """
         return bytes(b for b in p)
 
@@ -1396,13 +1399,13 @@ try:
             >>> s = mcl.scl2(bs)
             >>> s.__class__ = mcl.scalar2
             >>> mcl.scalar2.to_bytes(s).hex()[700:]
-            '35145b2cf0fb3ca4a65aebc14a7c696e58b78fc9b7504a33bd4873f23a9ceaf75201'
+            '36222db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
             """
             if s is None:
                 return mcl.rnd2() # cls.rnd2
 
             try:
-                return GT.deserialize(s)
+                return mcl.sde2(s)
             except ValueError: # pragma: no cover
                 return None
 
@@ -1536,6 +1539,9 @@ try:
             >>> p = mcl.point2.hash('123'.encode())
             >>> mcl.des2(mcl.ser2(p)) == p
             True
+
+            It is the responsibility of the user to ensure that only canonical
+            representations of points are serialized.
             """
             IoEcProj, IoArrayRaw = 1024, 64 # Constants from mcl library. # pylint: disable=C0103
             return p.tostr(IoEcProj|IoArrayRaw)[1:]
@@ -1900,12 +1906,12 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> z == z_mcl if mclbn256 else z == z_python
             True
 
-            The pairing function is bilinear
-            >>> p = point.random()
-            >>> s = scalar.random()
+            The pairing function is bilinear.
 
-            >>> t = scalar.random()
+            >>> p = point.random()
             >>> q = point2.random()
+            >>> s = scalar.random()
+            >>> t = scalar.random()
             >>> -((~s) * (s * p)) - p == scalar.from_int(-2) * p
             True
             >>> s*t*p @ q == s*p @ (t*q)
@@ -2562,15 +2568,15 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> 2 * p
             Traceback (most recent call last):
               ...
-            TypeError: second-group point can only be multiplied by a scalar
+            TypeError: second-level point can only be multiplied by a scalar
             """
             raise TypeError(
-                'second-group point can only be multiplied by a scalar'
+                'second-level point can only be multiplied by a scalar'
             )
 
         def __add__(self: point2, other: point2) -> Optional[point2]:
             """
-            Return sum of this instance and another second-group point.
+            Return sum of this instance and another second-level point.
 
             >>> p = point2.hash('123'.encode())
             >>> q = point2.hash('456'.encode())
@@ -2581,12 +2587,12 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             """
             p = self._implementation.add2(self, other)
-            p.__class__ = self.__class__ # = point2
+            p.__class__ = self.__class__
             return p
 
         def __sub__(self: point2, other: point2) -> Optional[point2]:
             """
-            Return the result of subtracting another second-group point from
+            Return the result of subtracting another second-level point from
             this instance.
 
             >>> p = point2.hash('123'.encode())
@@ -2598,7 +2604,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             """
             p = self._implementation.sub2(self, other)
-            p.__class__ = self.__class__ # = point2
+            p.__class__ = self.__class__
             return p
 
         def __neg__(self: point2) -> Optional[point2]:
@@ -2613,7 +2619,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             """
             p = self._implementation.neg2(self)
-            p.__class__ = self.__class__ # = point2
+            p.__class__ = self.__class__
             return p
 
         def __matmul__(self: point2, other: point) -> Optional[scalar2]:

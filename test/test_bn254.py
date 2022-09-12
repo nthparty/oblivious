@@ -11,7 +11,7 @@ from bitlist import bitlist
 from fountains import fountains
 
 try:
-    from oblivious import bn254 #pylint: disable=E0401# allows PyLint to fail the try block's import
+    from oblivious import bn254 # pylint: disable=E0401
 except: # pylint: disable=W0702
     # To support generation of reference specifications for unit tests.
     spec = importlib.util.spec_from_file_location("bn254", "src/oblivious/bn254.py")
@@ -22,8 +22,10 @@ except: # pylint: disable=W0702
 # representation sizes of data structures (in their binary form).
 TRIALS_PER_TEST = 16
 POINT_HASH_LEN = 64 # Size of raw hash digest required to construct a point.
-POINT_LEN = 32*3 # Three 32-byte coordinate values (x, y, and z, in projective coordinates).
-SCALAR_LEN = 32 # Really ≤32, but the ``scalar.bytes(bs)`` function will never do modulo reductions.
+POINT_LEN = 32 * 3 # Three 32-byte coordinate values (x, y, and z, in projective coordinates).
+POINT2_LEN = 192
+SCALAR_LEN = 32
+SCALAR2_LEN = 384
 
 # To simulate an environment in which mcl is absent, some tests set
 # `bn254.mcl` to `None`;
@@ -148,7 +150,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_scl_none(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
-                bs = bytes([255] * 32)  # bytes of a number above r, the maximum scalar value
+                bs = bytes([255] * 32)  # Representation value above the maximum scalar value.
                 s = cls.scl(bs)
                 self.assertTrue(s is None)
 
@@ -164,7 +166,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bs = bytes(bs)
                 r = 0x2523648240000001ba344d8000000007ff9f800000000010a10000000000000d
                 return bitlist([
-                    1 
+                    1
                     if (bool(cls.scl(bs)) == (int.from_bytes(bs, 'little') < r)) is not None else
                     0
                 ])
@@ -367,6 +369,94 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 # Outputs for ``python`` and ``mcl`` differ, as expected.
                 return bytes([0 if len(cls.sse2(cls.par(p1, p2))) == 384 else 1])
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN, POINT_HASH_LEN], bits)
+
+        def test_rnd2(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                s = cls.rnd2()
+                self.assertTrue(cls.scl2(bytes(s)) is not None)
+
+        def test_pnt2(
+                self,
+                bits='d28c'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            return check_or_generate_operation(self, cls.pnt2, [POINT_HASH_LEN], bits)
+
+        def test_bas2(
+                self,
+                bits='1ed0'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.bas2(cls.scalar.hash(bs))
+            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
+
+        def test_can2(
+                self,
+                bits='d28c'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.ser2(cls.can2(cls.pnt2(bs)))
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
+
+        def test_ser2(
+                self,
+                bits='d28c'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.ser2(cls.can2(cls.pnt2(bs)))
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
+
+        def test_des2(
+                self,
+                bits='d28c'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.des2(cls.ser2(cls.can2(cls.pnt2(bs))))
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
+
+        def test_mul2(
+                self,
+                bits='1e5c'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                (s, p) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.pnt2(bs[SCALAR_LEN:]))
+                return cls.mul2(s, p)
+            return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_HASH_LEN], bits)
+
+        def test_add2(
+                self,
+                bits='424e'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                (p1, p2) = (cls.pnt2(bs[:POINT_HASH_LEN]), cls.pnt2(bs[POINT_HASH_LEN:]))
+                return cls.add2(p1, p2)
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN, POINT_HASH_LEN], bits)
+
+        def test_sub2(
+                self,
+                bits='15c9'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                (p1, p2) = (cls.pnt2(bs[:POINT_HASH_LEN]), cls.pnt2(bs[POINT_HASH_LEN:]))
+                return cls.sub2(p1, p2)
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN, POINT_HASH_LEN], bits)
+
+        def test_neg2(
+                self,
+                bits='d28c'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.neg2(cls.pnt2(bs))
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
 
     class Test_classes(TestCase):
         """
@@ -612,6 +702,93 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 return -s
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
+        def test_point2_random(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                self.assertTrue(len(cls.point2.random()) == POINT2_LEN)
+
+        def test_point2_bytes(
+                self,
+                bits='d28c'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.point2.bytes(bs)
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
+
+        def test_point2_hash(
+                self,
+                bits='d51b'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.point2.hash(bs)
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
+
+        def test_point2_base(
+                self,
+                bits='1ed0'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.point2.base(cls.scalar.hash(bs))
+            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
+
+        def test_point2(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                self.assertTrue(len(cls.point2()) == POINT2_LEN)
+
+        def test_point2_canonical(
+                self,
+                bits='d28c'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.point2.bytes(bs).canonical()
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
+
+        def test_point2_scalar_mul(
+                self,
+                bits='1e5c'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                (s, p) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.point2.bytes(bs[SCALAR_LEN:]))
+                # Below, ``*`` invokes :obj:`scalar.__mul__`, which delegates to :obj:`mul`
+                # due to the type of the second argument.
+                return s * p
+            return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_HASH_LEN], bits)
+
+        def test_point2_add(
+                self,
+                bits='424e'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                (p1, p2) = (cls.point2.bytes(bs[:POINT_HASH_LEN]), cls.point2.bytes(bs[POINT_HASH_LEN:]))
+                return p1 + p2
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN, POINT_HASH_LEN], bits)
+
+        def test_point2_sub(
+                self,
+                bits='15c9'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                (p1, p2) = (cls.point2.bytes(bs[:POINT_HASH_LEN]), cls.point2.bytes(bs[POINT_HASH_LEN:]))
+                return p1 - p2
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN, POINT_HASH_LEN], bits)
+
+        def test_point2_neg(
+                self,
+                bits='d28c'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return -cls.point2.bytes(bs)
+            return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
+
     class Test_types(TestCase):
         """
         Tests verifying that methods return objects of the appropriate type.
@@ -719,6 +896,56 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             mcl_hidden_and_fallback(hidden, fallback)
             self.assertTrue(isinstance(cls.scalar() * cls.point(), cls.point))
 
+        def test_types_point2_random(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            p = cls.point2.random()
+            self.assertTrue(isinstance(p, cls.point2))
+
+        def test_types_point2_bytes(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            (bs,) = fountains(POINT_HASH_LEN, limit=1)
+            p = cls.point2.bytes(bs)
+            self.assertTrue(isinstance(p, cls.point2))
+
+        def test_types_point2_hash(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            (bs,) = fountains(POINT_HASH_LEN, limit=1)
+            p = cls.point2.hash(bs)
+            self.assertTrue(isinstance(p, cls.point2))
+
+        def test_types_point2_base(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            p = cls.point2.base(cls.scalar.random())
+            self.assertTrue(isinstance(p, cls.point2))
+
+        def test_types_point2_canonical(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            p = cls.point2.base(cls.scalar.random())
+            self.assertTrue(isinstance(p.canonical(), cls.point2))
+
+        def test_types_point_mul(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            (bs,) = fountains(SCALAR_LEN + POINT_HASH_LEN, limit=1)
+            (s, p) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.point2.hash(bs[SCALAR_LEN:]))
+            self.assertTrue(isinstance(s * p, cls.point2))
+
+        def test_types_point_add(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            (bs,) = fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=1)
+            (p0, p1) = (cls.point2.hash(bs[:POINT_HASH_LEN]), cls.point2.hash(bs[POINT_HASH_LEN:]))
+            self.assertTrue(isinstance(p0 + p1, cls.point2))
+
+        def test_types_point_sub(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            (bs,) = fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=1)
+            (p0, p1) = (cls.point2.hash(bs[:POINT_HASH_LEN]), cls.point2.hash(bs[POINT_HASH_LEN:]))
+            self.assertTrue(isinstance(p0 - p1, cls.point2))
+
+        def test_types_point_neg(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            (bs,) = fountains(POINT_HASH_LEN, limit=1)
+            self.assertTrue(isinstance(-cls.point2.hash(bs), cls.point2))
+
     class Test_algebra(TestCase):
         """
         Tests of algebraic properties of primitive operations and class methods.
@@ -824,6 +1051,52 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             mcl_hidden_and_fallback(hidden, fallback)
             s = cls.scalar.random()
             p = cls.point.hash(bytes(POINT_LEN))
+            self.assertRaises(TypeError, lambda: p * s)
+
+        def test_algebra_point2_add_commute(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                (p0, p1) = (cls.pnt2(bs[:POINT_HASH_LEN]), cls.pnt2(bs[POINT_HASH_LEN:]))
+                self.assertEqual(cls.add2(p0, p1), cls.add2(p1, p0))
+
+        def test_algebra_point2_add_sub_cancel(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                (p0, p1) = (cls.pnt2(bs[:POINT_HASH_LEN]), cls.pnt2(bs[POINT_HASH_LEN:]))
+                self.assertEqual(cls.add2(cls.sub2(p0, p1), p1), p0)
+
+        def test_algebra_scalar_mul_point_mul_associate(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(SCALAR_LEN + SCALAR_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                (s0, s1, p0) = (
+                    cls.scalar.hash(bs[:SCALAR_LEN]),
+                    cls.scalar.hash(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
+                    cls.pnt2(bs[SCALAR_LEN + SCALAR_LEN:])
+                )
+                if s0 is not None and s1 is not None:
+                    self.assertEqual(
+                        cls.mul2(s0, cls.mul2(s1, p0)),
+                        cls.mul2(cls.smu(s0, s1), p0)
+                    )
+
+        def test_algebra_scalar_mul_point_add_distribute(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(SCALAR_LEN + (2 * POINT_HASH_LEN), limit=TRIALS_PER_TEST):
+                (s0, p0, p1) = (
+                    cls.scalar.hash(bs[:SCALAR_LEN]),
+                    cls.pnt2(bs[SCALAR_LEN: SCALAR_LEN + POINT_HASH_LEN]),
+                    cls.pnt2(bs[SCALAR_LEN + POINT_HASH_LEN:])
+                )
+                if s0 is not None:
+                    self.assertEqual(
+                        cls.add2(cls.mul2(s0, p0), cls.mul2(s0, p1)),
+                        cls.mul2(s0, cls.add2(p0, p1))
+                    )
+
+        def test_algebra_scalar_mul_point_on_left_hand_side(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            s = cls.scalar.random()
+            p = cls.point2.hash(bytes(POINT2_LEN))
             self.assertRaises(TypeError, lambda: p * s)
 
     return (
