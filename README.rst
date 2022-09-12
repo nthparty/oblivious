@@ -80,7 +80,7 @@ Built-in Python operators are overloaded to support point operations (addition, 
 .. |bytes| replace:: ``bytes``
 .. _bytes: https://docs.python.org/3/library/stdtypes.html#bytes
 
-Because the |point|_ and |scalar|_ classes are derived from |bytes|_, `all methods and other operators <https://docs.python.org/3/library/stdtypes.html#bytes>`__ supported by |bytes|_ objects are supported by |point|_ and |scalar|_ objects::
+The |point|_ and |scalar|_ classes have common conversion methods that correspond to those supported by |bytes|_ objects (and in some cases are derived from |bytes|_)::
 
     >>> hex = '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
     >>> s = scalar.fromhex(hex)
@@ -105,7 +105,9 @@ Using Pure Python or a Shared/Dynamic Library
 .. |sodium| replace:: ``sodium``
 .. _sodium: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.sodium
 
-Each module within this library can export two variants of its primitives and data structures: one corresponding to pure-Python implementations and another corresponding to shared/dynamic library wrappers. For example, the |ristretto|_ module exports two container classes/namespaces: |python|_ and |sodium|_. These encapsulate pure-Python implementations and shared/dynamic library (*i.e.*, libsodium) wrappers, respectively, of all operations and classes available in the |ristretto|_ module. This makes it possible to explicitly choose whether an operation requires only Python or also requires the presence of a compiled copy of libsodium on the host system.
+Each module within this library can export two variants of its primitives and data structures: one corresponding to pure-Python implementations and another corresponding to shared/dynamic library wrappers.
+
+For example, the |ristretto|_ module exports two container classes/namespaces: |python|_ and |sodium|_. These encapsulate pure-Python implementations and shared/dynamic library (*i.e.*, libsodium) wrappers, respectively, of all operations and classes available in the |ristretto|_ module. This makes it possible to explicitly choose whether an operation requires only Python or also requires the presence of a compiled copy of libsodium on the host system.
 
 The example below uses pure-Python implementations of the scalar multiplication operation (relying on the `ge25519 <https://pypi.org/project/ge25519>`__ library)::
 
@@ -133,7 +135,7 @@ In the example below, the scalar multiplication operation invokes a binding for 
 
 The operations and class methods exported by the |ristretto|_ module directly (*e.g.*, the method |add|_ within the class |point|_ that is imported via the statement ``from oblivious.ristretto import point``) correspond either (A) to libsodium wrappers if an instance of libsodium is found and loaded or (B) to pure-Python implementations if all attempts to load a working instances of libsodium fail. The ordered list below summarizes what definitions are exported under various conditions and the ordered sequence of attempts to locate and load an instance of libsodium.
 
-1. Under all conditions, the wrapper class |python|_ is defined and encapsulates a pure-Python variant of every operation and class method available in the |ristretto|_ module. **As a starting default**, all operations and classes exported directly by the |ristretto|_ module correspond to the pure-Python implementations.
+1. Under all conditions, the wrapper class |python|_ is defined and encapsulates a pure-Python variant of every operation and class method available in the |ristretto|_ module. **As a starting default**, all classes exported directly by the |ristretto|_ module correspond to the pure-Python implementations.
 
 2. If a shared/dynamic library instance of libsodium is found on the system and successfully loaded during one of the attempts below, then the wrapper class |sodium|_ is defined:
 
@@ -141,12 +143,12 @@ The operations and class methods exported by the |ristretto|_ module directly (*
    b. a file ``libsodium.so`` or ``libsodium.dll`` in the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH`` environment variables is found and loaded successfully; or
    c. the optional `rbcl <https://pypi.org/project/rbcl>`__ package is installed and the compiled subset of libsodium included in that package is loaded successfully.
 
-3. If ``sodium`` is **not** ``None``, then the |sodium|_ class encapsulates libsodium wrappers for every operation and class supported by the |ristretto|_ module. Furthermore, **those operations and classes exported directly by the library are redefined** to use the bindings available in the loaded instance of libsodium. The |python|_ class is still exported, as well, and all operations and class methods encapsulated within |python|_ remain as-is (*i.e.*, pure-Python implementations).
+3. If ``sodium`` is **not** ``None``, then the |sodium|_ class encapsulates libsodium wrappers for every operation and class supported by the |ristretto|_ module. Furthermore, **those classes exported directly by the library are redefined** to use the bindings available in the loaded instance of libsodium. The |python|_ class is still exported, as well, and all operations and class methods encapsulated within |python|_ remain as-is (*i.e.*, pure-Python implementations).
 
 .. |bn254| replace:: ``bn254``
 .. _bn254: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.bn254.html
 
-The classes within the |bn254|_ module that implement and wrap the functionalities within the `mcl <https://github.com/herumi/mcl>`__ library are organized in a similar manner. More information is available in the documentation for the |bn254|_ module.
+The classes within the |bn254|_ module (both those that are pure-Python implementations and those that are wrappers for functions in the `mcl <https://github.com/herumi/mcl>`__ library) are organized in a similar manner. More information is available in the documentation for the |bn254|_ module.
 
 Development
 -----------

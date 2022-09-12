@@ -458,7 +458,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 return cls.neg2(cls.pnt2(bs))
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
 
-    class Test_classes(TestCase):
+    class Test_classes(TestCase): # pylint: disable=too-many-public-methods
         """
         Tests of point and scalar wrapper classes and their methods.
         """
@@ -494,12 +494,13 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 return cls.point.base(s) if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
-        def test_point_base64(self):
+        def test_point_to_base64_from_base64(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
                 p = cls.point()
-                p_b64 = base64.standard_b64encode(bytes(p)).decode('utf-8')
+                p_b64 = base64.standard_b64encode(p.to_bytes()).decode('utf-8')
                 self.assertEqual(p.to_base64(), p_b64)
+                self.assertEqual(cls.point.from_base64(p.to_base64()), p)
                 self.assertEqual(cls.point.from_base64(p_b64), p)
 
         def test_point(self):
@@ -610,13 +611,44 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             mcl_hidden_and_fallback(hidden, fallback)
             return check_or_generate_operation(self, cls.scalar.hash, [SCALAR_LEN], bits)
 
-        def test_scalar_base64(self):
+        def test_scalar_to_int(
+                self,
+                bits='6969'
+            ):
+            def fun(bs):
+                s = cls.scalar.hash(bs)
+                return abs(s.to_int()).to_bytes(32, 'little')
+            return check_or_generate_operation(self, fun, [32], bits)
+
+        def test_scalar_from_int(
+                self,
+                bits='d27b'
+            ):
+            def fun(bs):
+                s = cls.scalar.from_int(int.from_bytes(bs, 'little'))
+                return s if (s is not None) else bytes([0])
+            return check_or_generate_operation(self, fun, [32], bits)
+
+        def test_scalar_to_bytes_from_bytes(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
                 s = cls.scalar()
-                s_b64 = base64.standard_b64encode(bytes(s)).decode('utf-8')
+                self.assertEqual(cls.scalar.from_bytes(s.to_bytes()), s)
+
+        def test_scalar_hex_fromhex(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                s = cls.scalar()
+                self.assertEqual(cls.scalar.fromhex(s.hex()), s)
+
+        def test_scalar_to_base64_from_base64(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                s = cls.scalar()
+                s_b64 = base64.standard_b64encode(s.to_bytes()).decode('utf-8')
                 self.assertEqual(s.to_base64(), s_b64)
                 self.assertEqual(cls.scalar.from_base64(s_b64), s)
+                self.assertEqual(cls.scalar.from_base64(s.to_base64()), s)
 
         def test_scalar(self):
             mcl_hidden_and_fallback(hidden, fallback)
@@ -709,6 +741,27 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 return cls.point2.base(cls.scalar.hash(bs))
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
+        def test_point2_to_bytes_from_bytes(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                p = cls.point2()
+                self.assertEqual(cls.point2.from_bytes(p.to_bytes()), p)
+
+        def test_point2_hex_fromhex(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                p = cls.point2()
+                self.assertEqual(cls.point2.fromhex(p.hex()), p)
+
+        def test_point2_to_base64_from_base64(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                p = cls.point2()
+                p_b64 = base64.standard_b64encode(p.to_bytes()).decode('utf-8')
+                self.assertEqual(p.to_base64(), p_b64)
+                self.assertEqual(cls.point2.from_base64(p.to_base64()), p)
+                self.assertEqual(cls.point2.from_base64(p_b64), p)
+
         def test_point2(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
@@ -763,6 +816,27 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             def fun(bs):
                 return -cls.point2.bytes(bs)
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
+
+        def test_scalar2_to_bytes_from_bytes(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                s = cls.scalar2()
+                self.assertEqual(cls.scalar2.from_bytes(s.to_bytes()), s)
+
+        def test_scalar2_hex_fromhex(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                s = cls.scalar2()
+                self.assertEqual(cls.scalar2.fromhex(s.hex()), s)
+
+        def test_scalar2_to_base64_from_base64(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                s = cls.scalar2()
+                s_b64 = base64.standard_b64encode(s.to_bytes()).decode('utf-8')
+                self.assertEqual(s.to_base64(), s_b64)
+                self.assertEqual(cls.scalar2.from_base64(s_b64), s)
+                self.assertEqual(cls.scalar2.from_base64(s.to_base64()), s)
 
     class Test_types(TestCase): # pylint: disable=too-many-public-methods
         """

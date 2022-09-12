@@ -373,8 +373,8 @@ class python:
     @staticmethod
     def inv(s: scalar) -> scalar:
         """
-        Return the inverse of scalar (modulo
-        ``r=16798108731015832284940804142231733909759579603404752749028378864165570215949``
+        Return the inverse of a scalar (modulo
+        ``r = 16798108731015832284940804142231733909759579603404752749028378864165570215949``
         in the prime field `F*_r`).
 
         >>> s = python.scl()
@@ -468,7 +468,8 @@ class python:
     @staticmethod
     def can(p: point) -> point:
         """
-        Normalize the representation of a point into its canonical form.
+        Normalize the representation of a point into its canonical form
+        and return the result.
 
         >>> a = python.point.hash('123'.encode())
         >>> p = python.add(a, a)
@@ -813,7 +814,7 @@ class python:
     def can2(p: point2) -> point2:
         """
         Normalize the representation of a second-level point into its canonical
-        form.
+        form and return the result.
 
         >>> p = python.bas2(scalar.from_int(1))
         >>> python.ser(python.can2(p)).hex()[:64]
@@ -981,15 +982,15 @@ try:
            included in that package.
 
         If all of the above fail, then :obj:`mcl` is assigned
-        the value ``None`` and all functions and class methods exported by
-        this module default to their pure-Python variants (*i.e.*, those
-        encapsulated within :obj:`~oblivious.bn254.python`). One way to confirm
-        that a dynamic/shared library *has not been found* when this module
-        is imported is to evaluate `mcl is None` or `not mclbn256`.
+        the value ``None`` and all classes exported by this module default
+        to their pure-Python variants (*i.e.*, those encapsulated within
+        :obj:`~oblivious.bn254.python`). One way to confirm that a
+        dynamic/shared library *has been found* when this module
+        is imported is to evaluate the expression ``mcl is not None``.
 
         If a shared/dynamic library file has been loaded successfully,
-        this class encapsulates shared/dynamic library variants of all
-        primitive operations and classes exported by this module:
+        this class encapsulates shared/dynamic library variants of both classes
+        exported by this module and of all the underlying low-level functions:
         :obj:`mcl.rnd <rnd>`, :obj:`mcl.scl <scl>`,
         :obj:`mcl.sse <sse>`, :obj:`mcl.sde <sde>`,
         :obj:`mcl.inv <inv>`, :obj:`mcl.smu <smu>`,
@@ -1010,9 +1011,11 @@ try:
         :obj:`mcl.sub2 <sub2>`, :obj:`mcl.neg2 <neg2>`,
         :obj:`mcl.point <point>`, :obj:`mcl.scalar <scalar>`,
         :obj:`mcl.point <point2>`, and :obj:`mcl.scalar <scalar2>`.
-        For example, you can perform addition of points using
-        the point addition implementation found in the mclbn256
-        shared/dynamic library found on the host system.
+        For example, you can perform addition of points using the point
+        addition implementation found in the shared/dynamic library
+        bundled with the instance of the package
+        `mclbn256 <https://pypi.org/project/mclbn256>`__ that is found
+        on the host system.
 
         >>> p = mcl.pnt()
         >>> q = mcl.pnt()
@@ -1020,9 +1023,9 @@ try:
         True
 
         Methods found in the shared/dynamic library variants of the
-        :obj:`point` and :obj:`scalar` classes are wrappers for the
-        shared/dynamic library implementations of the underlying
-        operations.
+        :obj:`point`, :obj:`scalar`, :obj:`point2`, and :obj:`scalar2`
+        classes are wrappers for the shared/dynamic library
+        implementations of the underlying operations.
 
         >>> p = mcl.point()
         >>> q = mcl.point()
@@ -1101,9 +1104,9 @@ try:
         @staticmethod
         def inv(s: Fr) -> Fr:
             r"""
-            Return inverse of scalar modulo
+            Return inverse of a scalar (modulo
             ``r = 16798108731015832284940804142231733909759579603404752749028378864165570215949``
-            in the prime field *F*\_*r*.
+            in the prime field *F*\_*r*).
 
             >>> (s, p) = (mcl.scl(), mcl.pnt())
             >>> mcl.mul(mcl.inv(s), mcl.mul(s, p)) == p
@@ -1186,7 +1189,8 @@ try:
         @staticmethod
         def can(p: G1) -> G1:
             """
-            Normalize the representation of a point into its canonical form.
+            Normalize the representation of a point into its canonical form and
+            return the result.
 
             >>> a = mcl.point.hash('123'.encode())
             >>> p = mcl.add(a, a)
@@ -1540,7 +1544,7 @@ try:
         def can2(p: G2) -> G2:
             """
             Normalize the representation of a second-level point into its
-            canonical form.
+            canonical form and return the result.
 
             >>> p = mcl.bas2(scalar.from_int(1))
             >>> mcl.ser(mcl.can2(p)).hex()[:64]
@@ -1820,12 +1824,13 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def canonical(self: point) -> point:
             """
-            Normalize the representation of this point into its canonical form and return
-            the same instance (but mutated). This takes the z-coordinate, which may not
-            always be equal to 1, and multiplies all coordinates x, y, and z by z's
-            multiplicative inverse. The resulting canonical point is unique (_i.e._,
-            two points are equal if and only if their canonical forms are equal) and in
-            the form (x/z, y/z, 1).
+            Normalize the representation of this point into its canonical form
+            and return the result. This takes the *z*-coordinate, which may not
+            always be equal to 1, and multiplies all coordinates *x*, *y*,
+            and *z* by *z*'s multiplicative inverse. The resulting canonical
+            representation is unique (*i.e.*, two points are equal if and only
+            if their canonical forms are equal) and in the form
+            (*x*/*z*, *y*/*z*, 1).
 
             >>> a = point.hash('123'.encode())
             >>> p = a + a + a + a
@@ -1922,7 +1927,8 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def __matmul__(self: point, other: point2) -> scalar2:
             """
-            Return the result of pairing another point with this point.
+            Return the result of pairing another second-level point with this
+            instance.
 
             >>> p = point.hash('123'.encode())
             >>> q = point2.base(scalar.from_int(456))
@@ -1971,7 +1977,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def __bytes__(self: point) -> bytes:
             """
-            Serialize this instnace and return its binary representation.
+            Serialize this instance and return its binary representation.
 
             >>> p = point.hash('123'.encode())
             >>> bs = bytes(p)
@@ -1986,7 +1992,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def to_bytes(self: point) -> bytes:
             """
-            Serialize this instnace and return its binary representation.
+            Serialize this instance and return its binary representation.
 
             >>> p = point.hash('123'.encode())
             >>> bs = p.to_bytes()
@@ -2167,8 +2173,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def __invert__(self: scalar) -> scalar:
             """
-            Return inverse of scalar modulo
-            ``2**252 + 27742317777372353535851937790883648493``.
+            Return the inverse of a scalar.
 
             >>> s = scalar()
             >>> p = point()
@@ -2544,12 +2549,13 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def canonical(self: point2) -> point2:
             """
-            Normalize the representation of this point into its canonical form and return
-            the same instance (but mutated). This takes the z-coordinate, which may not
-            always be equal to 1, and multiplies all coordinates x, y, and z by z's
-            multiplicative inverse. The resulting canonical point is unique (_i.e._,
-            two second-level points are equal if and only if their canonical forms are
-            equal) and in the form (x1/z1, y1/z1, x2/z2, y2/z2, 1, 0).
+            Normalize the representation of this point into its canonical form
+            and return the result. This takes the *z*-coordinate, which may not
+            always be equal to 1, and multiplies all coordinates *x*, *y*, and
+            *z* by *z*'s multiplicative inverse. The resulting canonical
+            representation is unique (*i.e.*, two second-level points are equal
+            if and only if their canonical forms are equal) and in the form
+            (*x1*/*z1*, *y1*/*z1*, *x2*/*z2*, *y2*/*z2*, 1, 0).
 
             >>> a = point2.hash('123'.encode())
             >>> q = a + a + a + a
@@ -2742,6 +2748,25 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             """
             s = cls._implementation.scl2()
             s.__class__ = cls
+            return s
+
+        @classmethod
+        def bytes(cls, bs: bytes) -> Optional[scalar2]:
+            """
+            Return second-level scalar object obtained by transforming the
+            supplied bytes-like object if it is possible to do so; otherwise,
+            return ``None``.
+
+            >>> s = scalar2()
+            >>> t = scalar2.bytes(bytes(s))
+            >>> s.hex() == t.hex()
+            True
+            """
+            s = cls._implementation.scl2(bs)
+
+            if s is not None:
+                s.__class__ = cls
+
             return s
 
         @classmethod

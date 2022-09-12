@@ -184,6 +184,7 @@ class python:
     :obj:`python.pnt <pnt>`, :obj:`python.bas <bas>`,
     :obj:`python.can <can>`, :obj:`python.mul <mul>`,
     :obj:`python.add <add>`, :obj:`python.sub <sub>`,
+    :obj:`python.neg <neg>`,
     :obj:`python.point <point>`, and :obj:`python.scalar <scalar>`.
     For example, you can perform addition of points using
     the pure-Python point addition implementation.
@@ -245,8 +246,8 @@ class python:
     @staticmethod
     def inv(s: bytes) -> bytes:
         """
-        Return inverse of scalar modulo
-        ``2**252 + 27742317777372353535851937790883648493``.
+        Return the inverse of a scalar (modulo
+        ``2**252 + 27742317777372353535851937790883648493``).
 
         >>> s = python.scl()
         >>> p = python.pnt()
@@ -371,6 +372,18 @@ class python:
         r_p3 = ge25519.ge25519_p3.from_p1p1(r_p1p1)
         return r_p3.to_bytes_ristretto255()
 
+    @staticmethod
+    def neg(p: bytes) -> bytes:
+        """
+        Return the additive inverse of a point.
+
+        >>> p = point.hash('123'.encode())
+        >>> q = point.hash('456'.encode())
+        >>> python.add(python.neg(p), python.add(p, q)) == q
+        True
+        """
+        return python.sub(bytes(32), p)
+
 #
 # Attempt to load primitives from libsodium, if it is present;
 # otherwise, use the rbcl library, if it is present. Otherwise,
@@ -430,7 +443,7 @@ try:
     # Add method variants that are not present in libsodium.
     if _sodium is not rbcl and _sodium is not None: # pragma: no cover
 
-        def crypto_scalarmult_ristretto255_allow_scalar_zero(buf, s, p):
+        def _crypto_scalarmult_ristretto255_allow_scalar_zero(buf, s, p):
             """
             Variant of scalar-point multiplication function that permits
             a scalar corresponding to the zero residue.
@@ -442,7 +455,7 @@ try:
 
             return buf
 
-        def crypto_scalarmult_ristretto255_base_allow_scalar_zero(buf, s):
+        def _crypto_scalarmult_ristretto255_base_allow_scalar_zero(buf, s):
             """
             Variant of scalar-point multiplication function that permits
             a scalar corresponding to the zero residue.
@@ -457,12 +470,12 @@ try:
         setattr(
             _sodium,
             'crypto_scalarmult_ristretto255_allow_scalar_zero',
-            crypto_scalarmult_ristretto255_allow_scalar_zero
+            _crypto_scalarmult_ristretto255_allow_scalar_zero
         )
         setattr(
             _sodium,
             'crypto_scalarmult_ristretto255_base_allow_scalar_zero',
-            crypto_scalarmult_ristretto255_base_allow_scalar_zero
+            _crypto_scalarmult_ristretto255_base_allow_scalar_zero
         )
 
     # Ensure the chosen version of libsodium (or its substitute) has the
@@ -500,20 +513,20 @@ try:
            in that package.
 
         If all of the above fail, then :obj:`sodium` is assigned the value
-        ``None`` and all functions and class methods exported by this module
-        default to their pure-Python variants (*i.e.*, those encapsulated
-        within :obj:`python`). One way to confirm that a dynamic/shared
-        library *has been found* when this module is imported is to evaluate
-        the expression ``sodium is not None``.
+        ``None`` and all classes exported by this module default to their
+        pure-Python variants (*i.e.*, those encapsulated within :obj:`python`).
+        To confirm that a dynamic/shared library *has been found* when this
+        module is imported, evaluate the expression ``sodium is not None``.
 
         If a shared/dynamic library file has been loaded successfully, this
-        class encapsulates shared/dynamic library variants of low-level
-        functions and of both classes exported by this module:
+        class encapsulates shared/dynamic library variants of both classes
+        exported by this module and of all the underlying low-level functions:
         :obj:`sodium.scl <scl>`, :obj:`sodium.rnd <rnd>`,
         :obj:`sodium.inv <inv>`, :obj:`sodium.smu <smu>`,
         :obj:`sodium.pnt <pnt>`, :obj:`sodium.bas <bas>`,
         :obj:`sodium.can <can>`, :obj:`sodium.mul <mul>`,
         :obj:`sodium.add <add>`, :obj:`sodium.sub <sub>`,
+        :obj:`sodium.neg <neg>`,
         :obj:`sodium.point <point>`, and :obj:`sodium.scalar <scalar>`.
         For example, you can perform addition of points using
         the point addition implementation found in the libsodium
@@ -582,7 +595,7 @@ try:
         @staticmethod
         def inv(s: bytes) -> bytes:
             """
-            Return the inverse of the supplied scalar (modulo
+            Return the inverse of a scalar (modulo
             ``2**252 + 27742317777372353535851937790883648493``).
 
             >>> s = sodium.scl()
@@ -706,6 +719,18 @@ try:
                 sodium._lib.crypto_core_ristretto255_sub,
                 bytes(p), bytes(q)
             )
+
+        @staticmethod
+        def neg(p: bytes) -> bytes:
+            """
+            Return the additive inverse of a point.
+
+            >>> p = point.hash('123'.encode())
+            >>> q = point.hash('456'.encode())
+            >>> sodium.add(sodium.neg(p), sodium.add(p, q)) == q
+            True
+            """
+            return sodium.sub(bytes(32), p)
 
 except: # pylint: disable=W0702 # pragma: no cover
     # Exported symbol.
@@ -834,7 +859,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 
         def canonical(self: point) -> point:
             """
-            Normalize the representation of this point into its canonical form.
+            Normalize the representation of this instance into its canonical form.
 
             >>> p = point.hash('123'.encode())
             >>> p.canonical() == p
@@ -845,7 +870,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 
         def __mul__(self: point, other: Any) -> NoReturn:
             """
-            Use of this method is not permitted. A point cannot be a left-hand argument.
+            A point cannot be a left-hand argument for a multiplication operation.
 
             >>> point() * scalar()
             Traceback (most recent call last):
@@ -856,7 +881,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 
         def __rmul__(self: point, other: Any) -> NoReturn:
             """
-            Multiply this point by the supplied scalar and return the result.
+            Multiply this instance by the supplied scalar and return the result.
 
             >>> p = point.hash('123'.encode())
             >>> s = scalar.hash('456'.encode())
@@ -885,7 +910,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 
         def __add__(self: point, other: point) -> Optional[point]:
             """
-            Return sum of this point and another point.
+            Return the sum of this instance and another point.
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
@@ -898,7 +923,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 
         def __sub__(self: point, other: point) -> Optional[point]:
             """
-            Return the result of subtracting another point from this point.
+            Return the result of subtracting another point from this instance.
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
@@ -908,6 +933,17 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             True
             """
             return self._implementation.point(self._implementation.sub(self, other))
+
+        def __neg__(self: point) -> point:
+            """
+            Return the negation of this instance.
+
+            >>> p = point.hash('123'.encode())
+            >>> q = point.hash('456'.encode())
+            >>> ((p + q) + (-q)) == p
+            True
+            """
+            return (self - self) - self
 
         def to_bytes(self: point) -> bytes:
             """
@@ -1057,8 +1093,8 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 
         def __invert__(self: scalar) -> scalar:
             """
-            Return inverse of scalar modulo
-            ``2**252 + 27742317777372353535851937790883648493``.
+            Return the inverse of this instance (modulo
+            ``2**252 + 27742317777372353535851937790883648493``).
 
             >>> s = scalar()
             >>> p = point()
