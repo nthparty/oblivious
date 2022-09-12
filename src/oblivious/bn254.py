@@ -2782,10 +2782,27 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> z == z_mcl if mclbn256 else z == z_python
             True
             """
-            bs = hashlib.sha512(bs).digest()
-            p = cls._implementation.point.hash(bs[:32])
-            q = cls._implementation.point2.base(cls._implementation.scalar.hash(bs[32:]))
-            s = cls._implementation.par(p, q)
+            def bytes64_split_reduce(bs):
+                i, j = bs[:32], bs[32:]
+                d = 0x212ba4f27ffffff5a2c62effffffffcdb939ffffffffff8a15ffffffffffff8e
+                p = 0x2523648240000001ba344d80000000086121000000000013a700000000000013
+                i = int.from_bytes(i, 'little') % p * d # TODO: use rejection sampling instead here?
+                i = int.to_bytes(i % p, 32, 'little')
+                j = int.from_bytes(j, 'little') % p * d
+                j = int.to_bytes(j % p, 32, 'little')
+                return i, j
+
+            bs1 = hashlib.sha512(bs).digest()
+            bs2 = hashlib.sha512(bs1).digest()
+            bs3 = hashlib.sha512(bs2).digest()
+            bs4 = hashlib.sha512(bs3).digest()
+            bs5 = hashlib.sha512(bs4).digest()
+            bs6 = hashlib.sha512(bs5).digest()
+            bs_valid = b''.join([
+                *bytes64_split_reduce(bs1), *bytes64_split_reduce(bs2), *bytes64_split_reduce(bs3),
+                *bytes64_split_reduce(bs4), *bytes64_split_reduce(bs5), *bytes64_split_reduce(bs6)
+            ])
+            s = cls._implementation.scalar2.from_bytes(bs_valid)
             s.__class__ = cls
             return s
 
