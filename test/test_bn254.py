@@ -517,21 +517,6 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 return p.canonical()
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
 
-        def test_point_rmul(
-                self,
-                bits='b9e1'
-            ):
-            mcl_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                bs = bytearray(bs)
-                bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
-                bs[SCALAR_LEN - 1] &= 0b00011111
-                bs = bytes(bs)
-                (s, p) = (cls.scalar.bytes(bs[:SCALAR_LEN]), cls.point.bytes(bs[SCALAR_LEN:]))
-                # pylint: disable=C2801 # Overriding overloaded method for :obj:`scalar`.
-                return p.__rmul__(s) if (s is not None and p is not None) else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_HASH_LEN], bits)
-
         def test_point_scalar_mul_op(
                 self,
                 bits='b9e1'
@@ -640,17 +625,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.bytes(bytes(s)) is not None)
                 self.assertTrue(len(bytes(s)) == SCALAR_LEN and len(s.to_bytes()) == SCALAR_LEN)
 
-        def test_scalar_inverse(
-                self,
-                bits='c4e3'
-            ):
-            mcl_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                s = cls.scalar.hash(bs)
-                return s.inverse() if s is not None else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
-
-        def test_scalar_invert_op(
+        def test_scalar_invert(
                 self,
                 bits='c4e3'
             ):
@@ -789,9 +764,10 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 return -cls.point2.bytes(bs)
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
 
-    class Test_types(TestCase):
+    class Test_types(TestCase): # pylint: disable=too-many-public-methods
         """
-        Tests verifying that methods return objects of the appropriate type.
+        Tests verifying that methods that should return point and scalar classes
+        do indeed return point and scalar objects of the expected types.
         """
         def test_types_point_random(self):
             mcl_hidden_and_fallback(hidden, fallback)
@@ -814,6 +790,21 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             mcl_hidden_and_fallback(hidden, fallback)
             p = cls.point.base(cls.scalar.random())
             self.assertTrue(isinstance(p, cls.point))
+
+        def test_types_point_to_bytes_from_bytes(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            bs = cls.point.random().to_bytes()
+            self.assertTrue(isinstance(cls.point.from_bytes(bs), cls.point))
+
+        def test_types_point_hex_from_hex(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            s = cls.point.random().hex()
+            self.assertTrue(isinstance(cls.point.from_hex(s), cls.point))
+
+        def test_types_point_to_base64_from_base64(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            s = cls.point.random().to_base64()
+            self.assertTrue(isinstance(cls.point.from_base64(s), cls.point))
 
         def test_types_point_canonical(self):
             mcl_hidden_and_fallback(hidden, fallback)
@@ -844,7 +835,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             p = cls.point.hash(bs)
             self.assertTrue(isinstance(-p, cls.point))
 
-        def test_types_point_pair(self):
+        def test_types_point_point2_matmul(self):
             mcl_hidden_and_fallback(hidden, fallback)
             (bs,) = fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=1)
             (p0, p1) = (cls.point.hash(bs[:POINT_HASH_LEN]), cls.point2.hash(bs[POINT_HASH_LEN:]))
@@ -856,7 +847,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_types_scalar_bytes(self):
             mcl_hidden_and_fallback(hidden, fallback)
-            bs = bytes(cls.scalar.random())
+            bs = cls.scalar.random().to_bytes()
             self.assertTrue(isinstance(cls.scalar.bytes(bs), cls.scalar))
 
         def test_types_scalar_hash(self):
@@ -864,13 +855,29 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             (bs,) = fountains(SCALAR_LEN, limit=1)
             self.assertTrue(isinstance(cls.scalar.hash(bs), cls.scalar))
 
+        def test_types_scalar_to_int_from_int(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            n = cls.scalar.random().to_int()
+            self.assertTrue(isinstance(cls.scalar.from_int(n), cls.scalar))
+
+        def test_types_scalar_to_bytes_from_bytes(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            bs = cls.scalar.random().to_bytes()
+            self.assertTrue(isinstance(cls.scalar.from_bytes(bs), cls.scalar))
+
+        def test_types_scalar_hex_from_hex(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            s = cls.scalar.random().hex()
+            self.assertTrue(isinstance(cls.scalar.from_hex(s), cls.scalar))
+
+        def test_types_scalar_to_base64_from_base64(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            s = cls.scalar.random().to_base64()
+            self.assertTrue(isinstance(cls.scalar.from_base64(s), cls.scalar))
+
         def test_types_scalar_invert(self):
             mcl_hidden_and_fallback(hidden, fallback)
             self.assertTrue(isinstance(~cls.scalar.random(), cls.scalar))
-
-        def test_types_scalar_inverse(self):
-            mcl_hidden_and_fallback(hidden, fallback)
-            self.assertTrue(isinstance(cls.scalar.random().inverse(), cls.scalar))
 
         def test_types_scalar_mul_scalar(self):
             mcl_hidden_and_fallback(hidden, fallback)
@@ -918,6 +925,21 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             p = cls.point2.base(cls.scalar.random())
             self.assertTrue(isinstance(p, cls.point2))
 
+        def test_types_point2_to_bytes_from_bytes(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            bs = cls.point2.random().to_bytes()
+            self.assertTrue(isinstance(cls.point2.from_bytes(bs), cls.point2))
+
+        def test_types_point2_hex_from_hex(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            s = cls.point2.random().hex()
+            self.assertTrue(isinstance(cls.point2.from_hex(s), cls.point2))
+
+        def test_types_point2_to_base64_from_base64(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            s = cls.point2.random().to_base64()
+            self.assertTrue(isinstance(cls.point2.from_base64(s), cls.point2))
+
         def test_types_point2_canonical(self):
             mcl_hidden_and_fallback(hidden, fallback)
             p = cls.point2.base(cls.scalar.random())
@@ -946,101 +968,158 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             (bs,) = fountains(POINT_HASH_LEN, limit=1)
             self.assertTrue(isinstance(-cls.point2.hash(bs), cls.point2))
 
+        def test_types_scalar2_random(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            self.assertTrue(isinstance(cls.scalar2.random(), cls.scalar2))
+
+        def test_types_scalar2_hash(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            (bs,) = fountains(SCALAR2_LEN, limit=1)
+            self.assertTrue(isinstance(cls.scalar2.hash(bs), cls.scalar2))
+
+        def test_types_scalar2_to_bytes_from_bytes(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            bs = cls.scalar2.random().to_bytes()
+            self.assertTrue(isinstance(cls.scalar2.from_bytes(bs), cls.scalar2))
+
+        def test_types_scalar2_hex_from_hex(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            s = cls.scalar2.random().hex()
+            self.assertTrue(isinstance(cls.scalar2.from_hex(s), cls.scalar2))
+
+        def test_types_scalar2_to_base64_from_base64(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            s = cls.scalar2.random().to_base64()
+            self.assertTrue(isinstance(cls.scalar2.from_base64(s), cls.scalar2))
+
+        def test_types_scalar2_invert(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            self.assertTrue(isinstance(~cls.scalar2.random(), cls.scalar2))
+
+        def test_types_scalar2_mul_scalar2(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            (s0, s1) = (cls.scalar2.random(), cls.scalar2.random())
+            self.assertTrue(isinstance(s0 * s1, cls.scalar2))
+
+        def test_types_scalar2_add_scalar2(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            (s0, s1) = (cls.scalar2.random(), cls.scalar2.random())
+            self.assertTrue(isinstance(s0 + s1, cls.scalar2))
+
     class Test_algebra(TestCase):
         """
-        Tests of algebraic properties of primitive operations and class methods.
+        Tests of common algebraic properties of low-level operations (for all classes).
         """
         def test_algebra_point_add_commute(self):
             mcl_hidden_and_fallback(hidden, fallback)
-            for bs in fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                (p0, p1) = (cls.pnt(bs[:POINT_HASH_LEN]), cls.pnt(bs[POINT_HASH_LEN:]))
+            for bs in fountains(2 * POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                (p0, p1) = (
+                    cls.point.hash(bs[:POINT_HASH_LEN]),
+                    cls.point.hash(bs[POINT_HASH_LEN:])
+                )
                 self.assertEqual(cls.add(p0, p1), cls.add(p1, p0))
 
         def test_algebra_point_add_sub_cancel(self):
             mcl_hidden_and_fallback(hidden, fallback)
-            for bs in fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                (p0, p1) = (cls.pnt(bs[:POINT_HASH_LEN]), cls.pnt(bs[POINT_HASH_LEN:]))
+            for bs in fountains(2 * POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                (p0, p1) = (
+                    cls.point.hash(bs[:POINT_HASH_LEN]),
+                    cls.point.hash(bs[POINT_HASH_LEN:])
+                )
                 self.assertEqual(cls.add(cls.sub(p0, p1), p1), p0)
 
-        def test_algebra_scalar_inverse_identity(self):
+        def test_algebra_point_add_neg_cancel(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(2 * POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                (p0, p1) = (
+                    cls.point.hash(bs[:POINT_HASH_LEN]),
+                    cls.point.hash(bs[POINT_HASH_LEN:])
+                )
+                self.assertEqual(cls.add(cls.neg(p0), cls.add(p0, p1)), p1)
+
+        def test_algebra_point_neg_neg_cancel(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                p = cls.point.hash(bs[:POINT_HASH_LEN])
+                self.assertEqual(cls.neg(cls.neg(p)), p)
+
+        def test_algebra_point_add_neg_sub_identity(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(2 * POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                (p0, p1) = (
+                    cls.point.hash(bs[:POINT_HASH_LEN]),
+                    cls.point.hash(bs[POINT_HASH_LEN:])
+                )
+                self.assertEqual(cls.add(p0, cls.neg(p1)), cls.sub(p0, p1))
+
+        def test_algebra_scalar_inverse_inverse_cancel(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN, limit=TRIALS_PER_TEST):
-                bs = bytearray(bs)
-                bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
-                bs = bytes(bs)
-                s = cls.scl(bs)
-                if s is not None:
-                    self.assertEqual(cls.inv(cls.inv(s)), s)
+                s = cls.scalar.hash(bs)
+                self.assertEqual(cls.inv(cls.inv(s)), s)
 
         def test_algebra_scalar_inverse_mul_cancel(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                bs = bytearray(bs)
-                bs[-1] &= 0b00111111 # Improve chance of testing with a valid (_i.e._ `s<r`) scalar.
-                bs[SCALAR_LEN - 1] &= 0b00111111
-                bs = bytes(bs)
-                (s, p) = (cls.scl(bs[:SCALAR_LEN]), cls.pnt(bs[SCALAR_LEN:]))
-                if s is not None:
-                    self.assertEqual(cls.mul(cls.inv(s), cls.mul(s, p)), p)
+                (s, p) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.point.hash(bs[SCALAR_LEN:]))
+                self.assertEqual(cls.mul(cls.inv(s), cls.mul(s, p)), p)
 
-        def test_algebra_scalar_mul_commute(self):
+        def test_algebra_scalar_mul_point_mul_commute(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains((2 * SCALAR_LEN) + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                bs = bytearray(bs)
-                bs[SCALAR_LEN - 1] &= 0b00111111 # Improve chance of testing with a valid scalar.
-                bs[SCALAR_LEN + SCALAR_LEN - 1] &= 0b00111111
-                bs = bytes(bs)
                 (s0, s1, p0) = (
-                    cls.scl(bs[:SCALAR_LEN]),
-                    cls.scl(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
-                    cls.pnt(bs[SCALAR_LEN + SCALAR_LEN:])
+                    cls.scalar.hash(bs[:SCALAR_LEN]),
+                    cls.scalar.hash(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
+                    cls.point.hash(bs[SCALAR_LEN + SCALAR_LEN:])
                 )
-                if s0 is not None and s1 is not None:
-                    self.assertEqual(
-                        cls.mul(s0, cls.mul(s1, p0)),
-                        cls.mul(s1, cls.mul(s0, p0))
-                    )
+                self.assertEqual(
+                    cls.mul(s0, cls.mul(s1, p0)),
+                    cls.mul(s1, cls.mul(s0, p0))
+                )
 
         def test_algebra_scalar_add_commute(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + SCALAR_LEN, limit=TRIALS_PER_TEST):
-                (s0, s1) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.scalar.hash(bs[SCALAR_LEN:]))
+                (s0, s1) = (
+                    cls.scalar.hash(bs[:SCALAR_LEN]),
+                    cls.scalar.hash(bs[SCALAR_LEN:])
+                )
                 self.assertEqual(cls.sad(s0, s1), cls.sad(s1, s0))
+
+        def test_algebra_scalar_add_neg_add_identity(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(SCALAR_LEN + SCALAR_LEN, limit=TRIALS_PER_TEST):
+                (s0, s1) = (
+                    cls.scalar.hash(bs[:SCALAR_LEN]),
+                    cls.scalar.hash(bs[SCALAR_LEN:])
+                )
+                self.assertEqual(cls.sad(cls.sad(s0, cls.sne(s0)), s1), s1)
 
         def test_algebra_scalar_mul_point_mul_associate(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + SCALAR_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                bs = bytearray(bs)
-                bs[SCALAR_LEN - 1] &= 0b00111111 # Improve chance of testing with a valid scalar.
-                bs[SCALAR_LEN + SCALAR_LEN - 1] &= 0b00111111
-                bs = bytes(bs)
                 (s0, s1, p0) = (
-                    cls.scl(bs[:SCALAR_LEN]),
-                    cls.scl(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
-                    cls.pnt(bs[SCALAR_LEN + SCALAR_LEN:])
+                    cls.scalar.hash(bs[:SCALAR_LEN]),
+                    cls.scalar.hash(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
+                    cls.point.hash(bs[SCALAR_LEN + SCALAR_LEN:])
                 )
-                if s0 is not None and s1 is not None:
-                    self.assertEqual(
-                        cls.mul(s0, cls.mul(s1, p0)),
-                        cls.mul(cls.smu(s0, s1), p0)
-                    )
+                self.assertEqual(
+                    cls.mul(s0, cls.mul(s1, p0)),
+                    cls.mul(cls.smu(s0, s1), p0)
+                )
 
         def test_algebra_scalar_mul_point_add_distribute(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + (2 * POINT_HASH_LEN), limit=TRIALS_PER_TEST):
-                bs = bytearray(bs)
-                bs[SCALAR_LEN - 1] &= 0b00111111  # Improve chance of testing with a valid scalar.
-                bs = bytes(bs)
                 (s0, p0, p1) = (
-                    cls.scl(bs[:SCALAR_LEN]),
-                    cls.pnt(bs[SCALAR_LEN: SCALAR_LEN + POINT_HASH_LEN]),
-                    cls.pnt(bs[SCALAR_LEN + POINT_HASH_LEN:])
+                    cls.scalar.hash(bs[:SCALAR_LEN]),
+                    cls.point.hash(bs[SCALAR_LEN: SCALAR_LEN + POINT_HASH_LEN]),
+                    cls.point.hash(bs[SCALAR_LEN + POINT_HASH_LEN:])
                 )
-                if s0 is not None:
-                    self.assertEqual(
-                        cls.add(cls.mul(s0, p0), cls.mul(s0, p1)),
-                        cls.mul(s0, cls.add(p0, p1))
-                    )
+                self.assertEqual(
+                    cls.add(cls.mul(s0, p0), cls.mul(s0, p1)),
+                    cls.mul(s0, cls.add(p0, p1))
+                )
 
         def test_algebra_scalar_mul_scalar_on_right_hand_side_of_non_scalar(self):
             mcl_hidden_and_fallback(hidden, fallback)
@@ -1056,14 +1135,57 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_algebra_point2_add_commute(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                (p0, p1) = (cls.pnt2(bs[:POINT_HASH_LEN]), cls.pnt2(bs[POINT_HASH_LEN:]))
-                self.assertEqual(cls.add2(p0, p1), cls.add2(p1, p0))
+                (p0, p1) = (
+                    cls.point2.hash(bs[:POINT_HASH_LEN]),
+                    cls.point2.hash(bs[POINT_HASH_LEN:])
+                )
+                self.assertEqual(cls.can2(cls.add2(p0, p1)), cls.can2(cls.add2(p1, p0)))
 
         def test_algebra_point2_add_sub_cancel(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                (p0, p1) = (cls.pnt2(bs[:POINT_HASH_LEN]), cls.pnt2(bs[POINT_HASH_LEN:]))
+                (p0, p1) = (
+                    cls.point2.hash(bs[:POINT_HASH_LEN]),
+                    cls.point2.hash(bs[POINT_HASH_LEN:])
+                )
                 self.assertEqual(cls.add2(cls.sub2(p0, p1), p1), p0)
+
+        def test_algebra_point2_add_neg_cancel(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(2 * POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                (p0, p1) = (
+                    cls.point2.hash(bs[:POINT_HASH_LEN]),
+                    cls.point2.hash(bs[POINT_HASH_LEN:])
+                )
+                self.assertEqual(cls.add2(cls.neg2(p0), cls.add2(p0, p1)), p1)
+
+        def test_algebra_point2_neg_neg_cancel(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                p = cls.point2.hash(bs[:POINT_HASH_LEN])
+                self.assertEqual(cls.neg2(cls.neg2(p)), p)
+
+        def test_algebra_point2_add_neg_sub_identity(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(2 * POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                (p0, p1) = (
+                    cls.point2.hash(bs[:POINT_HASH_LEN]),
+                    cls.point2.hash(bs[POINT_HASH_LEN:])
+                )
+                self.assertEqual(cls.add2(p0, cls.neg2(p1)), cls.sub2(p0, p1))
+
+        def test_algebra_scalar_mul_point2_mul_commute(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains((2 * SCALAR_LEN) + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                (s0, s1, p0) = (
+                    cls.scalar.hash(bs[:SCALAR_LEN]),
+                    cls.scalar.hash(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
+                    cls.point2.hash(bs[SCALAR_LEN + SCALAR_LEN:])
+                )
+                self.assertEqual(
+                    cls.mul(s0, cls.mul2(s1, p0)),
+                    cls.mul(s1, cls.mul2(s0, p0))
+                )
 
         def test_algebra_scalar_mul_point2_mul_associate(self):
             mcl_hidden_and_fallback(hidden, fallback)
@@ -1071,33 +1193,64 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 (s0, s1, p0) = (
                     cls.scalar.hash(bs[:SCALAR_LEN]),
                     cls.scalar.hash(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
-                    cls.pnt2(bs[SCALAR_LEN + SCALAR_LEN:])
+                    cls.point2.hash(bs[SCALAR_LEN + SCALAR_LEN:])
                 )
-                if s0 is not None and s1 is not None:
-                    self.assertEqual(
-                        cls.mul2(s0, cls.mul2(s1, p0)),
-                        cls.mul2(cls.smu(s0, s1), p0)
-                    )
+                self.assertEqual(
+                    cls.mul2(s0, cls.mul2(s1, p0)),
+                    cls.mul2(cls.smu(s0, s1), p0)
+                )
 
         def test_algebra_scalar_mul_point2_add_distribute(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + (2 * POINT_HASH_LEN), limit=TRIALS_PER_TEST):
                 (s0, p0, p1) = (
                     cls.scalar.hash(bs[:SCALAR_LEN]),
-                    cls.pnt2(bs[SCALAR_LEN: SCALAR_LEN + POINT_HASH_LEN]),
-                    cls.pnt2(bs[SCALAR_LEN + POINT_HASH_LEN:])
+                    cls.point2.hash(bs[SCALAR_LEN: SCALAR_LEN + POINT_HASH_LEN]),
+                    cls.point2.hash(bs[SCALAR_LEN + POINT_HASH_LEN:])
                 )
-                if s0 is not None:
-                    self.assertEqual(
-                        cls.add2(cls.mul2(s0, p0), cls.mul2(s0, p1)),
-                        cls.mul2(s0, cls.add2(p0, p1))
-                    )
+                self.assertEqual(
+                    cls.add2(cls.mul2(s0, p0), cls.mul2(s0, p1)),
+                    cls.mul2(s0, cls.add2(p0, p1))
+                )
 
         def test_algebra_scalar_mul_point2_on_left_hand_side(self):
             mcl_hidden_and_fallback(hidden, fallback)
             s = cls.scalar.random()
             p = cls.point2.hash(bytes(POINT2_LEN))
             self.assertRaises(TypeError, lambda: p * s)
+
+        def test_algebra_scalar2_inverse_inverse_cancel(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(SCALAR2_LEN, limit=TRIALS_PER_TEST):
+                s = cls.scalar2.hash(bs)
+                self.assertEqual(cls.inv2(cls.inv2(s)), s)
+
+        def test_algebra_scalar2_mul_commute(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(SCALAR2_LEN + SCALAR2_LEN, limit=TRIALS_PER_TEST):
+                (s0, s1) = (
+                    cls.scalar2.hash(bs[:SCALAR2_LEN]),
+                    cls.scalar2.hash(bs[SCALAR2_LEN:])
+                )
+                self.assertEqual(cls.smu2(s0, s1), cls.smu2(s1, s0))
+
+        def test_algebra_scalar2_mul_inverse_mul_identity(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(SCALAR2_LEN + SCALAR2_LEN, limit=TRIALS_PER_TEST):
+                (s0, s1) = (
+                    cls.scalar2.hash(bs[:SCALAR2_LEN]),
+                    cls.scalar2.hash(bs[SCALAR2_LEN:])
+                )
+                self.assertEqual(cls.smu2(cls.smu2(s0, cls.inv2(s0)), s1), s1)
+
+        def test_algebra_scalar2_add_commute(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(SCALAR2_LEN + SCALAR2_LEN, limit=TRIALS_PER_TEST):
+                (s0, s1) = (
+                    cls.scalar2.hash(bs[:SCALAR2_LEN]),
+                    cls.scalar2.hash(bs[SCALAR2_LEN:])
+                )
+                self.assertEqual(cls.sad2(s0, s1), cls.sad2(s1, s0))
 
     return (
         Test_primitives,

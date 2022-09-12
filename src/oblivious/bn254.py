@@ -55,7 +55,7 @@ that inputs have the type and/or representation appropriate for that
 operation's internal implementation.
 """
 from __future__ import annotations
-from typing import Union, Optional
+from typing import Any, NoReturn, Union, Optional
 import doctest
 import hashlib
 import base64
@@ -1829,7 +1829,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             p.__class__ = self.__class__
             return p
 
-        def __mul__(self: point, other):
+        def __mul__(self: point, other: Any) -> NoReturn:
             """
             Use of this method is not permitted. A point cannot be a left-hand argument.
 
@@ -1838,21 +1838,25 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
               ...
             TypeError: point must be on right-hand side of multiplication operator
             """
-            raise TypeError('point must be on right-hand side of multiplication operator')
+            raise TypeError(
+                'point must be on right-hand side of multiplication operator'
+            )
 
-        def __rmul__(self: point, other: scalar) -> point: # pragma: no cover
+        def __rmul__(self: point, other: Any) -> NoReturn:
             """
-            Multiply this point by the supplied scalar and return the result.
-            This method should normally be preempted by :obj:`scalar.__mul__`.
+            This functionality is implemented exclusively in the method
+            :obj:`scalar.__mul__`, as that method pre-empts this method
+            when the second argument has the correct type (*i.e.*, it is
+            a :obj:`scalar` instance). This method is included so that an
+            exception can be raised if an incorrect argument is supplied.
 
             >>> p = point.hash('123'.encode())
-            >>> s = scalar.hash('456'.encode())
-            >>> (s * p).canonical().hex()[:64]
-            '6df8d29225a699b5ff3cc4b7b0a9c5003c0e1a93037cb2488b278495abfa2902'
+            >>> 2 * p
+            Traceback (most recent call last):
+              ...
+            TypeError: point can only be multiplied by a scalar
             """
-            p = self._implementation.mul(other, self)
-            p.__class__ = self.__class__
-            return p
+            raise TypeError('point can only be multiplied by a scalar')
 
         def __add__(self: point, other: point) -> point:
             """
@@ -1944,16 +1948,22 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def __bytes__(self: point) -> bytes:
             """
-            Return the binary representation of this instance.
+            Serialize this instnace and return its binary representation.
 
-            >>> len(bytes(point()))
+            >>> p = point.hash('123'.encode())
+            >>> bs = bytes(p)
+            >>> point.from_bytes(bs) == p
+            True
+            >>> type(bs) is bytes
+            True
+            >>> len(bs)
             96
             """
-            return self.to_bytes()
+            return self._implementation.ser(self)
 
         def to_bytes(self: point) -> bytes:
             """
-            Serialize this point and return its representation as bytes.
+            Serialize this instnace and return its binary representation.
 
             >>> p = point.hash('123'.encode())
             >>> bs = p.to_bytes()
@@ -1961,8 +1971,10 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             >>> type(bs) is bytes
             True
+            >>> len(bs)
+            96
             """
-            return self._implementation.ser(self)
+            return bytes(self)
 
         def hex(self: point) -> str:
             """
@@ -1972,7 +1984,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> p.hex()[:64]
             '825aa78af4c88d6de4abaebabf1a96f668956b92876cfb5d3a44829899cb480f'
             """
-            return self.to_bytes().hex()
+            return bytes(self).hex()
 
         def to_base64(self: point) -> str:
             """
@@ -1985,7 +1997,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> p.to_base64()[-64:]
             '5PqBuRzCyiRb8xYIelEII47///////8Viv//////ObnN/////y7GovX//3/ypCsh'
             """
-            return base64.standard_b64encode(self.to_bytes()).decode('utf-8')
+            return base64.standard_b64encode(bytes(self)).decode('utf-8')
 
     class scalar(_s_base_cls): # pylint: disable=E0102
         """
@@ -2141,18 +2153,6 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             s.__class__ = self.__class__ # = scalar
             return s
 
-        def inverse(self: scalar) -> scalar:
-            """
-            Return inverse of scalar modulo
-            ``2**252 + 27742317777372353535851937790883648493``.
-
-            >>> s = scalar()
-            >>> p = point()
-            >>> ((s.inverse()) * (s * p)) == p
-            True
-            """
-            return ~self
-
         def __mul__(
                 self: scalar,
                 other: Union[scalar, point, point2]
@@ -2212,7 +2212,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
                 'multiplication by a scalar is defined only for scalars and points'
             )
 
-        def __rmul__(self: scalar, other: Union[scalar, point]):
+        def __rmul__(self: scalar, other: Any) -> NoReturn:
             """
             A scalar cannot be on the right-hand side of a non-scalar.
 
@@ -2221,7 +2221,9 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
               ...
             TypeError: point must be on right-hand side of multiplication operator
             """
-            raise TypeError('scalar must be on left-hand side of multiplication operator')
+            raise TypeError(
+                'scalar must be on left-hand side of multiplication operator'
+            )
 
         def __add__(self: scalar, other: scalar) -> scalar:
             """
@@ -2291,16 +2293,20 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def __bytes__(self: scalar) -> bytes:
             """
-            Return the binary representation of this instance.
+            Serialize this instance and return its binary representation.
 
-            >>> len(bytes(scalar()))
-            32
+            >>> s = scalar.hash('123'.encode())
+            >>> bs = bytes(s)
+            >>> scalar.from_bytes(bs) == s
+            True
+            >>> type(bs) is bytes
+            True
             """
-            return self.to_bytes()
+            return self._implementation.sse(self)
 
         def to_bytes(self: scalar) -> bytes:
             """
-            Serialize this scalar and return its representation as bytes.
+            Serialize this instance and return its binary representation.
 
             >>> s = scalar.hash('123'.encode())
             >>> bs = s.to_bytes()
@@ -2309,11 +2315,11 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> type(bs) is bytes
             True
             """
-            return self._implementation.sse(self)
+            return bytes(self)
 
         def __int__(self: scalar) -> bytes:
             """
-            Compute the numerical representation of this scalar and return an int instance.
+            Compute and return the numerical representation of this instance.
 
             >>> s = scalar.from_int(123)
             >>> n = int(s)
@@ -2324,11 +2330,11 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             """
             d_inv = 0x235f846d22752e25720e909a9e82a1b4ad47e882341d8fca46c142d23fa9bc45
             n = (int.from_bytes(self._implementation.sse(self), 'little') * d_inv) % r
-            return n if (n <= r//2) else n-r
+            return n if (n <= r//2) else n - r
 
         def to_int(self: scalar) -> bytes:
             """
-            Compute the numerical representation of this scalar and return an int instance.
+            Compute and return the numerical representation of this instance.
 
             >>> s = scalar.from_int(123)
             >>> n = s.to_int()
@@ -2337,8 +2343,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> type(n) is int
             True
             """
-            d_inv = 0x235f846d22752e25720e909a9e82a1b4ad47e882341d8fca46c142d23fa9bc45
-            return (int.from_bytes(self._implementation.sse(self), 'little') * d_inv) % r
+            return int(self)
 
         def hex(self: scalar) -> str:
             """
@@ -2541,28 +2546,26 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             p.__class__ = self.__class__
             return p
 
-        def __mul__(self: point, other):
+        def __mul__(self: point2, other: Any) -> NoReturn:
             """
             Use of this method is not permitted. A point cannot be a left-hand argument.
 
             >>> point2() * scalar()
             Traceback (most recent call last):
               ...
-            TypeError: point must be on right-hand side of multiplication operator
+            TypeError: second-level point must be on right-hand side of multiplication operator
             """
-            raise TypeError('point must be on right-hand side of multiplication operator')
+            raise TypeError(
+                'second-level point must be on right-hand side of multiplication operator'
+            )
 
-        def __rmul__(self: point2, other: scalar) -> Optional[point2]:
+        def __rmul__(self: point2, other: Any) -> NoReturn:
             """
-            Multiply this instance by the supplied scalar and return the
-            result.
-
-            This functionality is implemented exclusively in the
-            method :obj:`scalar.__mul__`, as that method pre-empts this
-            method when the second argument has the correct type (*i.e.*,
-            it is a :obj:`scalar` instance). This method is included so
-            that an exception can be raised if an incorrect argument is
-            supplied.
+            This functionality is implemented exclusively in the method
+            :obj:`scalar.__mul__`, as that method pre-empts this method
+            when the second argument has the correct type (*i.e.*, it is
+            a :obj:`scalar` instance). This method is included so that an
+            exception can be raised if an incorrect argument is supplied.
 
             >>> p = point2.hash('123'.encode())
             >>> 2 * p
@@ -2570,9 +2573,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
               ...
             TypeError: second-level point can only be multiplied by a scalar
             """
-            raise TypeError(
-                'second-level point can only be multiplied by a scalar'
-            )
+            raise TypeError('second-level point can only be multiplied by a scalar')
 
         def __add__(self: point2, other: point2) -> Optional[point2]:
             """
@@ -2607,7 +2608,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             p.__class__ = self.__class__
             return p
 
-        def __neg__(self: point2) -> Optional[point2]:
+        def __neg__(self: point2) -> point2:
             """
             Return the negation (additive inverse) of this instance.
 
@@ -2622,9 +2623,9 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             p.__class__ = self.__class__
             return p
 
-        def __matmul__(self: point2, other: point) -> Optional[scalar2]:
+        def __matmul__(self: point2, other: point) -> scalar2:
             """
-            Return the result of pairing another point with this point.
+            Return the result of pairing another point with this instance.
 
             Input-swapped alias of :obj:`point.__matmul__`.
             """
@@ -2646,7 +2647,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> len(bytes(point2()))
             192
             """
-            return self.to_bytes()
+            return self._implementation.ser(self)
 
         def to_bytes(self: point2) -> bytes:
             """
@@ -2659,7 +2660,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> type(bs) is bytes
             True
             """
-            return self._implementation.ser(self)
+            return bytes(self)
 
         def hex(self: point2) -> str:
             """
@@ -2807,15 +2808,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def __invert__(self: scalar2) -> scalar2:
             """
-            Return inverse of scalar.
-            """
-            s = self._implementation.inv2(self)
-            s.__class__ = self.__class__ # = scalar2
-            return s
-
-        def inverse(self: scalar2) -> scalar2:
-            """
-            Return inverse of this scalar.
+            Return the inverse of this scalar.
 
             >>> s = scalar2.from_base64(
             ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
@@ -2827,7 +2820,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             ...     'okrFkmIqRcWcHe1xM3lCkqCWAr1Xo2YB01Q4hG/LNw85wPp6FbNNFKtvle5b9bJr'
             ...     '1d7x5+0HNQki1EXaB9k2Ii21uqnewVLCsrz8Rs3m/SLnAnGvihZOd+WAjOYCCVof'
             ... )
-            >>> s_inv = bytes(s.inverse()).hex()[700:]
+            >>> s_inv = bytes(~s).hex()[700:]
             >>> s_inv_mcl    = 'ec02e64a4556213eade4604303b93219233e21fd8e50f536e6421c7f73597f5bc905'
             >>> s_inv_python = 'd71413d63b9d7e08181eaecca0227b6de4dc36a8befe4e38597420345aec519c220b'
             >>> mclbn256 = s.__class__ != python.scalar2 # In case ``python`` and ``mcl`` are both defined.
@@ -2839,7 +2832,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             False
             """
             s = self._implementation.inv2(self)
-            s.__class__ = self.__class__ # = scalar2
+            s.__class__ = self.__class__
             return s
 
         def __mul__(self: scalar2, other: scalar2) -> scalar2:
@@ -2872,17 +2865,17 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
                 'second-level scalar can only be multiplied by another second-level scalar'
             )
 
-        def __rmul__(self: scalar2, other: Union[scalar2, point2]):
+        def __rmul__(self: scalar2, other: Any) -> NoReturn:
             """
             A scalar cannot be on the right-hand side of a non-scalar.
 
             >>> 2 * scalar2()
             Traceback (most recent call last):
               ...
-            TypeError: second-level scalar can only be multiplied by another second-level scalar
+            TypeError: second-level scalar must be on left-hand side of multiplication operator
             """
             raise TypeError(
-                'second-level scalar can only be multiplied by another second-level scalar'
+                'second-level scalar must be on left-hand side of multiplication operator'
             )
 
         def __add__(self: scalar2, other: scalar2) -> scalar2:
@@ -2919,16 +2912,22 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def __bytes__(self: scalar2) -> bytes:
             """
-            Return the binary representation of this instance.
-
-            >>> len(bytes(scalar2()))
+            Serialize this instance and return its binary representation.
+            >>> s = scalar2.hash('123'.encode())
+            >>> bs = bytes(s)
+            >>> scalar2.from_bytes(bs) == s
+            True
+            >>> type(bs) is bytes
+            True
+            >>> len(bs)
             384
             """
-            return self.to_bytes()
+            self.__class__ = type(self)._implementation.scalar2
+            return self._implementation.sse(self)
 
         def to_bytes(self: scalar2) -> bytes:
             """
-            Serialize this scalar and return its representation as bytes.
+            Serialize this instance and return its binary representation.
 
             >>> s = scalar2.hash('123'.encode())
             >>> bs = s.to_bytes()
@@ -2936,9 +2935,10 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             >>> type(bs) is bytes
             True
+            >>> len(bs)
+            384
             """
-            self.__class__ = type(self)._implementation.scalar2
-            return self._implementation.sse(self)
+            return bytes(self)
 
         def hex(self: scalar2) -> str:
             """
@@ -2991,7 +2991,6 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             """
             return base64.standard_b64encode(bytes(self)).decode('utf-8')
-
 
     # Encapsulate classes for this implementation, regardless of which are
     # exported as the unqualified symbols.
