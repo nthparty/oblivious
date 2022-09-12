@@ -39,7 +39,7 @@ def api_functions():
     namespaces.
     """
     return {
-        'rnd', 'scl', 'sse', 'sde', 'inv', 'smu', 'sad', 'ssb', 'sne',
+        'rnd', 'scl', 'sse', 'sde', 'inv', 'smu', 'sad', 'ssu', 'sne',
         'pnt', 'bas', 'can', 'ser', 'des', 'mul', 'add', 'sub', 'neg', 'par',
         'rnd2', 'scl2', 'sse2', 'sde2', 'inv2', 'smu2', 'sad2', 'pnt2', 'bas2',
         'can2', 'ser2', 'des2', 'mul2', 'add2', 'sub2', 'neg2'
@@ -237,7 +237,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 return cls.sad(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
 
-        def test_ssb(
+        def test_ssu(
                 self,
                 bits='dc34'
             ):
@@ -248,7 +248,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bs[SCALAR_LEN - 1] &= 0b00011111
                 bs = bytes(bs)
                 (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
-                return cls.ssb(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
+                return cls.ssu(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
 
         def test_sne(
@@ -796,10 +796,10 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             bs = cls.point.random().to_bytes()
             self.assertTrue(isinstance(cls.point.from_bytes(bs), cls.point))
 
-        def test_types_point_hex_from_hex(self):
+        def test_types_point_hex_fromhex(self):
             mcl_hidden_and_fallback(hidden, fallback)
             s = cls.point.random().hex()
-            self.assertTrue(isinstance(cls.point.from_hex(s), cls.point))
+            self.assertTrue(isinstance(cls.point.fromhex(s), cls.point))
 
         def test_types_point_to_base64_from_base64(self):
             mcl_hidden_and_fallback(hidden, fallback)
@@ -865,10 +865,10 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             bs = cls.scalar.random().to_bytes()
             self.assertTrue(isinstance(cls.scalar.from_bytes(bs), cls.scalar))
 
-        def test_types_scalar_hex_from_hex(self):
+        def test_types_scalar_hex_fromhex(self):
             mcl_hidden_and_fallback(hidden, fallback)
             s = cls.scalar.random().hex()
-            self.assertTrue(isinstance(cls.scalar.from_hex(s), cls.scalar))
+            self.assertTrue(isinstance(cls.scalar.fromhex(s), cls.scalar))
 
         def test_types_scalar_to_base64_from_base64(self):
             mcl_hidden_and_fallback(hidden, fallback)
@@ -930,10 +930,10 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             bs = cls.point2.random().to_bytes()
             self.assertTrue(isinstance(cls.point2.from_bytes(bs), cls.point2))
 
-        def test_types_point2_hex_from_hex(self):
+        def test_types_point2_hex_fromhex(self):
             mcl_hidden_and_fallback(hidden, fallback)
             s = cls.point2.random().hex()
-            self.assertTrue(isinstance(cls.point2.from_hex(s), cls.point2))
+            self.assertTrue(isinstance(cls.point2.fromhex(s), cls.point2))
 
         def test_types_point2_to_base64_from_base64(self):
             mcl_hidden_and_fallback(hidden, fallback)
@@ -982,10 +982,10 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             bs = cls.scalar2.random().to_bytes()
             self.assertTrue(isinstance(cls.scalar2.from_bytes(bs), cls.scalar2))
 
-        def test_types_scalar2_hex_from_hex(self):
+        def test_types_scalar2_hex_fromhex(self):
             mcl_hidden_and_fallback(hidden, fallback)
             s = cls.scalar2.random().hex()
-            self.assertTrue(isinstance(cls.scalar2.from_hex(s), cls.scalar2))
+            self.assertTrue(isinstance(cls.scalar2.fromhex(s), cls.scalar2))
 
         def test_types_scalar2_to_base64_from_base64(self):
             mcl_hidden_and_fallback(hidden, fallback)

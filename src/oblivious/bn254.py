@@ -66,7 +66,7 @@ from bn254.pair import e
 from bn254 import big as bn, Fp12 as Fp12_, Fp as _Fp, Fp2 as _Fp2
 from bn254.ecp import ECp as ECp_
 from bn254.ecp2 import ECp2 as ECp2_
-from bn254.curve import r#, p as p_mod
+from bn254.curve import r
 
 #
 # An attempt will be made later to import mclbn256. If the mcl shared/dynamic
@@ -273,7 +273,7 @@ class python:
     :obj:`python.rnd <rnd>`, :obj:`python.scl <scl>`,
     :obj:`python.sse <sse>`, :obj:`python.sde <sde>`,
     :obj:`python.inv <inv>`, :obj:`python.smu <smu>`,
-    :obj:`python.sad <sad>`, :obj:`python.ssb <ssb>`,
+    :obj:`python.sad <sad>`, :obj:`python.ssu <ssu>`,
     :obj:`python.sne <sne>`,
     :obj:`python.pnt <pnt>`, :obj:`python.bas <bas>`,
     :obj:`python.can <can>`, :obj:`python.ser <ser>`,
@@ -357,7 +357,7 @@ class python:
     @staticmethod
     def sde(bs: bytes) -> scalar:
         """
-        Return a scalar from its binary representation.
+        Construct a scalar from its binary representation.
 
         >>> s = python.scalar.hash('123'.encode())
         >>> python.sse_s = bytes.fromhex(
@@ -373,9 +373,9 @@ class python:
     @staticmethod
     def inv(s: scalar) -> scalar:
         """
-        Return inverse of scalar modulo
+        Return the inverse of scalar (modulo
         ``r=16798108731015832284940804142231733909759579603404752749028378864165570215949``
-        in the prime field `F*_r`.
+        in the prime field `F*_r`).
 
         >>> s = python.scl()
         >>> p = python.pnt()
@@ -387,7 +387,7 @@ class python:
     @staticmethod
     def smu(s: scalar, t: scalar) -> scalar:
         """
-        Return scalar multiplied by another scalar.
+        Return the product of two scalars.
 
         >>> s = python.scl()
         >>> t = python.scl()
@@ -400,7 +400,7 @@ class python:
     @staticmethod
     def sad(s: scalar, t: scalar) -> scalar:
         """
-        Return scalar added to another scalar.
+        Return the sum of two scalars.
 
         >>> s = python.scl()  # Could be `python.scl()`.
         >>> t = python.scl()
@@ -410,15 +410,16 @@ class python:
         return python.scalar.from_int((int(s) + int(t)) % r)
 
     @staticmethod
-    def ssb(s: scalar, t: scalar) -> scalar:
+    def ssu(s: scalar, t: scalar) -> scalar:
         """
-        Return the result of one scalar subtracted from another scalar.
+        Return the result of subtracting the right-hand scalar from the
+        left-hand scalar.
 
         >>> s = python.scl()
         >>> t = python.scl()
-        >>> python.ssb(s, t) == python.sad(s, python.sne(t))
+        >>> python.ssu(s, t) == python.sad(s, python.sne(t))
         True
-        >>> python.ssb(s, t) == python.sne(python.ssb(t, s))
+        >>> python.ssu(s, t) == python.sne(python.ssu(t, s))
         True
         """
         return python.scalar.from_int((int(s) - int(t)) % r)
@@ -433,31 +434,35 @@ class python:
         >>> python.sne(python.sne(s)) == s
         True
         """
-        return python.scalar.from_int(r-int(s)) # or (-int(s) % r)
+        return python.scalar.from_int(r - int(s))
 
     @staticmethod
-    def pnt(h: bytes = None) -> point:
+    def pnt(h: Optional[bytes] = None) -> point:
         """
-        Return point from 64-byte vector (normally obtained via hashing).
+        Construct a point from its 64-byte vector representation (normally
+        obtained via hashing).
 
         >>> p = python.pnt(hashlib.sha512('123'.encode()).digest())
         >>> p.hex()[:64]
         '6d68495eb4d539db4df70fd24d54fae37c9adf7dfd8dc705ccb8de8630e7cf22'
         """
-        return bytes.__new__(python.point,
-                             (_ECp.random() if h is None else _ECp.mapfrom(h)).serialize())
+        return bytes.__new__(
+            python.point,
+            (_ECp.random() if h is None else _ECp.mapfrom(h)).serialize()
+        )
 
     @staticmethod
     def bas(s: scalar) -> point:
         """
-        Return base point multiplied by supplied scalar.
+        Return the base point multiplied by the supplied scalar.
 
         >>> bytes(python.bas(python.scalar.hash('123'.encode()))).hex()[:64]
         '2d66076815cda25556bab4a930244ac284412267e9345aceb98d71530308401a'
         """
         return s * python.point.from_base64(
             'hQAAAAAAAJGJAAAAAADnpzoAAACAHm4XDAAAwI+/9wO'
-            'O////////FYr//////zm5zf////8uxqL1//9/8qQrIY7///////8Viv//////ObnN/////y7GovX//3/ypCsh'
+            'O////////FYr//////zm5zf////8uxqL1//9/8qQrIY'
+            '7///////8Viv//////ObnN/////y7GovX//3/ypCsh'
         )
 
     @staticmethod
@@ -469,11 +474,12 @@ class python:
         >>> p = python.add(a, a)
         >>> p_can = python.can(python.add(a, a))
 
-        We may have ``ser(p_can) != ser(p)`` here, depending on the backend
-        implementation.  Either normalization matters, or the mcl library
-        has not been loaded.
+        It may be the case that ``ser(p_can) != ser(p)``, depending on the
+        implementation. It is the responsibility of the user to ensure
+        that only canonical forms are serialized if those serialized forms
+        must be compared.
 
-        >>> mclbn256 = p.__class__ != python.point # Use this for now while both backends are in use
+        >>> mclbn256 = p.__class__ != python.point
         >>> (python.ser(p_can) != python.ser(p)) or not mclbn256
         True
 
@@ -496,9 +502,9 @@ class python:
         return bytes(b for b in p)
 
     @staticmethod
-    def des(bs: bytes) -> point:  # G1:
+    def des(bs: bytes) -> point:
         """
-        Return a point from its binary representation.
+        Construct a point corresponding to the supplied binary representation.
 
         >>> p = python.point.hash('123'.encode())
         >>> python.ser_p = bytes.fromhex(
@@ -511,13 +517,14 @@ class python:
         >>> python.ser(python.des(python.ser_p)) == python.ser_p
         True
         """
+        # It may be useful to debug with ``_ECp.deserialize(bs).serialize()``
+        # in place of just ``bs``.
         return bytes.__new__(python.point, bs)
-        # It may be useful to debug with _ECp.deserialize(bs).serialize() in place of just bs.
 
     @staticmethod
     def mul(s: scalar, p: point) -> point:
         """
-        Multiply the point by the supplied scalar and return the result.
+        Multiply a point by a scalar and return the result.
 
         >>> p = python.pnt(hashlib.sha512('123'.encode()).digest())
         >>> s = python.scl(bytes.fromhex(
@@ -540,13 +547,16 @@ class python:
         >>> python.add(python.sub(p, q), q) == p
         True
         """
-        return bytes.__new__(python.point,
-                             _ECp.serialize(_ECp.deserialize(p).add(_ECp.deserialize(q))))
+        return bytes.__new__(
+            python.point,
+            _ECp.serialize(_ECp.deserialize(p).add(_ECp.deserialize(q)))
+        )
 
     @staticmethod
     def sub(p: point, q: point) -> point:
         """
-        Return result of subtracting second point from first point.
+        Return the result of subtracting the right-hand point from the
+        left-hand point.
 
         >>> p = python.point.hash('123'.encode())
         >>> q = python.point.hash('456'.encode())
@@ -555,11 +565,13 @@ class python:
         >>> python.sub(python.add(p, q), q) == p
         True
         """
-        return bytes.__new__(python.point,
-                             _ECp.serialize(_ECp.deserialize(p).add(-1 * _ECp.deserialize(q))))
+        return bytes.__new__(
+            python.point,
+            _ECp.serialize(_ECp.deserialize(p).add(-1 * _ECp.deserialize(q)))
+        )
 
     @staticmethod
-    def neg(p: point) -> point:  # G1:
+    def neg(p: point) -> point:
         """
         Return the additive inverse of a point.
 
@@ -572,7 +584,8 @@ class python:
     @staticmethod
     def par(p: Union[point, point2], q: Union[point, point2]) -> scalar2:
         """
-        Compute the pairing function on two points.
+        Return the result of applying the pairing function to a point and a
+        second-level point.
 
         >>> p = python.point.hash('123'.encode())
         >>> q = python.point2.base(python.scalar.from_int(456))
@@ -582,10 +595,6 @@ class python:
         >>> mclbn256 = p.__class__ != python.point # In case both ``python`` and ``mcl`` are defined.
         >>> z == z_mcl if mclbn256 else z == z_python
         True
-
-        After the ``finalExp`` `function <gist.github.com/wyatt-howe/0ca575e99b73dada1f7fb63862a23a71>`__
-        from the MCl library (not yet implemented here or in the pure-Python library), the hexadecimal
-        result is: ``'3619f8827c626c4bfd265424f25ce5f8449d6f4cd29575284c50b203ef57d9e1c408'``.
 
         The pairing function is bilinear.
 
@@ -648,7 +657,7 @@ class python:
         """
         p = python.point.random()
         q = python.point2.base(python.scalar.random())
-        return python.par(p, q)  # cls.par
+        return python.par(p, q)
 
     @staticmethod
     def scl2(s: Union[bytes, bytearray, None] = None) -> Optional[scalar2]:
@@ -696,7 +705,7 @@ class python:
     @staticmethod
     def sde2(bs: bytes) -> scalar2:
         """
-        Return a second-level scalar from its binary representation.
+        Construct a second-level scalar from its binary representation.
 
         >>> s = python.scalar2.hash('123'.encode())
         >>> sse_s = bytes.fromhex(
@@ -731,7 +740,10 @@ class python:
         >>> python.smu2(python.smu2(s, s), python.inv2(s)) == s
         True
         """
-        return bytes.__new__(python.scalar2, _Fp12(_Fp12.deserialize(s).inverse()).serialize())
+        return bytes.__new__(
+            python.scalar2,
+            _Fp12(_Fp12.deserialize(s).inverse()).serialize()
+        )
 
     @staticmethod
     def smu2(s: scalar2, t: scalar2) -> scalar2:
@@ -768,11 +780,11 @@ class python:
         )
 
     @staticmethod
-    def pnt2(h: bytes = None) -> point2:  # G2:
+    def pnt2(h: Optional[bytes] = None) -> point2:
         """
-        Construct a second-group point if the supplied bytes-like object
-        represents a valid second-group point; otherwise, return ``None``.
-        If no byte vector is supplied, return a random second-group point.
+        Construct a second-level point if the supplied bytes-like object
+        represents a valid second-level point; otherwise, return ``None``.
+        If no byte vector is supplied, return a random second-level point.
 
         >>> p = python.pnt2(hashlib.sha512('123'.encode()).digest())
         >>> python.point2.to_bytes(p).hex()[:128] == (
@@ -787,7 +799,7 @@ class python:
         )
 
     @staticmethod
-    def bas2(s: scalar) -> point2:  # G2:
+    def bas2(s: scalar) -> point2:
         """
         Return base point multiplied by supplied scalar.
 
@@ -826,7 +838,8 @@ class python:
     @staticmethod
     def des2(bs: bytes) -> point2:
         """
-        Return a second-group point from its binary representation.
+        Return the second-level point corresponding to the supplied binary
+        representation thereof.
 
         >>> p = python.point2.hash('123'.encode())
         >>> ser_p = bytes.fromhex(
@@ -848,7 +861,7 @@ class python:
     @staticmethod
     def mul2(s: scalar, p: point2) -> point2:
         """
-        Multiply a second-group point by a scalar.
+        Multiply a second-level point by a scalar.
 
         >>> p = python.point2.hash('123'.encode())
         >>> s = python.scl(bytes.fromhex(
@@ -869,7 +882,7 @@ class python:
     @staticmethod
     def add2(p: point2, q: point2) -> point2:
         """
-        Return sum of the supplied second-group points.
+        Return sum of the supplied second-level points.
 
         >>> p = python.point2.hash('123'.encode())
         >>> q = python.point2.hash('456'.encode())
@@ -891,7 +904,8 @@ class python:
     @staticmethod
     def sub2(p: point2, q: point2) -> point2:
         """
-        Return result of subtracting one second-group point from another.
+        Return the result of subtracting right-hand second-level point from the
+        left-hand second-level point.
 
         >>> p = python.point2.hash('123'.encode())
         >>> q = python.point2.hash('456'.encode())
@@ -913,7 +927,7 @@ class python:
     @staticmethod
     def neg2(p: point2) -> point2:
         """
-        Return the negation of a second-group point.
+        Return the negation of a second-level point.
 
         >>> p = python.point2.hash('123'.encode())
         >>> python.point2.to_bytes(python.neg2(p)).hex() == (
@@ -979,7 +993,7 @@ try:
         :obj:`mcl.rnd <rnd>`, :obj:`mcl.scl <scl>`,
         :obj:`mcl.sse <sse>`, :obj:`mcl.sde <sde>`,
         :obj:`mcl.inv <inv>`, :obj:`mcl.smu <smu>`,
-        :obj:`mcl.sad <sad>`, :obj:`mcl.ssb <ssb>`,
+        :obj:`mcl.sad <sad>`, :obj:`mcl.ssu <ssu>`,
         :obj:`mcl.sne <sne>`,
         :obj:`mcl.pnt <pnt>`, :obj:`mcl.bas <bas>`,
         :obj:`mcl.can <can>`, :obj:`mcl.ser <ser>`,
@@ -1120,14 +1134,14 @@ try:
             return Fr.__add__(s, t)
 
         @staticmethod
-        def ssb(s: Fr, t: Fr) -> Fr:
+        def ssu(s: Fr, t: Fr) -> Fr:
             """
             Return the result of one scalar subtracted from another scalar.
 
             >>> (s, t) = (mcl.scl(), mcl.scl())
-            >>> mcl.ssb(s, t) == mcl.sad(s, mcl.sne(t))
+            >>> mcl.ssu(s, t) == mcl.sad(s, mcl.sne(t))
             True
-            >>> mcl.ssb(s, t) == mcl.sne(mcl.ssb(t, s))
+            >>> mcl.ssu(s, t) == mcl.sne(mcl.ssu(t, s))
             True
             """
             return Fr.__sub__(s, t)
@@ -1255,7 +1269,8 @@ try:
         @staticmethod
         def sub(p: G1, q: G1) -> G1:
             """
-            Return result of subtracting second point from first point.
+            Return the result of subtracting the right-hand point from the
+            left-hand point.
 
             >>> p = mcl.point.hash('123'.encode())
             >>> q = mcl.point.hash('456'.encode())
@@ -1424,7 +1439,8 @@ try:
         @staticmethod
         def sde2(bs: bytes) -> GT:
             """
-            Return a second-level scalar from its binary representation.
+            Return the second-level scalar corresponding to the supplied binary
+            representation thereof.
 
             >>> s = mcl.scalar2.hash('123'.encode())
             >>> sse_s = bytes.fromhex(
@@ -1465,7 +1481,7 @@ try:
         @staticmethod
         def smu2(s: GT, t: GT) -> GT:
             """
-            Return second-level scalar multiplied by another scalar.
+            Return the product of two second-level scalars.
 
             >>> p1 = mcl.point.hash('123'.encode())
             >>> p2 = mcl.point.hash('456'.encode())
@@ -1481,7 +1497,7 @@ try:
         @staticmethod
         def sad2(s: GT, t: GT) -> GT:
             """
-            Return second-level scalar added to another scalar.
+            Return the sum of two second-level scalars.
 
             >>> s = mcl.scl2()
             >>> t = mcl.scl2()
@@ -1491,11 +1507,11 @@ try:
             return GT.__add__(s, t)
 
         @staticmethod
-        def pnt2(h: bytes = None) -> G2:
+        def pnt2(h: Optional[bytes] = None) -> G2:
             """
-            Construct a second-group point if the supplied bytes-like object
-            represents a valid second-group point; otherwise, return ``None``.
-            If no byte vector is supplied, return a random second-group point.
+            Construct a second-level point if the supplied bytes-like object
+            represents a valid second-level point; otherwise, return ``None``.
+            If no byte vector is supplied, return a random second-level point.
 
             >>> p = mcl.pnt2(hashlib.sha512('123'.encode()).digest())
             >>> p.__class__ = point2
@@ -1510,7 +1526,7 @@ try:
         @staticmethod
         def bas2(s) -> G2:
             """
-            Return base point multiplied by supplied scalar.
+            Return the base second-level point multiplied by the supplied scalar.
 
             >>> r = mcl.bas2(mcl.scalar.hash('123'.encode())).normalize().normalize()
             >>> r.__class__ = point2
@@ -1523,7 +1539,8 @@ try:
         @staticmethod
         def can2(p: G2) -> G2:
             """
-            Normalize the representation of a second-level point into its canonical form.
+            Normalize the representation of a second-level point into its
+            canonical form.
 
             >>> p = mcl.bas2(scalar.from_int(1))
             >>> mcl.ser(mcl.can2(p)).hex()[:64]
@@ -1549,7 +1566,8 @@ try:
         @staticmethod
         def des2(bs: bytes) -> G2:
             """
-            Return a second-group point from its binary representation.
+            Return the second-level point corresponding to the supplied binary
+            representation thereof.
 
             >>> p = mcl.point2.hash('123'.encode())
             >>> mcl.ser_p = bytes.fromhex(
@@ -1571,7 +1589,7 @@ try:
         @staticmethod
         def mul2(s: Fr, p: G2) -> G2:
             """
-            Multiply a second-group point by a scalar.
+            Multiply a second-level point by a scalar.
 
             >>> p = mcl.point2.hash('123'.encode())
             >>> s = mcl.scl(bytes.fromhex(
@@ -1594,7 +1612,7 @@ try:
         @staticmethod
         def add2(p: G2, q: G2) -> G2:
             """
-            Return sum of the supplied second-group points.
+            Return sum of the supplied second-level points.
 
             >>> p = mcl.point2.hash('123'.encode())
             >>> q = mcl.point2.hash('456'.encode())
@@ -1615,7 +1633,8 @@ try:
         @staticmethod
         def sub2(p: G2, q: G2) -> G2:
             """
-            Return result of subtracting one second-group point from another.
+            Return the result of subtracting the right-hand second-level point
+            from the left-hand second-level point.
 
             >>> p = mcl.point2.hash('123'.encode())
             >>> q = mcl.point2.hash('456'.encode())
@@ -1636,7 +1655,7 @@ try:
         @staticmethod
         def neg2(p: G2) -> G2:
             """
-            Return the negation of a second-group point.
+            Return the negation of a second-level point.
 
             >>> p = mcl.point2.hash('123'.encode())
             >>> r = mcl.neg2(p).normalize().normalize()
@@ -1696,8 +1715,8 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             object if it is possible to do so; otherwise, return ``None``.
 
             The bytes-like object need not be the binary representation
-            of a point or its coordinate(s).  For a strict deserialization
-            from bytes, use :obj:`point.from_bytes`.
+            of a point or its coordinate(s). For a strict deserialization
+            from a bytes-like object, use :obj:`point.from_bytes`.
 
             >>> p = point.bytes(hashlib.sha512('123'.encode()).digest())
             >>> p.hex()[:64]
@@ -1735,7 +1754,8 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
         @classmethod
         def from_bytes(cls, bs: bytes) -> point:
             """
-            Deserialize the bytes representation of a point and return the point instance.
+            Deserialize the supplied binary representation of an instance and
+            return that instance.
 
             >>> p = point.hash('123'.encode())
             >>> bs = p.to_bytes()
@@ -1749,11 +1769,11 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             return p
 
         @classmethod
-        def from_hex(cls, s: str) -> point:
+        def fromhex(cls, s: str) -> point:
             """
-            Convert the hexadecimal UTF-8 string representation of a point to a point instance.
+            Construct an instance from its hexadecimal UTF-8 string representation.
 
-            >>> point.from_hex(
+            >>> point.fromhex(
             ...     'b89ec91191915a72d4ec4434be7b438893975880b21720995c2b2458962c4e0a'
             ...     'd0efebb5c303e4d1f8461b44ec768c587eca8b0abc01d4cb0d878b076154940d'
             ...     '8effffffffffff158affffffffff39b9cdffffffff2ec6a2f5ffff7ff2a42b21'
@@ -1765,7 +1785,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
         @classmethod
         def from_base64(cls, s: str) -> point:
             """
-            Construct an instance from its corresponding Base64 UTF-8 string representation.
+            Construct an instance from its Base64 UTF-8 string representation.
 
             >>> point.from_base64(
             ...     'hQIYpQRHupyyfPFoEm8rfmKV6i6VUP7vmngQWpxS3AEJD29fKVMW39l2oDLB+Ece'
@@ -1775,7 +1795,10 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             """
             return cls.from_bytes(base64.standard_b64decode(s))
 
-        def __new__(cls, bs: Union[bytes, bytearray, None] = None) -> point: # pylint: disable=arguments-differ
+        def __new__( # pylint: disable=arguments-differ
+                cls,
+                bs: Union[bytes, bytearray, None] = None
+            ) -> point:
             """
             If a bytes-like object is supplied, return a point object
             corresponding to the supplied bytes-like object (no checking
@@ -1988,7 +2011,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def to_base64(self: point) -> str:
             """
-            Return an equivalent Base64 UTF-8 string representation of this instance.
+            Return the Base64 UTF-8 string representation of this instance.
 
             >>> p = point.from_base64(
             ...     'hQIYpQRHupyyfPFoEm8rfmKV6i6VUP7vmngQWpxS3AEJD29fKVMW39l2oDLB+Ece'
@@ -2086,7 +2109,8 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
         @classmethod
         def from_bytes(cls, bs: bytes) -> scalar:
             """
-            Deserialize the bytes representation of a scalar and return the scalar instance.
+            Deserialize the supplied binary representation of an instance and
+            return that instance.
 
             >>> s = scalar.hash('123'.encode())
             >>> bs = s.to_bytes()
@@ -2100,12 +2124,11 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             return s
 
         @classmethod
-        def from_hex(cls, s: str) -> scalar:
+        def fromhex(cls, s: str) -> scalar:
             """
-            Convert the hexadecimal UTF-8 string representation of a scalar to a scalar
-            instance.
+            Construct an instance from its hexadecimal UTF-8 string representation.
 
-            >>> scalar.from_hex(
+            >>> scalar.fromhex(
             ...     '3ab45f5b1c9339f1d25b878cce1c053b5492b4dc1affe689cbe141769f655e1e'
             ... ).hex()[:64]
             '3ab45f5b1c9339f1d25b878cce1c053b5492b4dc1affe689cbe141769f655e1e'
@@ -2115,14 +2138,17 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
         @classmethod
         def from_base64(cls, s: str) -> scalar:
             """
-            Convert Base64 UTF-8 string representation of a scalar to a scalar instance.
+            Construct an instance from its Base64 UTF-8 string representation.
 
             >>> scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=').hex()[:64]
             '312d0c9130f69153bec9f5d0386a95135eb45eebf130af5f1fed1c6ed15f2500'
             """
             return cls.from_bytes(base64.standard_b64decode(s))
 
-        def __new__(cls, bs: Union[bytes, bytearray, None] = None) -> scalar: # pylint: disable=arguments-differ
+        def __new__( # pylint: disable=arguments-differ
+                cls,
+                bs: Union[bytes, bytearray, None] = None
+            ) -> scalar:
             """
             If a bytes-like object is supplied, return a scalar object
             corresponding to the supplied bytes-like object (no checking
@@ -2150,7 +2176,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             """
             s = self._implementation.inv(self)
-            s.__class__ = self.__class__ # = scalar
+            s.__class__ = self.__class__
             return s
 
         def __mul__(
@@ -2158,7 +2184,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
                 other: Union[scalar, point, point2]
             ) -> Optional[Union[scalar, point, point2]]:
             """
-            Multiply supplied scalar, point, or second-group point by this
+            Multiply supplied scalar, point, or second-level point by this
             instance.
 
             >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
@@ -2195,7 +2221,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             """
             if isinstance(other, self._implementation.scalar):
                 s = self._implementation.smu(self, other)
-                s.__class__ = self.__class__ # = scalar
+                s.__class__ = self.__class__
                 return s
 
             if isinstance(other, self._implementation.point):
@@ -2227,7 +2253,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def __add__(self: scalar, other: scalar) -> scalar:
             """
-            Add this scalar with another scalar.
+            Add another scalar to this instance.
 
             >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
             >>> (s + s).hex()[:64]
@@ -2251,12 +2277,12 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             """
             s = self._implementation.sad(self, other)
-            s.__class__ = self.__class__ # = scalar
+            s.__class__ = self.__class__
             return s
 
         def __sub__(self: scalar, other: scalar) -> scalar:
             """
-            Subtract this scalar from another scalar.
+            Subtract this instance from another scalar.
 
             >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
             >>> (s - s).hex() == '00' * len(s)
@@ -2264,13 +2290,13 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> isinstance(s - s, scalar)
             True
             """
-            s = self._implementation.ssb(self, other)
-            s.__class__ = self.__class__ # = scalar
+            s = self._implementation.ssu(self, other)
+            s.__class__ = self.__class__
             return s
 
         def __neg__(self: scalar) -> scalar:
             """
-            Negate this scalar.
+            Negate this instance.
 
             >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
             >>> (-s).hex()
@@ -2279,7 +2305,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             """
             s = self._implementation.sne(self)
-            s.__class__ = self.__class__ # = scalar
+            s.__class__ = self.__class__
             return s
 
         def __len__(self: scalar) -> int:
@@ -2357,7 +2383,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def to_base64(self: scalar) -> str:
             """
-            Convert to equivalent Base64 UTF-8 string representation.
+            Return the Base64 UTF-8 string representation of this instance.
 
             >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
             >>> s.to_base64()
@@ -2388,8 +2414,8 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
         @classmethod
         def bytes(cls, bs: Union[bytes, bytearray]) -> point2:
             """
-            Return second-group point obtained by transforming supplied bytes-like
-            object.
+            Construct an instance that corresponds to the supplied binary
+            representation.
 
             >>> p = point2.bytes(hashlib.sha512('123'.encode()).digest())
             >>> p.canonical().hex()[:128] == (
@@ -2420,7 +2446,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
         @classmethod
         def base(cls, s: scalar) -> point2:
             """
-            Return base second-group point multiplied by the supplied scalar
+            Return base second-level point multiplied by the supplied scalar
             if the scalar is valid; otherwise, return ``None``.
 
             >>> point2.base(scalar.hash('123'.encode())).canonical().hex()[:128] == (
@@ -2436,7 +2462,8 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
         @classmethod
         def from_bytes(cls, bs: bytes) -> point2:
             """
-            Deserialize the bytes representation of a second-group point and return the instance.
+            Deserialize the supplied binary representation of an instance and
+            return that instance.
 
             >>> p = point2.hash('123'.encode())
             >>> bs = p.to_bytes()
@@ -2450,11 +2477,11 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             return p
 
         @classmethod
-        def from_hex(cls, s: str) -> point2:
+        def fromhex(cls, s: str) -> point2:
             """
-            Construct a second-group point from its hexadecimal UTF-8 string representation.
+            Construct an instance from its hexadecimal UTF-8 string representation.
 
-            >>> p = point2.from_hex(
+            >>> p = point2.fromhex(
             ...     'ab4efa2bcdeb825a67b12a10132ae1addca840ed248f83ae7dd987370dd47a05'
             ...     '31c10b08ada0e24c0327d85b108e826a55bf3dc3286488327fac75e05e293b20'
             ...     '01cbf919b53884d02b85aab9b0091eeda114fa65ca5d75620da26c4d164aa509'
@@ -2472,7 +2499,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
         @classmethod
         def from_base64(cls, s: str) -> point2:
             """
-            Construct a second-group point from its Base64 UTF-8 string representation.
+            Construct an instance from its Base64 UTF-8 string representation.
 
             >>> p = point2.from_base64(
             ...     'xRuTJv/OWkIPMxRoCQIqNYoSixnWfMxeYwSJnjdJwxlp9E9f6oKefvbfYlJeygmK'
@@ -2487,12 +2514,15 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             p.__class__ = cls
             return p
 
-        def __new__(cls, bs: Union[bytes, bytearray, None] = None) -> point2: # pylint: disable=arguments-differ
+        def __new__( # pylint: disable=arguments-differ
+                cls,
+                bs: Union[bytes, bytearray, None] = None
+            ) -> point2:
             """
-            If a bytes-like object is supplied, return a second-group point
+            If a bytes-like object is supplied, return a second-level point
             object corresponding to the supplied bytes-like object (no check
             is performed to confirm that the bytes-like object is a valid
-            point). If no argument is supplied, a random second-group point
+            point). If no argument is supplied, a random second-level point
             is returned.
 
             >>> bs = bytes.fromhex(
@@ -2642,7 +2672,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def __bytes__(self: point2) -> bytes:
             """
-            Return the binary representation of this instance.
+            Serialize this instance and return its binary representation.
 
             >>> len(bytes(point2()))
             192
@@ -2651,7 +2681,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def to_bytes(self: point2) -> bytes:
             """
-            Serialize this second-group point and return its representation as bytes.
+            Serialize this instance and return its binary representation.
 
             >>> p = point2.hash('123'.encode())
             >>> bs = p.to_bytes()
@@ -2664,7 +2694,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def hex(self: point2) -> str:
             """
-            Generates hexadecimal representation of this instance.
+            Return a hexadecimal representation of this instance.
 
             >>> p = point2.hash('123'.encode())
             >>> p.canonical().hex() == (
@@ -2681,7 +2711,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def to_base64(self: point2) -> str:
             """
-            Convert to equivalent Base64 UTF-8 string representation.
+            Return the Base64 UTF-8 string representation of this instance.
 
             >>> p = point2.from_base64(
             ...     'zn07zy59PMhe396h9AQ+FY3LqfzmaRmbVmfwKaQqTxStH2ZPqGwBjv99STlWrenq'
@@ -2737,7 +2767,8 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
         @classmethod
         def from_bytes(cls, bs: bytes) -> scalar2:
             """
-            Deserialize the bytes representation of a second-level scalar and return the instance.
+            Deserialize the supplied binary representation of an instance and
+            return that instance.
 
             >>> s = scalar2.hash('123'.encode())
             >>> bs = s.to_bytes()
@@ -2751,7 +2782,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             return s
 
         @classmethod
-        def from_hex(cls, s: str) -> scalar2:
+        def fromhex(cls, s: str) -> scalar2:
             """
             Construct an instance from its hexadecimal UTF-8 string representation.
 
@@ -2769,7 +2800,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             ...     '39c0fa7a15b34d14ab6f95ee5bf5b26bd5def1e7ed07350922d445da07d93622'
             ...     '2db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
             ... )
-            >>> s = scalar2.from_hex(s_hex)
+            >>> s = scalar2.fromhex(s_hex)
             >>> s.hex() == s_hex
             True
             """
@@ -2778,7 +2809,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
         @classmethod
         def from_base64(cls, s: str) -> scalar2:
             """
-            Construct an instance from a Base64 UTF-8 string representation thereof.
+            Construct an instance from its Base64 UTF-8 string representation.
 
             >>> b64s = (
             ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
@@ -2796,19 +2827,21 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             """
             return cls.from_bytes(base64.standard_b64decode(s))
 
-        def __new__(cls, bs: Union[bytes, bytearray, None] = None) -> scalar2: # pylint: disable=arguments-differ
+        def __new__( # pylint: disable=arguments-differ
+                cls,
+                bs: Union[bytes, bytearray, None] = None
+            ) -> scalar2:
             """
-            If a bytes-like object is supplied, return an instance that
-            corresponds to the supplied bytes-like object (no checking
-            is performed to confirm that the bytes-like object is a valid
-            scalar). If no argument is supplied, return a random scalar
-            object.
+            If a bytes-like object is supplied, return an instance that corresponds
+            to the supplied bytes-like object (no checking is performed to confirm
+            that the bytes-like object is a valid second-level scalar). If no
+            argument is supplied, return a random scalar object.
             """
             return cls.from_bytes(bs) if bs is not None else cls.random()
 
         def __invert__(self: scalar2) -> scalar2:
             """
-            Return the inverse of this scalar.
+            Return the inverse of this instance.
 
             >>> s = scalar2.from_base64(
             ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
@@ -2837,7 +2870,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def __mul__(self: scalar2, other: scalar2) -> scalar2:
             """
-            Multiply supplied scalar by another scalar.
+            Multiply this instance by another second-level scalar.
 
             >>> s = scalar2.from_base64(
             ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
@@ -2858,7 +2891,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             """
             if isinstance(other, self._implementation.scalar2):
                 s = self._implementation.smu2(self, other)
-                s.__class__ = self.__class__ # = scalar2
+                s.__class__ = self.__class__
                 return s
 
             raise TypeError(
@@ -2867,7 +2900,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def __rmul__(self: scalar2, other: Any) -> NoReturn:
             """
-            A scalar cannot be on the right-hand side of a non-scalar.
+            A second-level scalar cannot be on the right-hand side of a non-scalar.
 
             >>> 2 * scalar2()
             Traceback (most recent call last):
@@ -2880,7 +2913,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def __add__(self: scalar2, other: scalar2) -> scalar2:
             """
-            Add this scalar with another scalar.
+            Add another second-level scalar to this instance.
 
             >>> z = scalar2.from_base64(
             ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
@@ -2898,7 +2931,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             True
             """
             s = self._implementation.sad2(self, other)
-            s.__class__ = self.__class__ # = scalar2
+            s.__class__ = self.__class__
             return s
 
         def __len__(self: scalar2) -> int:
@@ -2913,6 +2946,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
         def __bytes__(self: scalar2) -> bytes:
             """
             Serialize this instance and return its binary representation.
+
             >>> s = scalar2.hash('123'.encode())
             >>> bs = bytes(s)
             >>> scalar2.from_bytes(bs) == s
@@ -2922,7 +2956,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> len(bs)
             384
             """
-            self.__class__ = type(self)._implementation.scalar2
+            self.__class__ = self.__class__._implementation.scalar2
             return self._implementation.sse(self)
 
         def to_bytes(self: scalar2) -> bytes:
@@ -2974,7 +3008,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 
         def to_base64(self: scalar2) -> str:
             """
-            Convert this instance to an equivalent Base64 UTF-8 string representation.
+            Return the Base64 UTF-8 string representation of this instance.
 
             >>> b64s = (
             ...     'GNDgZXmP+k7MoKfMbiuNbTJp9+tBNSXlm3MTMrAuqAVLkMic6T5EUlV/U6rl+PEy'
