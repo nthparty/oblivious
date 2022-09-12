@@ -923,25 +923,25 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             p = cls.point2.base(cls.scalar.random())
             self.assertTrue(isinstance(p.canonical(), cls.point2))
 
-        def test_types_point_mul(self):
+        def test_types_point2_mul(self):
             mcl_hidden_and_fallback(hidden, fallback)
             (bs,) = fountains(SCALAR_LEN + POINT_HASH_LEN, limit=1)
             (s, p) = (cls.scalar.hash(bs[:SCALAR_LEN]), cls.point2.hash(bs[SCALAR_LEN:]))
             self.assertTrue(isinstance(s * p, cls.point2))
 
-        def test_types_point_add(self):
+        def test_types_point2_add(self):
             mcl_hidden_and_fallback(hidden, fallback)
             (bs,) = fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=1)
             (p0, p1) = (cls.point2.hash(bs[:POINT_HASH_LEN]), cls.point2.hash(bs[POINT_HASH_LEN:]))
             self.assertTrue(isinstance(p0 + p1, cls.point2))
 
-        def test_types_point_sub(self):
+        def test_types_point2_sub(self):
             mcl_hidden_and_fallback(hidden, fallback)
             (bs,) = fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=1)
             (p0, p1) = (cls.point2.hash(bs[:POINT_HASH_LEN]), cls.point2.hash(bs[POINT_HASH_LEN:]))
             self.assertTrue(isinstance(p0 - p1, cls.point2))
 
-        def test_types_point_neg(self):
+        def test_types_point2_neg(self):
             mcl_hidden_and_fallback(hidden, fallback)
             (bs,) = fountains(POINT_HASH_LEN, limit=1)
             self.assertTrue(isinstance(-cls.point2.hash(bs), cls.point2))
