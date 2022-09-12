@@ -360,12 +360,12 @@ class python:
         Construct a scalar from its binary representation.
 
         >>> s = python.scalar.hash('123'.encode())
-        >>> python.sse_s = bytes.fromhex(
+        >>> bs = bytes.fromhex(
         ...     '93d829354cb3592743174133104b5405ba6992b67bb219fbde3e394d70505913'
         ... )
-        >>> python.sde(python.sse_s) == s
+        >>> python.sde(bs) == s
         True
-        >>> python.sse(python.sde(python.sse_s)) == python.sse_s
+        >>> python.sse(python.sde(bs)) == bs
         True
         """
         return bytes.__new__(python.scalar, bs)
@@ -709,7 +709,7 @@ class python:
         Construct a second-level scalar from its binary representation.
 
         >>> s = python.scalar2.hash('123'.encode())
-        >>> sse_s = bytes.fromhex(
+        >>> bs = bytes.fromhex(
         ...     'dc2b36dda20a09cdeecb88d36eeb9f744010151aba82a9bdcd7abd288b3bf80c'
         ...     '2e1ff32967b9227aa50698ffa663f90dec27208f60105a42c2beb388f31e4f0d'
         ...     'a026b2e8f7d4cb637d9caec3e2660e9a59af3ffa5b0cf60550cab88b3f523a11'
@@ -723,9 +723,9 @@ class python:
         ...     '5bd55031bc77b9a39cce66ab27a00c0e56df4f5825fd30f099ff9316730d6d01'
         ...     'e922ad77b7ae3e36b6adff911085bad63ca2036edcb5627fc0ca8b095c401c03'
         ... )
-        >>> python.sde2(sse_s) == s
+        >>> python.sde2(bs) == s
         True
-        >>> python.sse(python.sde2(sse_s)) == sse_s
+        >>> python.sse(python.sde2(bs)) == bs
         True
         """
         return bytes.__new__(python.scalar2, bs)
@@ -802,7 +802,7 @@ class python:
     @staticmethod
     def bas2(s: scalar) -> point2:
         """
-        Return base point multiplied by supplied scalar.
+        Return the base second-level point multiplied by the supplied scalar.
 
         >>> bytes(python.bas2(python.scalar.hash('123'.encode()))).hex()[:64]
         'e7000fb12d206112c73fe1054e9d77b35c77881eba6598b7e035171d90b13e0c'
@@ -1090,12 +1090,12 @@ try:
             Return a scalar from its binary representation.
 
             >>> s = mcl.scalar.hash('123'.encode())
-            >>> mcl.sse_s = bytes.fromhex(
+            >>> bs = bytes.fromhex(
             ...     '93d829354cb3592743174133104b5405ba6992b67bb219fbde3e394d70505913'
             ... )
-            >>> mcl.sde(mcl.sse_s) == s
+            >>> mcl.sde(bs) == s
             True
-            >>> mcl.sse(mcl.sde(mcl.sse_s)) == mcl.sse_s
+            >>> mcl.sse(mcl.sde(bs)) == bs
             True
             """
             IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
@@ -1177,7 +1177,7 @@ try:
         @staticmethod
         def bas(s: Fr) -> G1:
             """
-            Return base point multiplied by supplied scalar.
+            Return the base point multiplied by the supplied scalar.
 
             >>> p = mcl.bas(mcl.scalar.hash('123'.encode())).normalize().normalize()
             >>> p.__class__ = point
@@ -1224,7 +1224,7 @@ try:
         @staticmethod
         def des(bs: bytes) -> G1:
             """
-            Return a point from its binary representation.
+            Construct a point corresponding to the supplied binary representation.
 
             >>> p = mcl.point.hash('123'.encode())
             >>> ser_p = bytes.fromhex(
@@ -1243,7 +1243,7 @@ try:
         @staticmethod
         def mul(s: Fr, p: G1) -> G1:
             """
-            Multiply the point by the supplied scalar and return the result.
+            Multiply a point by a scalar and return the result.
 
             >>> p = mcl.pnt(hashlib.sha512('123'.encode()).digest())
             >>> s = mcl.scl(bytes.fromhex(
@@ -1259,7 +1259,7 @@ try:
         @staticmethod
         def add(p: G1, q: G1) -> G1:
             """
-            Return sum of the supplied points.
+            Return the sum of the supplied points.
 
             >>> p = mcl.point.hash('123'.encode())
             >>> q = mcl.point.hash('456'.encode())
@@ -1447,7 +1447,7 @@ try:
             representation thereof.
 
             >>> s = mcl.scalar2.hash('123'.encode())
-            >>> sse_s = bytes.fromhex(
+            >>> bs = bytes.fromhex(
             ...     'b7c5063f93b7da4157a7a6cbc023dd81fd0eea08340b6a8d1ab1abadde517818'
             ...     'f20e988accef435f8482ac28c43d9c32f7a2ebe8a17e625d37508ac49c25cb1c'
             ...     'a4116ea2edee37eaa94ae5d04843701da4f1e580c996c0f83b8521a206bbac18'
@@ -1461,9 +1461,9 @@ try:
             ...     'a46c6efdc550c38c9e58383d096a8f0636e7c4bdecf461e4b79ee2e982d43410'
             ...     '66c7fd4df4415aaaba4b4f70c8e119a743074a930f558112d9c4447aaf78ac07'
             ... )
-            >>> mcl.sde2(sse_s) == s
+            >>> mcl.sde2(bs) == s
             True
-            >>> mcl.sse(mcl.sde2(sse_s)) == sse_s
+            >>> mcl.sse(mcl.sde2(bs)) == bs
             True
             """
             IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
