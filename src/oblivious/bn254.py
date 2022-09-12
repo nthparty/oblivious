@@ -232,10 +232,10 @@ class _Fp12(Fp12_): # pylint: disable=invalid-name
         decode = lambda ns: (int.from_bytes(ns, 'little') * d_inv) % p_mod
         s = _Fp12()
         s.a.a.a.x, s.a.a.b.x = decode(bs[32*0:(32*0)+32]), decode(bs[32*1:(32*1)+32])
-        s.a.b.a.x, s.a.b.b.x = decode(bs[32*2:(32*2)+32]), decode(bs[32*3:(32*3)+32])
-        s.b.a.a.x, s.b.a.b.x = decode(bs[32*4:(32*4)+32]), decode(bs[32*5:(32*5)+32])
-        s.b.b.a.x, s.b.b.b.x = decode(bs[32*6:(32*6)+32]), decode(bs[32*7:(32*7)+32])
-        s.c.a.a.x, s.c.a.b.x = decode(bs[32*8:(32*8)+32]), decode(bs[32*9:(32*9)+32])
+        s.c.a.a.x, s.c.a.b.x = decode(bs[32*2:(32*2)+32]), decode(bs[32*3:(32*3)+32])
+        s.b.b.a.x, s.b.b.b.x = decode(bs[32*4:(32*4)+32]), decode(bs[32*5:(32*5)+32])
+        s.b.a.a.x, s.b.a.b.x = decode(bs[32*6:(32*6)+32]), decode(bs[32*7:(32*7)+32])
+        s.a.b.a.x, s.a.b.b.x = decode(bs[32*8:(32*8)+32]), decode(bs[32*9:(32*9)+32])
         s.c.b.a.x, s.c.b.b.x = decode(bs[32*10:(32*10)+32]), decode(bs[32*11:(32*11)+32])
         return s
 
@@ -257,10 +257,10 @@ class _Fp12(Fp12_): # pylint: disable=invalid-name
         encode = lambda n: (n * d % p).to_bytes(32, 'little')
         return bytes(
             encode(self.a.a.a.int()) + encode(self.a.a.b.int()) +
-            encode(self.a.b.a.int()) + encode(self.a.b.b.int()) +
-            encode(self.b.a.a.int()) + encode(self.b.a.b.int()) +
-            encode(self.b.b.a.int()) + encode(self.b.b.b.int()) +
             encode(self.c.a.a.int()) + encode(self.c.a.b.int()) +
+            encode(self.b.b.a.int()) + encode(self.b.b.b.int()) +
+            encode(self.b.a.a.int()) + encode(self.b.a.b.int()) +
+            encode(self.a.b.a.int()) + encode(self.a.b.b.int()) +
             encode(self.c.b.a.int()) + encode(self.c.b.b.int())
         )
 
