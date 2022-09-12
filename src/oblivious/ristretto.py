@@ -582,8 +582,8 @@ try:
         @staticmethod
         def inv(s: bytes) -> bytes:
             """
-            Return inverse of scalar modulo
-            ``2**252 + 27742317777372353535851937790883648493``.
+            Return the inverse of the supplied scalar (modulo
+            ``2**252 + 27742317777372353535851937790883648493``).
 
             >>> s = sodium.scl()
             >>> p = sodium.pnt()
@@ -599,7 +599,7 @@ try:
         @staticmethod
         def smu(s: bytes, t: bytes) -> bytes:
             """
-            Return scalar multiplied by another scalar.
+            Return the product of two scalars.
 
             >>> s = sodium.scl()
             >>> t = sodium.scl()
@@ -615,7 +615,8 @@ try:
         @staticmethod
         def pnt(h: bytes = None) -> bytes:
             """
-            Return point from 64-byte vector (normally obtained via hashing).
+            Construct a point from its 64-byte vector representation (normally
+            obtained via hashing).
 
             >>> p = sodium.pnt(hashlib.sha512('123'.encode()).digest())
             >>> p.hex()
@@ -632,7 +633,7 @@ try:
         @staticmethod
         def bas(s: bytes) -> bytes:
             """
-            Return base point multiplied by supplied scalar.
+            Return the base point multiplied by the supplied scalar.
 
             >>> sodium.bas(scalar.hash('123'.encode())).hex()
             '4c207a5377f3badf358914f20b505cd1e2a6396720a9c240e5aff522e2446005'
@@ -658,7 +659,7 @@ try:
         @staticmethod
         def mul(s: bytes, p: bytes) -> bytes:
             """
-            Multiply the point by the supplied scalar and return the result.
+            Multiply a point by a scalar and return the result.
 
             >>> p = sodium.pnt(hashlib.sha512('123'.encode()).digest())
             >>> s = sodium.scl(bytes.fromhex(
@@ -676,7 +677,7 @@ try:
         @staticmethod
         def add(p: bytes, q: bytes) -> bytes:
             """
-            Return sum of the supplied points.
+            Return the sum of the supplied points.
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
@@ -692,7 +693,8 @@ try:
         @staticmethod
         def sub(p: bytes, q: bytes) -> bytes:
             """
-            Return result of subtracting second point from first point.
+            Return the result of subtracting the right-hand point from the
+            left-hand point.
 
             >>> p = point.hash('123'.encode())
             >>> q = point.hash('456'.encode())
@@ -754,11 +756,12 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             return bytes.__new__(cls, cls._implementation.pnt())
 
         @classmethod
-        def from_bytes(cls, bs: bytes) -> point:
+        def bytes(cls, bs: bytes) -> point:
             """
-            Return point object obtained by transforming supplied bytes-like object.
+            Return the point object obtained by transforming the supplied
+            bytes-like object.
 
-            >>> p = point.from_bytes(hashlib.sha512('123'.encode()).digest())
+            >>> p = point.bytes(hashlib.sha512('123'.encode()).digest())
             >>> p.hex()
             '047f39a6c6dd156531a25fa605f017d4bec13b0b6c42f0e9b641c8ee73359c5f'
             """
@@ -775,16 +778,6 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             return bytes.__new__(cls, cls._implementation.pnt(hashlib.sha512(bs).digest()))
 
         @classmethod
-        def from_base64(cls, s: str) -> point:
-            """
-            Construct an instance from its Base64 UTF-8 string representation.
-
-            >>> point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=').hex()
-            '86855a2aade8225c449dd3f636abf745d6e68aee228a7644e88c28fa470a0229'
-            """
-            return bytes.__new__(cls, base64.standard_b64decode(s))
-
-        @classmethod
         def base(cls, s: scalar) -> Optional[point]:
             """
             Return base point multiplied by supplied scalar if the scalar is valid;
@@ -799,6 +792,27 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             True
             """
             return bytes.__new__(cls, cls._implementation.bas(s))
+
+        @classmethod
+        def from_bytes(cls, bs: bytes) -> point:
+            """
+            Return the instance corresponding to the supplied bytes-like object.
+
+            >>> p = point.bytes(hashlib.sha512('123'.encode()).digest())
+            >>> p == point.from_bytes(p.to_bytes())
+            True
+            """
+            return bytes(bs)
+
+        @classmethod
+        def from_base64(cls, s: str) -> point:
+            """
+            Construct an instance from its Base64 UTF-8 string representation.
+
+            >>> point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=').hex()
+            '86855a2aade8225c449dd3f636abf745d6e68aee228a7644e88c28fa470a0229'
+            """
+            return bytes.__new__(cls, base64.standard_b64decode(s))
 
         def __new__(cls, bs: bytes = None) -> point:
             """
@@ -840,7 +854,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             """
             raise TypeError('point must be on right-hand side of multiplication operator')
 
-        def __rmul__(self: point, other: scalar) -> Optional[point]:
+        def __rmul__(self: point, other: Any) -> NoReturn:
             """
             Multiply this point by the supplied scalar and return the result.
 
@@ -854,8 +868,20 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 
             >>> scalar.from_int(0) * point() == point.zero()
             True
+
+            This functionality is implemented exclusively in the method
+            :obj:`scalar.__mul__`, as that method pre-empts this method
+            when the second argument has the correct type (*i.e.*, it is
+            a :obj:`scalar` instance). This method is included so that an
+            exception can be raised if an incorrect argument is supplied.
+
+            >>> p = point.hash('123'.encode())
+            >>> 2 * p
+            Traceback (most recent call last):
+              ...
+            TypeError: point can only be multiplied by a scalar
             """
-            return self._implementation.point(self._implementation.mul(other, self))
+            raise TypeError('point can only be multiplied by a scalar')
 
         def __add__(self: point, other: point) -> Optional[point]:
             """
@@ -930,13 +956,13 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             return bytes.__new__(cls, cls._implementation.rnd())
 
         @classmethod
-        def from_bytes(cls, bs: bytes) -> Optional[scalar]:
+        def bytes(cls, bs: bytes) -> Optional[scalar]:
             """
             Return scalar object obtained by transforming supplied bytes-like
             object if it is possible to do; otherwise, return ``None``.
 
             >>> s = python.scl()
-            >>> t = scalar.from_bytes(s)
+            >>> t = scalar.bytes(s)
             >>> s.hex() == t.hex()
             True
             """
@@ -991,6 +1017,18 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             )
 
         @classmethod
+        def from_bytes(cls, bs: bytes) -> Optional[scalar]:
+            """
+            Return the instance corresponding to the supplied bytes-like object.
+
+            >>> s = python.scl()
+            >>> t = scalar.from_bytes(s)
+            >>> s.hex() == t.hex()
+            True
+            """
+            return cls(bs)
+
+        @classmethod
         def from_base64(cls, s: str) -> scalar:
             """
             Construct an instance from its Base64 UTF-8 string representation.
@@ -1039,31 +1077,9 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 
             return self._implementation.scalar(self._implementation.inv(self))
 
-        def inverse(self: scalar) -> scalar:
-            """
-            Return inverse of scalar modulo
-            ``2**252 + 27742317777372353535851937790883648493``.
-
-            >>> s = scalar()
-            >>> p = point()
-            >>> ((s.inverse()) * (s * p)) == p
-            True
-
-            The scalar corresponding to the zero residue cannot be inverted.
-
-            >>> scalar.from_int(0).inverse()
-            Traceback (most recent call last):
-              ...
-            ValueError: cannot invert scalar corresponding to zero
-            """
-            if _zero(self):
-                raise ValueError('cannot invert scalar corresponding to zero')
-
-            return self._implementation.scalar(self._implementation.inv(self))
-
         def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point, None]:
             """
-            Multiply supplied scalar or point by this scalar.
+            Multiply supplied scalar or point by this instance.
 
             >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
             >>> p = point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=')
@@ -1101,7 +1117,19 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
               ...
             TypeError: point must be on right-hand side of multiplication operator
             """
-            raise TypeError('scalar must be on left-hand side of multiplication operator')
+            raise TypeError(
+                'scalar must be on left-hand side of multiplication operator'
+            )
+
+        def to_bytes(self: scalar) -> bytes:
+            """
+            Return the bytes-like object that represents this instance.
+
+            >>> s = scalar()
+            >>> s.to_bytes() == s
+            True
+            """
+            return bytes(self)
 
         def __int__(self: scalar) ->  int:
             """
@@ -1114,15 +1142,16 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             """
             return int.from_bytes(self, 'little')
 
-        def to_bytes(self: scalar) -> bytes:
+        def to_int(self: scalar) ->  int:
             """
-            Return the bytes-like object that represents this instance.
+            Return the integer (*i.e.*, least nonnegative residue) representation
+            of this instance.
 
             >>> s = scalar()
-            >>> s.to_bytes() == s
-            True
+            >>> (s * (~s)).to_int()
+            1
             """
-            return bytes(self)
+            return int(self)
 
         def to_base64(self: scalar) -> str:
             """
@@ -1133,7 +1162,6 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             'MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA='
             """
             return base64.standard_b64encode(self).decode('utf-8')
-
 
     # Encapsulate classes for this implementation, regardless of which are
     # exported as the unqualified symbols.

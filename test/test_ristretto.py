@@ -237,20 +237,12 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             sodium_hidden_and_fallback(hidden, fallback)
             return check_or_generate_operation(self, lambda _: cls.point.zero(), [1], bits)
 
-        def test_point_from_bytes(
+        def test_point_bytes(
                 self,
                 bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
             ):
             sodium_hidden_and_fallback(hidden, fallback)
-            return check_or_generate_operation(self, cls.point.from_bytes, [POINT_HASH_LEN], bits)
-
-        def test_point_to_bytes(
-                self,
-                bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
-            ):
-            sodium_hidden_and_fallback(hidden, fallback)
-            return check_or_generate_operation(self,
-                            lambda bs: cls.point.from_bytes(bs).to_bytes(), [POINT_HASH_LEN], bits)
+            return check_or_generate_operation(self, cls.point.bytes, [POINT_HASH_LEN], bits)
 
         def test_point_hash(
                 self,
@@ -265,9 +257,21 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             ):
             sodium_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                s = cls.scalar.from_bytes(bs)
+                s = cls.scalar.bytes(bs)
                 return cls.point.base(s) if s is not None else bytes([0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
+
+        def test_point_to_bytes(
+                self,
+                bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
+            ):
+            sodium_hidden_and_fallback(hidden, fallback)
+            return check_or_generate_operation(
+                self,
+                (lambda bs: cls.point.bytes(bs).to_bytes()),
+                [POINT_HASH_LEN],
+                bits
+            )
 
         def test_point_base64(self):
             sodium_hidden_and_fallback(hidden, fallback)
@@ -282,24 +286,13 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             for _ in range(TRIALS_PER_TEST):
                 self.assertTrue(len(cls.point()) == POINT_LEN)
 
-        def test_point_rmul(
+        def test_point_scalar_mul(
                 self,
                 bits='0240281c2c0429000440190404c00003082024e160cca1002800a00108100002'
             ):
             sodium_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                (s, p) = (cls.scalar.from_bytes(bs[:SCALAR_LEN]), cls.point.from_bytes(bs[SCALAR_LEN:]))
-                # pylint: disable=C2801 # Overriding overloaded method for :obj:`scalar`.
-                return p.__rmul__(s) if (s is not None and p is not None) else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN, POINT_HASH_LEN], bits)
-
-        def test_point_scalar_mul_op(
-                self,
-                bits='0240281c2c0429000440190404c00003082024e160cca1002800a00108100002'
-            ):
-            sodium_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                (s, p) = (cls.scalar.from_bytes(bs[:SCALAR_LEN]), cls.point.from_bytes(bs[SCALAR_LEN:]))
+                (s, p) = (cls.scalar.bytes(bs[:SCALAR_LEN]), cls.point.bytes(bs[SCALAR_LEN:]))
                 # Below, ``*`` invokes :obj:`scalar.__mul__`, which delegates to :obj:`mul`
                 # due to the type of the second argument.
                 return s * p if (s is not None and p is not None) else bytes([0])
@@ -312,8 +305,8 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             sodium_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 (p1, p2) = (
-                    cls.point.from_bytes(bs[:POINT_HASH_LEN]),
-                    cls.point.from_bytes(bs[POINT_HASH_LEN:])
+                    cls.point.bytes(bs[:POINT_HASH_LEN]),
+                    cls.point.bytes(bs[POINT_HASH_LEN:])
                 )
                 return p1 + p2 if (p1 is not None and p2 is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN, POINT_HASH_LEN], bits)
@@ -325,8 +318,8 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             sodium_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 (p1, p2) = (
-                    cls.point.from_bytes(bs[:POINT_HASH_LEN]),
-                    cls.point.from_bytes(bs[POINT_HASH_LEN:])
+                    cls.point.bytes(bs[:POINT_HASH_LEN]),
+                    cls.point.bytes(bs[POINT_HASH_LEN:])
                 )
                 return p1 - p2 if (p1 is not None and p2 is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN, POINT_HASH_LEN], bits)
@@ -335,31 +328,15 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             sodium_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
                 s = cls.scalar.random()
-                self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.from_bytes(s) is not None)
+                self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.bytes(s) is not None)
 
-        def test_scalar_from_bytes(
+        def test_scalar_bytes(
                 self,
                 bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
             ):
             sodium_hidden_and_fallback(hidden, fallback)
             # pylint: disable=C3001
-            fun = lambda bs: bitlist([1 if cls.scalar.from_bytes(bs) is not None else 0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
-
-        def test_scalar_to_bytes(
-                self,
-                bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
-            ):
-            sodium_hidden_and_fallback(hidden, fallback)
-            # pylint: disable=C3001
-            fun = lambda bs: bitlist([
-                1
-                if (
-                    cls.scalar.from_bytes(bs) is not None and
-                    cls.scalar.from_bytes(bs).to_bytes()[:-1] == bs[:-1]
-                ) else
-                0
-            ])
+            fun = lambda bs: bitlist([1 if cls.scalar.bytes(bs) is not None else 0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
         def test_scalar_hash(
@@ -374,7 +351,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bits='0928da0180005ae247051210c18310046141618834405000c497480453000461'
             ):
             def fun(bs):
-                s = cls.scalar.from_bytes(bs)
+                s = cls.scalar.bytes(bs)
                 return int(s).to_bytes(32, 'little') if (s is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [32], bits)
 
@@ -386,6 +363,22 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 s = cls.scalar.from_int(int.from_bytes(bs, 'little'))
                 return s if (s is not None) else bytes([0])
             return check_or_generate_operation(self, fun, [32], bits)
+
+        def test_scalar_to_bytes(
+                self,
+                bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
+            ):
+            sodium_hidden_and_fallback(hidden, fallback)
+            # pylint: disable=C3001
+            fun = lambda bs: bitlist([
+                1
+                if (
+                    cls.scalar.bytes(bs) is not None and
+                    cls.scalar.bytes(bs).to_bytes()[:-1] == bs[:-1]
+                ) else
+                0
+            ])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
         def test_scalar_base64(self):
             sodium_hidden_and_fallback(hidden, fallback)
@@ -399,19 +392,9 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             sodium_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
                 s = cls.scalar()
-                self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.from_bytes(s) is not None)
+                self.assertTrue(len(s) == SCALAR_LEN and cls.scalar.bytes(s) is not None)
 
-        def test_scalar_inverse(
-                self,
-                bits='5dc66e5b233363b178154a0aebee957038ef1dbbad4455f332c2b7bc50886008'
-            ):
-            sodium_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                s = cls.scalar.hash(bs)
-                return s.inverse() if s is not None else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
-
-        def test_scalar_invert_op(
+        def test_scalar_invert(
                 self,
                 bits='5dc66e5b233363b178154a0aebee957038ef1dbbad4455f332c2b7bc50886008'
             ):
@@ -443,7 +426,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_types_point_bytes(self):
             sodium_hidden_and_fallback(hidden, fallback)
             (bs,) = fountains(POINT_HASH_LEN, limit=1)
-            p = cls.point.from_bytes(bs)
+            p = cls.point.bytes(bs)
             self.assertTrue(isinstance(p, cls.point))
 
         def test_types_point_hash(self):
@@ -456,6 +439,26 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
             sodium_hidden_and_fallback(hidden, fallback)
             p = cls.point.base(cls.scalar.random())
             self.assertTrue(isinstance(p, cls.point))
+
+        def test_types_point_to_bytes_from_bytes(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            bs = cls.point.random().to_bytes()
+            self.assertTrue(isinstance(cls.point(bs), cls.point))
+
+        def test_types_point_hex_fromhex(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            s = cls.point.random().hex()
+            self.assertTrue(isinstance(cls.point.fromhex(s), cls.point))
+
+        def test_types_point_to_base64_from_base64(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            s = cls.point.random().to_base64()
+            self.assertTrue(isinstance(cls.point.from_base64(s), cls.point))
+
+        def test_types_point_canonical(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            p = cls.point.base(cls.scalar.random())
+            self.assertTrue(isinstance(p.canonical(), cls.point))
 
         def test_types_point_mul(self):
             sodium_hidden_and_fallback(hidden, fallback)
@@ -481,21 +484,37 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
 
         def test_types_scalar_bytes(self):
             sodium_hidden_and_fallback(hidden, fallback)
-            bs = bytes(cls.scalar.random())
-            self.assertTrue(isinstance(cls.scalar.from_bytes(bs), cls.scalar))
+            bs = cls.scalar.random().to_bytes()
+            self.assertTrue(isinstance(cls.scalar.bytes(bs), cls.scalar))
 
         def test_types_scalar_hash(self):
             sodium_hidden_and_fallback(hidden, fallback)
             (bs,) = fountains(SCALAR_LEN, limit=1)
             self.assertTrue(isinstance(cls.scalar.hash(bs), cls.scalar))
 
+        def test_types_scalar_to_int_from_int(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            n = cls.scalar.random().to_int()
+            self.assertTrue(isinstance(cls.scalar.from_int(n), cls.scalar))
+
+        def test_types_scalar_to_bytes_from_bytes(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            bs = cls.scalar.random().to_bytes()
+            self.assertTrue(isinstance(cls.scalar.from_bytes(bs), cls.scalar))
+
+        def test_types_scalar_hex_fromhex(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            s = cls.scalar.random().hex()
+            self.assertTrue(isinstance(cls.scalar.fromhex(s), cls.scalar))
+
+        def test_types_scalar_to_base64_from_base64(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            s = cls.scalar.random().to_base64()
+            self.assertTrue(isinstance(cls.scalar.from_base64(s), cls.scalar))
+
         def test_types_scalar_invert(self):
             sodium_hidden_and_fallback(hidden, fallback)
             self.assertTrue(isinstance(~cls.scalar.random(), cls.scalar))
-
-        def test_types_scalar_inverse(self):
-            sodium_hidden_and_fallback(hidden, fallback)
-            self.assertTrue(isinstance(cls.scalar.random().inverse(), cls.scalar))
 
         def test_types_scalar_mul_scalar(self):
             sodium_hidden_and_fallback(hidden, fallback)
@@ -510,93 +529,103 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         """
         Tests of algebraic properties of primitive operations and class methods.
         """
-        def test_algebra_scalar_inverse_identity(self):
-            sodium_hidden_and_fallback(hidden, fallback)
-            for bs in fountains(SCALAR_LEN, limit=TRIALS_PER_TEST):
-                s = cls.scl(bs)
-                if s is not None:
-                    self.assertEqual(cls.inv(cls.inv(s)), s)
-
-        def test_algebra_scalar_inverse_mul_cancel(self):
-            sodium_hidden_and_fallback(hidden, fallback)
-            for bs in fountains(SCALAR_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                (s, p) = (cls.scl(bs[:SCALAR_LEN]), cls.pnt(bs[SCALAR_LEN:]))
-                if s is not None:
-                    self.assertEqual(cls.mul(cls.inv(s), cls.mul(s, p)), p)
-
-        def test_algebra_scalar_mul_commute(self):
-            sodium_hidden_and_fallback(hidden, fallback)
-            for bs in fountains((2 * SCALAR_LEN) + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                (s0, s1, p0) = (
-                    cls.scl(bs[:SCALAR_LEN]),
-                    cls.scl(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
-                    cls.pnt(bs[SCALAR_LEN + SCALAR_LEN:])
-                )
-                if s0 is not None and s1 is not None:
-                    self.assertEqual(
-                        cls.mul(s0, cls.mul(s1, p0)),
-                        cls.mul(s1, cls.mul(s0, p0))
-                    )
-
-        def test_algebra_point_identity(self):
-            sodium_hidden_and_fallback(hidden, fallback)
-            for bs in fountains(POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                z = cls.point.zero()
-                p = cls.pnt(bs)
-                self.assertEqual(cls.add(z, p), p)
-                self.assertEqual(cls.add(p, z), p)
-
         def test_algebra_point_add_commute(self):
             sodium_hidden_and_fallback(hidden, fallback)
             for bs in fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                (p0, p1) = (cls.pnt(bs[:POINT_HASH_LEN]), cls.pnt(bs[POINT_HASH_LEN:]))
+                (p0, p1) = (
+                    cls.point.hash(bs[:POINT_HASH_LEN]),
+                    cls.point.hash(bs[POINT_HASH_LEN:])
+                )
                 self.assertEqual(cls.add(p0, p1), cls.add(p1, p0))
 
         def test_algebra_point_add_sub_cancel(self):
             sodium_hidden_and_fallback(hidden, fallback)
             for bs in fountains(POINT_HASH_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                (p0, p1) = (cls.pnt(bs[:POINT_HASH_LEN]), cls.pnt(bs[POINT_HASH_LEN:]))
+                (p0, p1) = (
+                    cls.point.hash(bs[:POINT_HASH_LEN]),
+                    cls.point.hash(bs[POINT_HASH_LEN:])
+                )
                 self.assertEqual(cls.add(cls.sub(p0, p1), p1), p0)
+
+        def test_algebra_point_identity(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                z = cls.point.zero()
+                p = cls.point.hash(bs)
+                self.assertEqual(cls.add(z, p), p)
+                self.assertEqual(cls.add(p, z), p)
+
+        def test_algebra_scalar_inverse_inverse_cancel(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(SCALAR_LEN, limit=TRIALS_PER_TEST):
+                s = cls.scalar.hash(bs)
+                self.assertEqual(cls.inv(cls.inv(s)), s)
+
+        def test_algebra_scalar_inverse_identity(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(SCALAR_LEN, limit=TRIALS_PER_TEST):
+                s = cls.scalar.hash(bs)
+                self.assertEqual(cls.inv(cls.inv(s)), s)
+
+        def test_algebra_scalar_inverse_mul_cancel(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            for bs in fountains(SCALAR_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                (s, p) = (
+                    cls.scalar.hash(bs[:SCALAR_LEN]),
+                    cls.point.hash(bs[SCALAR_LEN:])
+                )
+                self.assertEqual(cls.mul(cls.inv(s), cls.mul(s, p)), p)
 
         def test_algebra_scalar_mul_point_scalar_zero(self):
             sodium_hidden_and_fallback(hidden, fallback)
             for bs in fountains(POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                p = cls.pnt(bs)
+                p = cls.point.hash(bs)
                 self.assertEqual(cls.mul(cls.scalar.from_int(0), p), cls.point.zero())
 
         def test_algebra_scalar_mul_point_scalar_identity(self):
             sodium_hidden_and_fallback(hidden, fallback)
             for bs in fountains(POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                p = cls.pnt(bs)
+                p = cls.point.hash(bs)
                 self.assertEqual(cls.mul(cls.scalar.from_int(1), p), p)
+
+        def test_algebra_scalar_mul_point_mul_commute(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            for bs in fountains((2 * SCALAR_LEN) + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                (s0, s1, p0) = (
+                    cls.scalar.hash(bs[:SCALAR_LEN]),
+                    cls.scalar.hash(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
+                    cls.point.hash(bs[SCALAR_LEN + SCALAR_LEN:])
+                )
+                self.assertEqual(
+                    cls.mul(s0, cls.mul(s1, p0)),
+                    cls.mul(s1, cls.mul(s0, p0))
+                )
 
         def test_algebra_scalar_mul_point_mul_associate(self):
             sodium_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + SCALAR_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
                 (s0, s1, p0) = (
-                    cls.scl(bs[:SCALAR_LEN]),
-                    cls.scl(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
-                    cls.pnt(bs[SCALAR_LEN + SCALAR_LEN:])
+                    cls.scalar.hash(bs[:SCALAR_LEN]),
+                    cls.scalar.hash(bs[SCALAR_LEN: SCALAR_LEN + SCALAR_LEN]),
+                    cls.point.hash(bs[SCALAR_LEN + SCALAR_LEN:])
                 )
-                if s0 is not None and s1 is not None:
-                    self.assertEqual(
-                        cls.mul(s0, cls.mul(s1, p0)),
-                        cls.mul(cls.smu(s0, s1), p0)
-                    )
+                self.assertEqual(
+                    cls.mul(s0, cls.mul(s1, p0)),
+                    cls.mul(cls.smu(s0, s1), p0)
+                )
 
         def test_algebra_scalar_mul_point_add_distribute(self):
             sodium_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + (2 * POINT_HASH_LEN), limit=TRIALS_PER_TEST):
                 (s0, p0, p1) = (
-                    cls.scl(bs[:SCALAR_LEN]),
-                    cls.pnt(bs[SCALAR_LEN: SCALAR_LEN + POINT_HASH_LEN]),
-                    cls.pnt(bs[SCALAR_LEN + POINT_HASH_LEN:])
+                    cls.scalar.hash(bs[:SCALAR_LEN]),
+                    cls.point.hash(bs[SCALAR_LEN: SCALAR_LEN + POINT_HASH_LEN]),
+                    cls.point.hash(bs[SCALAR_LEN + POINT_HASH_LEN:])
                 )
-                if s0 is not None:
-                    self.assertEqual(
-                        cls.add(cls.mul(s0, p0), cls.mul(s0, p1)),
-                        cls.mul(s0, cls.add(p0, p1))
-                    )
+                self.assertEqual(
+                    cls.add(cls.mul(s0, p0), cls.mul(s0, p1)),
+                    cls.mul(s0, cls.add(p0, p1))
+                )
 
         def test_algebra_scalar_mul_scalar_on_right_hand_side_of_non_scalar(self):
             sodium_hidden_and_fallback(hidden, fallback)

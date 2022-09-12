@@ -538,7 +538,7 @@ class python:
     @staticmethod
     def add(p: point, q: point) -> point:
         """
-        Return sum of the supplied points.
+        Return the sum of the supplied points.
 
         >>> p = python.point.hash('123'.encode())
         >>> q = python.point.hash('456'.encode())
