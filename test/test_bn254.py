@@ -1065,7 +1065,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 (p0, p1) = (cls.pnt2(bs[:POINT_HASH_LEN]), cls.pnt2(bs[POINT_HASH_LEN:]))
                 self.assertEqual(cls.add2(cls.sub2(p0, p1), p1), p0)
 
-        def test_algebra_scalar_mul_point_mul_associate(self):
+        def test_algebra_scalar_mul_point2_mul_associate(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + SCALAR_LEN + POINT_HASH_LEN, limit=TRIALS_PER_TEST):
                 (s0, s1, p0) = (
@@ -1079,7 +1079,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                         cls.mul2(cls.smu(s0, s1), p0)
                     )
 
-        def test_algebra_scalar_mul_point_add_distribute(self):
+        def test_algebra_scalar_mul_point2_add_distribute(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for bs in fountains(SCALAR_LEN + (2 * POINT_HASH_LEN), limit=TRIALS_PER_TEST):
                 (s0, p0, p1) = (
@@ -1093,7 +1093,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                         cls.mul2(s0, cls.add2(p0, p1))
                     )
 
-        def test_algebra_scalar_mul_point_on_left_hand_side(self):
+        def test_algebra_scalar_mul_point2_on_left_hand_side(self):
             mcl_hidden_and_fallback(hidden, fallback)
             s = cls.scalar.random()
             p = cls.point2.hash(bytes(POINT2_LEN))
