@@ -3,7 +3,7 @@ Test suite containing functional unit tests for the exported primitives and
 classes in the :obj:`oblivious.ristretto` module, as well as unit tests
 confirming algebraic relationships among primitives.
 """
-# pylint: disable=C0103,C0116
+# pylint: disable=missing-function-docstring
 from unittest import TestCase
 import importlib
 import base64
@@ -12,7 +12,7 @@ from fountains import fountains
 
 try:
     from oblivious import ristretto # pylint: disable=import-error
-except: # pylint: disable=W0702
+except: # pylint: disable=bare-except
     # To support generation of reference specifications for unit tests.
     spec = importlib.util.spec_from_file_location("ristretto", "src/oblivious/ristretto.py")
     ristretto = importlib.util.module_from_spec(spec)
@@ -28,7 +28,7 @@ SCALAR_LEN = 32
 # To simulate an environment in which sodium is absent, some tests set
 # `ristretto.sodium` to `None` or modify `ristretto.sodium._sodium`;
 # the references below are used for restoration.
-sodium_lib_restore = ristretto.sodium._lib # pylint: disable=W0212
+sodium_lib_restore = ristretto.sodium._lib # pylint: disable=protected-access
 sodium_restore = ristretto.sodium
 
 def api_functions():
@@ -71,7 +71,7 @@ class Test_namespace(TestCase):
             self.assertTrue(api_functions().issubset(set(dir(ristretto.sodium))))
             self.assertTrue(api_classes().issubset(set(dir(ristretto.sodium))))
 
-def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R1710
+def check_or_generate_operation(test, fun, lengths, bits):
     """
     This function does either of two things depending on `bits`:
     * checks that test inputs drawn from the fountains input bit stream
@@ -91,13 +91,14 @@ def check_or_generate_operation(test, fun, lengths, bits): # pylint: disable=R17
         return bitlist(list(fs)).hex() # Return reference output bits for test.
 
     test.assertTrue(all(fs)) # Check that all outputs match.
+    return None
 
 def sodium_hidden_and_fallback(hidden=False, fallback=False):
     """
     Return binary wrapper class definition that conforms to the
     scenario being tested.
     """
-    # pylint: disable=W0212
+    # pylint: disable=protected-access
     if hidden:
         ristretto.sodium = None
     elif fallback:
@@ -109,7 +110,7 @@ def sodium_hidden_and_fallback(hidden=False, fallback=False):
         ristretto.sodium._lib = sodium_lib_restore
         ristretto.sodium._call = ristretto.sodium._call_unwrapped
 
-def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
+def define_classes(cls, hidden=False, fallback=False): # pylint: disable=too-many-statements
     """
     Define and return four classes of unit tests given a wrapper
     class (``python`` or ``sodium``) for primitive operations.
@@ -135,7 +136,6 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
             ):
             sodium_hidden_and_fallback(hidden, fallback)
-            # pylint: disable=C3001
             fun = lambda bs: bitlist([1 if cls.scl(bs) is not None else 0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
@@ -234,13 +234,6 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         """
         Tests of point and scalar wrapper classes and their methods.
         """
-        def test_point_zero(
-                self,
-                bits='0000000000000000000000000000000000000000000000000000000000000000'
-            ):
-            sodium_hidden_and_fallback(hidden, fallback)
-            return check_or_generate_operation(self, lambda _: cls.point.zero(), [1], bits)
-
         def test_point_random(self):
             sodium_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
@@ -366,7 +359,6 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
                 bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
             ):
             sodium_hidden_and_fallback(hidden, fallback)
-            # pylint: disable=C3001
             fun = lambda bs: bitlist([1 if cls.scalar.bytes(bs) is not None else 0])
             return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
@@ -608,7 +600,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_algebra_point_identity(self):
             sodium_hidden_and_fallback(hidden, fallback)
             for bs in fountains(POINT_HASH_LEN, limit=TRIALS_PER_TEST):
-                z = cls.point.zero()
+                z = cls.point.base(cls.scalar.from_int(0))
                 p = cls.point.hash(bs)
                 self.assertEqual(cls.add(z, p), p)
                 self.assertEqual(cls.add(p, z), p)
@@ -637,8 +629,9 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=R0915
         def test_algebra_scalar_mul_point_scalar_zero(self):
             sodium_hidden_and_fallback(hidden, fallback)
             for bs in fountains(POINT_HASH_LEN, limit=TRIALS_PER_TEST):
+                z = cls.point.base(cls.scalar.from_int(0))
                 p = cls.point.hash(bs)
-                self.assertEqual(cls.mul(cls.scalar.from_int(0), p), cls.point.zero())
+                self.assertEqual(cls.mul(cls.scalar.from_int(0), p), z)
 
         def test_algebra_scalar_mul_point_scalar_identity(self):
             sodium_hidden_and_fallback(hidden, fallback)

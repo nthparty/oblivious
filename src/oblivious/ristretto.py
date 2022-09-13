@@ -759,18 +759,6 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
         _implementation = _implementation
 
         @classmethod
-        def zero(cls) -> point:
-            """
-            Return the additive identity for points.
-
-            >>> z = point.zero()
-            >>> p = point()
-            >>> z + p == p
-            True
-            """
-            return bytes.__new__(cls, bytes(32))
-
-        @classmethod
         def random(cls) -> point:
             """
             Return random point object.
@@ -813,7 +801,8 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 
             Use of the scalar corresponding to the zero residue is permitted.
 
-            >>> point.base(scalar.from_int(0)) == point.zero()
+            >>> p = point()
+            >>> point.base(scalar.from_int(0)) + p == p
             True
             """
             return bytes.__new__(cls, cls._implementation.bas(s))
@@ -891,7 +880,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             Multiplying a point by the scalar corresponding to the zero residue
             yields the additive identity point.
 
-            >>> scalar.from_int(0) * point() == point.zero()
+            >>> scalar.from_int(0) * point() == p - p
             True
 
             This functionality is implemented exclusively in the method
@@ -916,7 +905,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             >>> q = point.hash('456'.encode())
             >>> (p + q).hex()
             '7076739c9df665d416e68b9512f5513bf1d0181a2aacefdeb1b7244528a4dd77'
-            >>> p + point.zero() == p
+            >>> p + (q - q) == p
             True
             """
             return self._implementation.point(self._implementation.add(self, other))
@@ -929,7 +918,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             >>> q = point.hash('456'.encode())
             >>> (p - q).hex()
             '1a3199ca7debfe31a90171696d8bab91b99eb23a541b822a7061b09776e1046c'
-            >>> p - p == point.zero()
+            >>> p - p == point.base(scalar.from_int(0))
             True
             """
             return self._implementation.point(self._implementation.sub(self, other))
@@ -1027,7 +1016,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 
             >>> p = point()
             >>> zero = scalar.from_int(0)
-            >>> zero * p == point.zero()
+            >>> zero * p == p - p
             True
             >>> one = scalar.from_int(1)
             >>> one * p == p
@@ -1131,7 +1120,7 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             Multiplying any point or scalar by the scalar corresponding to the
             zero residue yields the point or scalar corresponding to zero.
 
-            >>> scalar.from_int(0) * point() == point.zero()
+            >>> (scalar.from_int(0) * point()) + p == p
             True
             >>> scalar.from_int(0) * scalar() == scalar.from_int(0)
             True
