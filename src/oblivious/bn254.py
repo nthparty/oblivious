@@ -710,18 +710,18 @@ class python:
 
         >>> s = python.scalar2.hash('123'.encode())
         >>> bs = bytes.fromhex(
-        ...     'dc2b36dda20a09cdeecb88d36eeb9f744010151aba82a9bdcd7abd288b3bf80c'
-        ...     '2e1ff32967b9227aa50698ffa663f90dec27208f60105a42c2beb388f31e4f0d'
-        ...     'a026b2e8f7d4cb637d9caec3e2660e9a59af3ffa5b0cf60550cab88b3f523a11'
-        ...     '7272c7adbd9b94f25a842df398724c431df7465baa0d43709f3f106593c56116'
-        ...     '78a7db8b8f82e61f280ce85c6f372beb07962d72258c2d15550ff75a9903a107'
-        ...     '22fd24c8b140507c130c8ab59a6b68fbec1ef95f402fda28e1024e7b7529670c'
-        ...     '3a0c9da4d577c0392a82a46f1220359cc682279e900463cdf250a49da0cada0c'
-        ...     '9e94bb7aef9425217ae1a148b357078984cf2c9352d4b30f9488404a17f3c209'
-        ...     'a40ca168fcccd07d084877ba34577b5b88d7414f8e67fd5fb17ddfead2ab890b'
-        ...     '2984a34ea7a34add3735cba3bdb37f7b6bccd60e390c932aef2a62f8ba906317'
-        ...     '5bd55031bc77b9a39cce66ab27a00c0e56df4f5825fd30f099ff9316730d6d01'
-        ...     'e922ad77b7ae3e36b6adff911085bad63ca2036edcb5627fc0ca8b095c401c03'
+        ...     'a7e9e2fbfeaeecdc2f47beb2c511e9b70a820f809b7f3c43825cc3ef5efa1b19'
+        ...     'b3c712481a3486ab0da05198bfb31b92d7b6ed216084fb83d51a759def59480b'
+        ...     'a7e9e2fbfeaeecdc2f47beb2c511e9b70a820f809b7f3c43825cc3ef5efa1b19'
+        ...     'b3c712481a3486ab0da05198bfb31b92d7b6ed216084fb83d51a759def59480b'
+        ...     'a7e9e2fbfeaeecdc2f47beb2c511e9b70a820f809b7f3c43825cc3ef5efa1b19'
+        ...     'b3c712481a3486ab0da05198bfb31b92d7b6ed216084fb83d51a759def59480b'
+        ...     'a7e9e2fbfeaeecdc2f47beb2c511e9b70a820f809b7f3c43825cc3ef5efa1b19'
+        ...     'b3c712481a3486ab0da05198bfb31b92d7b6ed216084fb83d51a759def59480b'
+        ...     'a7e9e2fbfeaeecdc2f47beb2c511e9b70a820f809b7f3c43825cc3ef5efa1b19'
+        ...     'b3c712481a3486ab0da05198bfb31b92d7b6ed216084fb83d51a759def59480b'
+        ...     'a7e9e2fbfeaeecdc2f47beb2c511e9b70a820f809b7f3c43825cc3ef5efa1b19'
+        ...     'b3c712481a3486ab0da05198bfb31b92d7b6ed216084fb83d51a759def59480b'
         ... )
         >>> python.sde2(bs) == s
         True
@@ -1448,18 +1448,18 @@ try:
 
             >>> s = mcl.scalar2.hash('123'.encode())
             >>> bs = bytes.fromhex(
-            ...     'b7c5063f93b7da4157a7a6cbc023dd81fd0eea08340b6a8d1ab1abadde517818'
-            ...     'f20e988accef435f8482ac28c43d9c32f7a2ebe8a17e625d37508ac49c25cb1c'
-            ...     'a4116ea2edee37eaa94ae5d04843701da4f1e580c996c0f83b8521a206bbac18'
-            ...     'ed7b09acced4660ffe3c998f22fbaac0f8e6bdac50b0c3fe01371bb3cc5b8019'
-            ...     '8fceff7530bb0d47148ebc3851b4326f87f3ba7b0d6604b2132deee6b87cce1d'
-            ...     '55ba56cfc158e961b99d284bab92bfa9ac31f412817ace3acbebb19b8e556705'
-            ...     '578f3ba79cc95e0e463bca77df27677e7251e5b75e426e9d07421e2ef6c6eb1f'
-            ...     '32a4894dc91e206736d0e3bfb23027576ce4ae40b2077802cf8bf2e4309e2b1b'
-            ...     '211bfef25c103fb37c4db09ce1e162730d682a727aa799c84cc94d162bb0340c'
-            ...     '6d3ae24fbec091b48871f7f0ae2ee0015d8d6e343439521d31dd4ffccb270522'
-            ...     'a46c6efdc550c38c9e58383d096a8f0636e7c4bdecf461e4b79ee2e982d43410'
-            ...     '66c7fd4df4415aaaba4b4f70c8e119a743074a930f558112d9c4447aaf78ac07'
+            ...     'a7e9e2fbfeaeecdc2f47beb2c511e9b70a820f809b7f3c43825cc3ef5efa1b19'
+            ...     'b3c712481a3486ab0da05198bfb31b92d7b6ed216084fb83d51a759def59480b'
+            ...     'a7e9e2fbfeaeecdc2f47beb2c511e9b70a820f809b7f3c43825cc3ef5efa1b19'
+            ...     'b3c712481a3486ab0da05198bfb31b92d7b6ed216084fb83d51a759def59480b'
+            ...     'a7e9e2fbfeaeecdc2f47beb2c511e9b70a820f809b7f3c43825cc3ef5efa1b19'
+            ...     'b3c712481a3486ab0da05198bfb31b92d7b6ed216084fb83d51a759def59480b'
+            ...     'a7e9e2fbfeaeecdc2f47beb2c511e9b70a820f809b7f3c43825cc3ef5efa1b19'
+            ...     'b3c712481a3486ab0da05198bfb31b92d7b6ed216084fb83d51a759def59480b'
+            ...     'a7e9e2fbfeaeecdc2f47beb2c511e9b70a820f809b7f3c43825cc3ef5efa1b19'
+            ...     'b3c712481a3486ab0da05198bfb31b92d7b6ed216084fb83d51a759def59480b'
+            ...     'a7e9e2fbfeaeecdc2f47beb2c511e9b70a820f809b7f3c43825cc3ef5efa1b19'
+            ...     'b3c712481a3486ab0da05198bfb31b92d7b6ed216084fb83d51a759def59480b'
             ... )
             >>> mcl.sde2(bs) == s
             True
@@ -2775,22 +2775,19 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             Return an instance derived by hashing the supplied bytes-like object.
 
             >>> s = python.scalar2.hash(bytes([123]))
-            >>> z = s.hex()[700:]
-            >>> z_mcl    = 'd210461ad2293454f3c2e9ad5fedcb671d0f13b30ec467744b9a16c881bb572bb50c'
-            >>> z_python = '141886a680e6a24930f9b3a5988a9a83212c94ba3dfcd275e8627ad5f1925ddafd23'
-            >>> mclbn256 = s.__class__ != python.scalar2 # In case both ``python`` and ``mcl`` are defined.
-            >>> z == z_mcl if mclbn256 else z == z_python
-            True
+            >>> s.hex()[700:]
+            'b61cb698861950210debce03e01e145cc6cadd0af09c2a336371ceaa742230cb1411'
             """
             def bytes64_split_reduce(bs):
-                i, j = bs[:32], bs[32:]
                 d = 0x212ba4f27ffffff5a2c62effffffffcdb939ffffffffff8a15ffffffffffff8e
                 p = 0x2523648240000001ba344d80000000086121000000000013a700000000000013
-                i = int.from_bytes(i, 'little') % p * d # TODO: use rejection sampling instead here?
-                i = int.to_bytes(i % p, 32, 'little')
-                j = int.from_bytes(j, 'little') % p * d
-                j = int.to_bytes(j % p, 32, 'little')
-                return i, j
+                i, j = int.from_bytes(bs[:32], 'little'), int.from_bytes(bs[32:], 'little')
+
+                # Use rejection sampling to get two valid components in F_p.
+                if i >= p or j >= p:
+                    return bytes64_split_reduce(hashlib.sha512(bs).digest())
+
+                return int.to_bytes((i*d) % p, 32, 'little'), int.to_bytes((j*d) % p, 32, 'little')
 
             bs1 = hashlib.sha512(bs).digest()
             bs2 = hashlib.sha512(bs1).digest()
