@@ -2910,6 +2910,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> s_inv = bytes(~s).hex()[700:]
             >>> s_inv_mcl    = 'ec02e64a4556213eade4604303b93219233e21fd8e50f536e6421c7f73597f5bc905'
             >>> s_inv_python = 'd71413d63b9d7e08181eaecca0227b6de4dc36a8befe4e38597420345aec519c220b'
+            >>> s_inv_python = '070f5f4e874c86a5b65521efdd004e9cfe12d9473ba6bcfc756e5aac17f486f4e903'
             >>> mclbn256 = s.__class__ != python.scalar2 # In case ``python`` and ``mcl`` are both defined.
             >>> s_inv == s_inv_mcl if mclbn256 else s_inv == s_inv_python
             True
