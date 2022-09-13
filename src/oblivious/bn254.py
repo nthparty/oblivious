@@ -656,9 +656,7 @@ class python:
         >>> isinstance(python.rnd2(), python.scalar2)
         True
         """
-        p = python.point.random()
-        q = python.point2.base(python.scalar.random())
-        return python.par(p, q)
+        return python.scalar2.hash(secrets.token_bytes(384))
 
     @staticmethod
     def scl2(s: Union[bytes, bytearray, None] = None) -> Optional[scalar2]:
@@ -685,7 +683,7 @@ class python:
         '36222db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
         """
         if s is None:
-            return python.rnd2() # cls.rnd2
+            return python.rnd2()
 
         try:
             return python.sde2(s)
@@ -1390,9 +1388,7 @@ try:
             >>> isinstance(mcl.rnd2(), GT)
             True
             """
-            p = mcl.point.random()
-            q = mcl.point2.base(mcl.scalar.random())
-            return mcl.par(p, q)  # cls.par
+            return mcl.scalar2.hash(secrets.token_bytes(384))
 
         @staticmethod
         def scl2(s: Union[bytes, bytearray, None] = None) -> Optional[GT]:
@@ -1421,7 +1417,7 @@ try:
             '36222db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
             """
             if s is None:
-                return mcl.rnd2() # cls.rnd2
+                return mcl.rnd2()
 
             try:
                 return mcl.sde2(s)
@@ -2795,7 +2791,8 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             bs = hashlib.sha512(bs).digest()
             exponent = pick_exponent(bs[:32])
 
-            # Generator of paired scalar2 codomain, computed from pairing the base points
+            # Generator of paired ``scalar2`` codomain, computed from pairing
+            # the base points for ``point`` and ``point2``.
             z = cls._implementation.scalar2.from_base64('X+CkvfROeA1SsbpkudwsTzqOGQC9BkDmNcYpI0GHGg'
             'TPr7fTv0yO88u5bybAlDc4QTCji5RvpdhGkWLT5oysD7UX5qE2ymq+HJXrl5MkiPp4J6kfZ6Obdjr9J/G4qs4U'
             'hNgtOCecKCgdEwI4KyCbtYu5Wv2M+IgvJbWUx4ihaB1HlDwFb6rTmaa8ckaoFtY6AoM5kbbDPgNN71441LrNC5'
@@ -2808,13 +2805,12 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
                 if exponent == 1:
                     return s
 
-                # We could add a faster squaring method, or better yet, a pow method.
                 s = s * s
 
                 if exponent % 2 == 1:
                     s = s * z
 
-                return square_and_multiply_exp(s, exponent//2)
+                return square_and_multiply_exp(s, exponent // 2)
 
             return square_and_multiply_exp(z, exponent)
 
