@@ -2778,9 +2778,9 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> s.hex()[700:]
             'e91ed56ea67d29047d588ffaf78f9ed317ff13e7f63e53276ff32988c49184e17b22'
 
-            >>> s0 = mcl.scalar2.hash(secrets.token_bytes(64))
-            >>> s1 = mcl.scalar2.hash(secrets.token_bytes(64))
-            >>> mcl.sse(mcl.smu2(mcl.smu2(s0, mcl.inv2(s0)), s1)) == mcl.sse(s1)
+            >>> s0 = python.scalar2.hash(secrets.token_bytes(64))
+            >>> s1 = python.scalar2.hash(secrets.token_bytes(64))
+            >>> python.sse(python.smu2(python.smu2(s0, python.inv2(s0)), s1)) == python.sse(s1)
             True
             """
             def pick_exponent(bs):
