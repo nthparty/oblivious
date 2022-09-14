@@ -37,10 +37,10 @@ def api_functions():
     namespaces.
     """
     return {
-        'rnd', 'scl', 'sse', 'sde', 'inv', 'smu', 'sad', 'ssu', 'sne',
         'pnt', 'bas', 'can', 'ser', 'des', 'mul', 'add', 'sub', 'neg', 'par',
-        'rnd2', 'scl2', 'sse2', 'sde2', 'inv2', 'smu2', 'sad2', 'pnt2', 'bas2',
-        'can2', 'ser2', 'des2', 'mul2', 'add2', 'sub2', 'neg2'
+        'rnd', 'scl', 'sse', 'sde', 'inv', 'smu', 'sad', 'ssu', 'sne',
+        'pnt2', 'bas2', 'can2', 'ser2', 'des2', 'mul2', 'add2', 'sub2', 'neg2',
+        'rnd2', 'scl2', 'sse2', 'sde2', 'inv2', 'smu2', 'sad2'
     }
 
 def api_classes():
@@ -134,139 +134,17 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=too-man
         """
         Direct tests of primitive operators that operate on bytes-like objects.
         """
-        def test_rnd(self):
-            mcl_hidden_and_fallback(hidden, fallback)
-            for _ in range(TRIALS_PER_TEST):
-                s = cls.rnd()
-                self.assertTrue(cls.scl(bytes(s)))
-
-        def test_scl_none(self):
-            mcl_hidden_and_fallback(hidden, fallback)
-            for _ in range(TRIALS_PER_TEST):
-                bs = bytes([255] * 32) # Representation value above the maximum scalar value.
-                s = cls.scl(bs)
-                self.assertTrue(s is None)
-
-        def test_scl(
-                self,
-                bits='ffff'
-            ):
-            mcl_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                bs = bytearray(bs)
-                bs[-1] &= 0b00111111 # Improve chances of testing with a valid scalar.
-                bs = bytes(bs)
-                r = 0x2523648240000001ba344d8000000007ff9f800000000010a10000000000000d
-                return bitlist([
-                    1
-                    if (bool(cls.scl(bs)) == (int.from_bytes(bs, 'little') < r)) is not None else
-                    0
-                ])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
-
-        def test_sse(
-                self,
-                bits='ab29'
-            ):
-            mcl_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                bs = bytearray(bs)
-                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
-                s = cls.scl(bytes(bs))
-                return cls.sse(s) if s is not None else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
-
-        def test_sde(
-                self,
-                bits='ab29'
-            ):
-            mcl_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                bs = bytearray(bs)
-                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
-                s = cls.scl(bytes(bs))
-                return cls.sde(cls.sse(s)) if s is not None else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
-
-        def test_inv(
-                self,
-                bits='0aea'
-            ):
-            mcl_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                bs = bytearray(bs)
-                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
-                bs = bytes(bs)
-                s = cls.scl(bs)
-                return cls.inv(s) if s is not None else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
-
-        def test_smu(
-                self,
-                bits='dfad'
-            ):
-            mcl_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                bs = bytearray(bs)
-                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
-                bs[SCALAR_LEN - 1] &= 0b00011111
-                bs = bytes(bs)
-                (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
-                return cls.smu(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
-
-        def test_sad(
-                self,
-                bits='6c5b'
-            ):
-            mcl_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                bs = bytearray(bs)
-                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
-                bs[SCALAR_LEN - 1] &= 0b00011111
-                bs = bytes(bs)
-                (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
-                return cls.sad(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
-
-        def test_ssu(
-                self,
-                bits='dc34'
-            ):
-            mcl_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                bs = bytearray(bs)
-                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
-                bs[SCALAR_LEN - 1] &= 0b00011111
-                bs = bytes(bs)
-                (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
-                return cls.ssu(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
-
-        def test_sne(
-                self,
-                bits='66d6'
-            ):
-            mcl_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                bs = bytearray(bs)
-                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
-                bs = bytes(bs)
-                s = cls.scl(bs)
-                return cls.sne(s) if s is not None else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
-
-        def test_pnt_none(self):
-            mcl_hidden_and_fallback(hidden, fallback)
-            for _ in range(TRIALS_PER_TEST):
-                self.assertTrue(len(cls.ser(cls.pnt())) == POINT_LEN)
-
         def test_pnt(
                 self,
                 bits='bc3d'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             return check_or_generate_operation(self, cls.pnt, [POINT_HASH_LEN], bits)
+
+        def test_pnt_none(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                self.assertTrue(len(cls.ser(cls.pnt())) == POINT_LEN)
 
         def test_bas(
                 self,
@@ -362,67 +240,127 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=too-man
                 return bytes([0 if len(cls.sse2(cls.par(p1, p2))) == 384 else 1])
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN, POINT_HASH_LEN], bits)
 
-        def test_rnd2(self):
+        def test_rnd(self):
             mcl_hidden_and_fallback(hidden, fallback)
             for _ in range(TRIALS_PER_TEST):
-                s = cls.rnd2()
-                self.assertTrue(cls.scl2(bytes(s)) is not None)
+                s = cls.rnd()
+                self.assertTrue(cls.scl(bytes(s)))
 
-        def test_scl2(
+        def test_scl(
                 self,
-                bits='a567'
+                bits='ffff'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                return cls.sse2(cls.scl2(cls.scalar2.hash(bs).to_bytes()))
-            return check_or_generate_operation(self, fun, [SCALAR2_LEN], bits)
+                bs = bytearray(bs)
+                bs[-1] &= 0b00111111 # Improve chances of testing with a valid scalar.
+                bs = bytes(bs)
+                r = 0x2523648240000001ba344d8000000007ff9f800000000010a10000000000000d
+                return bitlist([
+                    1
+                    if (bool(cls.scl(bs)) == (int.from_bytes(bs, 'little') < r)) is not None else
+                    0
+                ])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
-        def test_sse2(
+        def test_scl_none(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                bs = bytes([255] * 32) # Representation value above the maximum scalar value.
+                s = cls.scl(bs)
+                self.assertTrue(s is None)
+
+        def test_sse(
                 self,
-                bits='a567'
+                bits='ab29'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                return cls.sse2(cls.scalar2.hash(bs))
-            return check_or_generate_operation(self, fun, [SCALAR2_LEN], bits)
+                bs = bytearray(bs)
+                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
+                s = cls.scl(bytes(bs))
+                return cls.sse(s) if s is not None else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
-        def test_sde2(
+        def test_sde(
                 self,
-                bits='a567'
+                bits='ab29'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                return cls.sse2(cls.sde2(cls.sse2(cls.scalar2.hash(bs))))
-            return check_or_generate_operation(self, fun, [SCALAR2_LEN], bits)
+                bs = bytearray(bs)
+                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
+                s = cls.scl(bytes(bs))
+                return cls.sde(cls.sse(s)) if s is not None else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
-        def test_inv2(
+        def test_inv(
                 self,
-                bits='a567'
+                bits='0aea'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                return cls.sse2(cls.inv2(cls.scalar2.hash(bs)))
-            return check_or_generate_operation(self, fun, [SCALAR2_LEN], bits)
+                bs = bytearray(bs)
+                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
+                bs = bytes(bs)
+                s = cls.scl(bs)
+                return cls.inv(s) if s is not None else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
-        def test_smu2(
+        def test_smu(
                 self,
-                bits='ed98'
+                bits='dfad'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                (s1, s2) = (cls.scalar2.hash(bs[:SCALAR2_LEN]), cls.scalar2.hash(bs[SCALAR2_LEN:]))
-                return cls.sse2(cls.smu2(s1, s2))
-            return check_or_generate_operation(self, fun, [SCALAR2_LEN, SCALAR2_LEN], bits)
+                bs = bytearray(bs)
+                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
+                bs[SCALAR_LEN - 1] &= 0b00011111
+                bs = bytes(bs)
+                (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
+                return cls.smu(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
 
-        def test_sad2(
+        def test_sad(
                 self,
-                bits='1d51'
+                bits='6c5b'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
-                (s1, s2) = (cls.scalar2.hash(bs[:SCALAR2_LEN]), cls.scalar2.hash(bs[SCALAR2_LEN:]))
-                return cls.sse2(cls.sad2(s1, s2))
-            return check_or_generate_operation(self, fun, [SCALAR2_LEN, SCALAR2_LEN], bits)
+                bs = bytearray(bs)
+                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
+                bs[SCALAR_LEN - 1] &= 0b00011111
+                bs = bytes(bs)
+                (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
+                return cls.sad(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
+
+        def test_ssu(
+                self,
+                bits='dc34'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                bs = bytearray(bs)
+                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
+                bs[SCALAR_LEN - 1] &= 0b00011111
+                bs = bytes(bs)
+                (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
+                return cls.ssu(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
+
+        def test_sne(
+                self,
+                bits='66d6'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                bs = bytearray(bs)
+                bs[-1] &= 0b00011111 # Improve chances of testing with a valid scalar.
+                bs = bytes(bs)
+                s = cls.scl(bs)
+                return cls.sne(s) if s is not None else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
 
         def test_pnt2(
                 self,
@@ -505,6 +443,68 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=too-man
             def fun(bs):
                 return cls.neg2(cls.pnt2(bs))
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
+
+        def test_rnd2(self):
+            mcl_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                s = cls.rnd2()
+                self.assertTrue(cls.scl2(bytes(s)) is not None)
+
+        def test_scl2(
+                self,
+                bits='a567'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.sse2(cls.scl2(cls.scalar2.hash(bs).to_bytes()))
+            return check_or_generate_operation(self, fun, [SCALAR2_LEN], bits)
+
+        def test_sse2(
+                self,
+                bits='a567'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.sse2(cls.scalar2.hash(bs))
+            return check_or_generate_operation(self, fun, [SCALAR2_LEN], bits)
+
+        def test_sde2(
+                self,
+                bits='a567'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.sse2(cls.sde2(cls.sse2(cls.scalar2.hash(bs))))
+            return check_or_generate_operation(self, fun, [SCALAR2_LEN], bits)
+
+        def test_inv2(
+                self,
+                bits='a567'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                return cls.sse2(cls.inv2(cls.scalar2.hash(bs)))
+            return check_or_generate_operation(self, fun, [SCALAR2_LEN], bits)
+
+        def test_smu2(
+                self,
+                bits='ed98'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                (s1, s2) = (cls.scalar2.hash(bs[:SCALAR2_LEN]), cls.scalar2.hash(bs[SCALAR2_LEN:]))
+                return cls.sse2(cls.smu2(s1, s2))
+            return check_or_generate_operation(self, fun, [SCALAR2_LEN, SCALAR2_LEN], bits)
+
+        def test_sad2(
+                self,
+                bits='1d51'
+            ):
+            mcl_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                (s1, s2) = (cls.scalar2.hash(bs[:SCALAR2_LEN]), cls.scalar2.hash(bs[SCALAR2_LEN:]))
+                return cls.sse2(cls.sad2(s1, s2))
+            return check_or_generate_operation(self, fun, [SCALAR2_LEN, SCALAR2_LEN], bits)
 
     class Test_classes(TestCase): # pylint: disable=too-many-public-methods
         """

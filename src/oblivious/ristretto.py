@@ -209,66 +209,6 @@ class python:
     emitted by the operations and class methods in :obj:`sodium`.
     """
     @staticmethod
-    def rnd() -> bytes:
-        """
-        Return random non-zero scalar.
-
-        >>> len(python.rnd())
-        32
-        """
-        while True:
-            r = bytearray(secrets.token_bytes(32))
-            r[-1] &= 0x1f
-            if _sc25519_is_canonical(r) and not _zero(r):
-                return r
-
-    @classmethod
-    def scl(cls, s: bytes = None) -> Optional[bytes]:
-        """
-        Return supplied byte vector if it is a valid scalar; otherwise, return
-        ``None``. If no byte vector is supplied, return a random scalar.
-
-        >>> s = python.scl()
-        >>> t = python.scl(s)
-        >>> s == t
-        True
-        >>> python.scl(bytes([255] * 32)) is None
-        True
-        """
-        if s is None:
-            return cls.rnd()
-
-        s = bytearray(s)
-        s[-1] &= 0x1f
-
-        return bytes(s) if _sc25519_is_canonical(s) else None
-
-    @staticmethod
-    def inv(s: bytes) -> bytes:
-        """
-        Return the inverse of a scalar (modulo
-        ``2**252 + 27742317777372353535851937790883648493``).
-
-        >>> s = python.scl()
-        >>> p = python.pnt()
-        >>> python.mul(python.inv(s), python.mul(s, p)) == p
-        True
-        """
-        return _sc25519_invert(s)
-
-    @staticmethod
-    def smu(s: bytes, t: bytes) -> bytes:
-        """
-        Return scalar multiplied by another scalar.
-
-        >>> s = python.scl()
-        >>> t = python.scl()
-        >>> python.smu(s, t) == python.smu(t, s)
-        True
-        """
-        return _sc25519_mul(s, t)
-
-    @staticmethod
     def pnt(h: bytes = None) -> bytes:
         """
         Return point from 64-byte vector (normally obtained via hashing).
@@ -383,6 +323,66 @@ class python:
         True
         """
         return python.sub(bytes(32), p)
+
+    @staticmethod
+    def rnd() -> bytes:
+        """
+        Return random non-zero scalar.
+
+        >>> len(python.rnd())
+        32
+        """
+        while True:
+            r = bytearray(secrets.token_bytes(32))
+            r[-1] &= 0x1f
+            if _sc25519_is_canonical(r) and not _zero(r):
+                return r
+
+    @classmethod
+    def scl(cls, s: bytes = None) -> Optional[bytes]:
+        """
+        Return supplied byte vector if it is a valid scalar; otherwise, return
+        ``None``. If no byte vector is supplied, return a random scalar.
+
+        >>> s = python.scl()
+        >>> t = python.scl(s)
+        >>> s == t
+        True
+        >>> python.scl(bytes([255] * 32)) is None
+        True
+        """
+        if s is None:
+            return cls.rnd()
+
+        s = bytearray(s)
+        s[-1] &= 0x1f
+
+        return bytes(s) if _sc25519_is_canonical(s) else None
+
+    @staticmethod
+    def inv(s: bytes) -> bytes:
+        """
+        Return the inverse of a scalar (modulo
+        ``2**252 + 27742317777372353535851937790883648493``).
+
+        >>> s = python.scl()
+        >>> p = python.pnt()
+        >>> python.mul(python.inv(s), python.mul(s, p)) == p
+        True
+        """
+        return _sc25519_invert(s)
+
+    @staticmethod
+    def smu(s: bytes, t: bytes) -> bytes:
+        """
+        Return scalar multiplied by another scalar.
+
+        >>> s = python.scl()
+        >>> t = python.scl()
+        >>> python.smu(s, t) == python.smu(t, s)
+        True
+        """
+        return _sc25519_mul(s, t)
 
 #
 # Attempt to load primitives from libsodium, if it is present;
@@ -558,74 +558,6 @@ try:
         _call = _call_variant
 
         @staticmethod
-        def rnd() -> bytes:
-            """
-            Return random non-zero scalar.
-
-            >>> len(sodium.rnd())
-            32
-            """
-            return sodium._call(
-                sodium._lib.crypto_core_ristretto255_scalarbytes(),
-                sodium._lib.crypto_core_ristretto255_scalar_random
-            )
-
-        @classmethod
-        def scl(cls, s: bytes = None) -> Optional[bytes]:
-            """
-            Return supplied byte vector if it is a valid scalar; otherwise,
-            return ``None``. If no byte vector is supplied, return a random
-            scalar.
-
-            >>> s = sodium.scl()
-            >>> t = sodium.scl(s)
-            >>> s == t
-            True
-            >>> sodium.scl(bytes([255] * 32)) is None
-            True
-            """
-            if s is None:
-                return cls.rnd()
-
-            s = bytearray(s)
-            s[-1] &= 0x1f
-
-            return bytes(s) if _sc25519_is_canonical(s) else None
-
-        @staticmethod
-        def inv(s: bytes) -> bytes:
-            """
-            Return the inverse of a scalar (modulo
-            ``2**252 + 27742317777372353535851937790883648493``).
-
-            >>> s = sodium.scl()
-            >>> p = sodium.pnt()
-            >>> sodium.mul(sodium.inv(s), sodium.mul(s, p)) == p
-            True
-            """
-            return sodium._call(
-                sodium._lib.crypto_core_ristretto255_scalarbytes(),
-                sodium._lib.crypto_core_ristretto255_scalar_invert,
-                bytes(s)
-            )
-
-        @staticmethod
-        def smu(s: bytes, t: bytes) -> bytes:
-            """
-            Return the product of two scalars.
-
-            >>> s = sodium.scl()
-            >>> t = sodium.scl()
-            >>> sodium.smu(s, t) == sodium.smu(t, s)
-            True
-            """
-            return sodium._call(
-                sodium._lib.crypto_core_ristretto255_scalarbytes(),
-                sodium._lib.crypto_core_ristretto255_scalar_mul,
-                bytes(s), bytes(t)
-            )
-
-        @staticmethod
         def pnt(h: bytes = None) -> bytes:
             """
             Construct a point from its 64-byte vector representation (normally
@@ -731,6 +663,74 @@ try:
             True
             """
             return sodium.sub(bytes(32), p)
+
+        @staticmethod
+        def rnd() -> bytes:
+            """
+            Return random non-zero scalar.
+
+            >>> len(sodium.rnd())
+            32
+            """
+            return sodium._call(
+                sodium._lib.crypto_core_ristretto255_scalarbytes(),
+                sodium._lib.crypto_core_ristretto255_scalar_random
+            )
+
+        @classmethod
+        def scl(cls, s: bytes = None) -> Optional[bytes]:
+            """
+            Return supplied byte vector if it is a valid scalar; otherwise,
+            return ``None``. If no byte vector is supplied, return a random
+            scalar.
+
+            >>> s = sodium.scl()
+            >>> t = sodium.scl(s)
+            >>> s == t
+            True
+            >>> sodium.scl(bytes([255] * 32)) is None
+            True
+            """
+            if s is None:
+                return cls.rnd()
+
+            s = bytearray(s)
+            s[-1] &= 0x1f
+
+            return bytes(s) if _sc25519_is_canonical(s) else None
+
+        @staticmethod
+        def inv(s: bytes) -> bytes:
+            """
+            Return the inverse of a scalar (modulo
+            ``2**252 + 27742317777372353535851937790883648493``).
+
+            >>> s = sodium.scl()
+            >>> p = sodium.pnt()
+            >>> sodium.mul(sodium.inv(s), sodium.mul(s, p)) == p
+            True
+            """
+            return sodium._call(
+                sodium._lib.crypto_core_ristretto255_scalarbytes(),
+                sodium._lib.crypto_core_ristretto255_scalar_invert,
+                bytes(s)
+            )
+
+        @staticmethod
+        def smu(s: bytes, t: bytes) -> bytes:
+            """
+            Return the product of two scalars.
+
+            >>> s = sodium.scl()
+            >>> t = sodium.scl()
+            >>> sodium.smu(s, t) == sodium.smu(t, s)
+            True
+            """
+            return sodium._call(
+                sodium._lib.crypto_core_ristretto255_scalarbytes(),
+                sodium._lib.crypto_core_ristretto255_scalar_mul,
+                bytes(s), bytes(t)
+            )
 
 except: # pylint: disable=W0702 # pragma: no cover
     # Exported symbol.
@@ -1198,5 +1198,5 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 python = python # pylint: disable=self-assigning-variable
 sodium = sodium # pylint: disable=self-assigning-variable
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     doctest.testmod() # pragma: no cover

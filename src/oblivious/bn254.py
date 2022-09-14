@@ -158,11 +158,11 @@ class _ECp(ECp_): # pylint: disable=invalid-name
         return p
 
     def __init__(self, p=None):
-        ECp_.__init__(self) #super(ECp_, self).__init__() # pylint: disable=bad-super-call
+        ECp_.__init__(self)
         if isinstance(p, (ECp_, _ECp)):
             self.setxy(*p.get())
         elif isinstance(p, python.point):
-            self.setxy(*_ECp.deserialize(p).get())  # -or- `self.__class__.deserialize`
+            self.setxy(*_ECp.deserialize(p).get())
 
     def serialize(self) -> bytes:
         d = 0x212ba4f27ffffff5a2c62effffffffcdb939ffffffffff8a15ffffffffffff8e
@@ -208,17 +208,21 @@ class _ECp2(ECp2_): # pylint: disable=invalid-name
         return q
 
     def __init__(self, q=None):
-        ECp2_.__init__(self)# super(ECp2_, self).__init__() # pylint: disable=bad-super-call
+        ECp2_.__init__(self)
         if isinstance(q, (ECp2_, _ECp2)):
             self.set(*q.get())
         elif isinstance(q, python.point2):
-            self.set(*_ECp2.deserialize(bytes(q)).get())  # -or- `self.__class__.deserialize`
+            self.set(*_ECp2.deserialize(bytes(q)).get())
 
     def serialize(self) -> bytes:
         d = 0x212ba4f27ffffff5a2c62effffffffcdb939ffffffffff8a15ffffffffffff8e
-        p = 0x2523648240000001ba344d80000000086121000000000013a700000000000013# BN254 modulus of F_p
+
+        # BN254 modulus of *F_p*.
+        p = 0x2523648240000001ba344d80000000086121000000000013a700000000000013
+
         p1, p2 = (*self.get(),)
         x1, y1, z1, x2, y2, z2 = (*p1.get(), 1, *p2.get(), 0)
+
         encode = lambda n: (n * d % p).to_bytes(32, 'little')
         return encode(x1) + encode(y1) + encode(x2) + encode(y2) + encode(z1) + encode(z2)
 
@@ -245,7 +249,7 @@ class _Fp12(Fp12_): # pylint: disable=invalid-name
         return q
 
     def __init__(self, s=None):
-        Fp12_.__init__(self) #super(Fp12_, self).__init__() # pylint: disable=bad-super-call
+        Fp12_.__init__(self)
         if isinstance(s, (Fp12_, _Fp12)):
             self.set(*s.get())
         elif isinstance(s, python.scalar2):
@@ -253,7 +257,10 @@ class _Fp12(Fp12_): # pylint: disable=invalid-name
 
     def serialize(self) -> bytes:
         d = 0x212ba4f27ffffff5a2c62effffffffcdb939ffffffffff8a15ffffffffffff8e
-        p = 0x2523648240000001ba344d80000000086121000000000013a700000000000013# BN254 modulus of F_p
+
+        # BN254 modulus of *F_p*.
+        p = 0x2523648240000001ba344d80000000086121000000000013a700000000000013
+
         encode = lambda n: (n * d % p).to_bytes(32, 'little')
         return bytes(
             encode(self.a.a.a.int()) + encode(self.a.a.b.int()) +
@@ -270,24 +277,25 @@ class python:
 
     This class encapsulates pure Python variants of all primitive operations
     and classes exported by this module:
-    :obj:`python.rnd <rnd>`, :obj:`python.scl <scl>`,
-    :obj:`python.sse <sse>`, :obj:`python.sde <sde>`,
-    :obj:`python.inv <inv>`, :obj:`python.smu <smu>`,
-    :obj:`python.sad <sad>`, :obj:`python.ssu <ssu>`,
-    :obj:`python.sne <sne>`,
     :obj:`python.pnt <pnt>`, :obj:`python.bas <bas>`,
     :obj:`python.can <can>`, :obj:`python.ser <ser>`,
     :obj:`python.des <des>`, :obj:`python.mul <mul>`,
     :obj:`python.add <add>`, :obj:`python.sub <sub>`,
     :obj:`python.neg <neg>`, :obj:`python.par <par>`,
+    :obj:`python.rnd <rnd>`, :obj:`python.scl <scl>`,
+    :obj:`python.sse <sse>`, :obj:`python.sde <sde>`,
+    :obj:`python.inv <inv>`, :obj:`python.smu <smu>`,
+    :obj:`python.sad <sad>`, :obj:`python.ssu <ssu>`,
+    :obj:`python.sne <sne>`,
+    :obj:`python.pnt2 <pnt2>`, :obj:`python.bas2 <bas2>`,
+    :obj:`python.can2 <can2>`, :obj:`python.ser2 <ser2>`,
+    :obj:`python.des2 <des2>`, :obj:`python.mul2 <mul2>`,
+    :obj:`python.add2 <add2>`, :obj:`python.sub2 <sub2>`,
+    :obj:`python.neg2 <neg2>`,
     :obj:`python.rnd2 <rnd2>`, :obj:`python.scl2 <scl2>`,
     :obj:`python.sse2 <sse2>`, :obj:`python.sde2 <sde2>`,
     :obj:`python.inv2 <inv2>`, :obj:`python.smu2 <smu2>`,
-    :obj:`python.sad2 <sad2>`, :obj:`python.pnt2 <pnt2>`,
-    :obj:`python.bas2 <bas2>`, :obj:`python.can2 <can2>`,
-    :obj:`python.ser2 <ser2>`, :obj:`python.des2 <des2>`,
-    :obj:`python.mul2 <mul2>`, :obj:`python.add2 <add2>`,
-    :obj:`python.sub2 <sub2>`, :obj:`python.neg2 <neg2>`,
+    :obj:`python.sad2 <sad2>`,
     :obj:`python.point <point>`, :obj:`python.scalar <scalar>`,
     :obj:`python.point <point2>`, and :obj:`python.scalar <scalar2>`.
     For example, you can perform multiplication of scalars
@@ -308,134 +316,6 @@ class python:
     >>> p * q == q * p
     True
     """
-    @staticmethod
-    def rnd() -> scalar:
-        """
-        Return random non-zero scalar.
-
-        >>> isinstance(python.rnd(), python.scalar)
-        True
-        """
-        # d = 0x212ba4f27ffffff5a2c62effffffffd00242ffffffffff9c39ffffffffffffb2
-        # return int.to_bytes(((secrets.randbelow(r-1)+1) * d) % r, 32, 'little')
-
-        return python.scalar(int.to_bytes(secrets.randbelow(r-1)+1, 32, 'little'))
-
-    @classmethod
-    def scl(cls, s: Union[bytes, bytearray, None] = None) -> Optional[scalar]:
-        """
-        Construct a scalar if the supplied bytes-like object represents
-        a valid scalar; otherwise, return ``None``. If no byte vector is
-        supplied, return a random scalar.
-
-        >>> s = python.scl()
-        >>> t = python.scl(s)
-        >>> s == t
-        True
-        >>> python.scl(bytes([255] * 32)) is None
-        True
-        """
-        if s is None:
-            return python.rnd()
-
-        if int.from_bytes(s, 'little') < r:
-            return bytes.__new__(python.scalar, s)
-
-        return None
-
-    @staticmethod
-    def sse(s: scalar) -> bytes:
-        """
-        Return the binary representation of a scalar.
-
-        >>> s = python.scalar.hash('123'.encode())
-        >>> python.sde(python.sse(s)) == s
-        True
-        """
-        return bytes(b for b in s)
-
-    @staticmethod
-    def sde(bs: bytes) -> scalar:
-        """
-        Construct a scalar from its binary representation.
-
-        >>> s = python.scalar.hash('123'.encode())
-        >>> bs = bytes.fromhex(
-        ...     '93d829354cb3592743174133104b5405ba6992b67bb219fbde3e394d70505913'
-        ... )
-        >>> python.sde(bs) == s
-        True
-        >>> python.sse(python.sde(bs)) == bs
-        True
-        """
-        return bytes.__new__(python.scalar, bs)
-
-    @staticmethod
-    def inv(s: scalar) -> scalar:
-        """
-        Return the inverse of a scalar (modulo
-        ``r = 16798108731015832284940804142231733909759579603404752749028378864165570215949``
-        in the prime field `F*_r`).
-
-        >>> s = python.scl()
-        >>> p = python.pnt()
-        >>> python.mul(python.inv(s), python.mul(s, p)) == p
-        True
-        """
-        return python.scalar.from_int(bn.invmodp(int(s), r))
-
-    @staticmethod
-    def smu(s: scalar, t: scalar) -> scalar:
-        """
-        Return the product of two scalars.
-
-        >>> s = python.scl()
-        >>> t = python.scl()
-        >>> python.smu(s, t) == python.smu(t, s)
-        True
-        """
-        n = (python.scalar.__int__(s) * python.scalar.__int__(t)) % r
-        return python.scalar.from_int(n)
-
-    @staticmethod
-    def sad(s: scalar, t: scalar) -> scalar:
-        """
-        Return the sum of two scalars.
-
-        >>> s = python.scl()  # Could be `python.scl()`.
-        >>> t = python.scl()
-        >>> python.sad(s, t) == python.sad(t, s)
-        True
-        """
-        return python.scalar.from_int((int(s) + int(t)) % r)
-
-    @staticmethod
-    def ssu(s: scalar, t: scalar) -> scalar:
-        """
-        Return the result of subtracting the right-hand scalar from the
-        left-hand scalar.
-
-        >>> s = python.scl()
-        >>> t = python.scl()
-        >>> python.ssu(s, t) == python.sad(s, python.sne(t))
-        True
-        >>> python.ssu(s, t) == python.sne(python.ssu(t, s))
-        True
-        """
-        return python.scalar.from_int((int(s) - int(t)) % r)
-
-    @staticmethod
-    def sne(s: scalar) -> scalar:
-        """
-        Return the additive inverse of a scalar.
-
-        >>> s = python.scl()
-        >>> t = python.scl()
-        >>> python.sne(python.sne(s)) == s
-        True
-        """
-        return python.scalar.from_int(r - int(s))
-
     @staticmethod
     def pnt(h: Optional[bytes] = None) -> point:
         """
@@ -649,134 +529,132 @@ class python:
         return bytes.__new__(python.scalar2, _Fp12(z_).serialize())
 
     @staticmethod
-    def rnd2() -> scalar2:
+    def rnd() -> scalar:
         """
-        Return random non-zero second-level scalar.
+        Return random non-zero scalar.
 
-        >>> isinstance(python.rnd2(), python.scalar2)
+        >>> isinstance(python.rnd(), python.scalar)
         True
         """
-        return python.scalar2.hash(secrets.token_bytes(384))
+        # d = 0x212ba4f27ffffff5a2c62effffffffd00242ffffffffff9c39ffffffffffffb2
+        # return int.to_bytes(((secrets.randbelow(r-1)+1) * d) % r, 32, 'little')
 
-    @staticmethod
-    def scl2(s: Union[bytes, bytearray, None] = None) -> Optional[scalar2]:
+        return python.scalar(int.to_bytes(secrets.randbelow(r-1)+1, 32, 'little'))
+
+    @classmethod
+    def scl(cls, s: Union[bytes, bytearray, None] = None) -> Optional[scalar]:
         """
-        Construct a second-level scalar if the supplied bytes-like object
-        represents a valid second-level scalar; otherwise, return ``None``.
-        If no byte vector is supplied, return a random second-level scalar.
+        Construct a scalar if the supplied bytes-like object represents
+        a valid scalar; otherwise, return ``None``. If no byte vector is
+        supplied, return a random scalar.
 
-        >>> bs = bytes.fromhex(
-        ...     '18d0e065798ffa4ecca0a7cc6e2b8d6d3269f7eb413525e59b731332b02ea805'
-        ...     '4b90c89ce93e4452557f53aae5f8f13221858dde2ea6a50373f1858f11287021'
-        ...     '09b3daf7a217a20a3d872632f8ced643d32649b241a67601bec855bd43f07710'
-        ...     '88df722bcacc8fd174f16ad7ef1b1d5e622d93b7cfec6385c353c13793a4e01c'
-        ...     '371ef54cd836a88e1b1f1e198d566d3bbe5aa225734305f14cac9af9c821351c'
-        ...     '86b365190105d1b7e71011d1362ed6ad9133a2c2c42898e9ebc3d1604a608f10'
-        ...     '8461d37b2463b4f88f0ccb427b5eea8714ee88f8c33daf7ee4a3f45ca8bca911'
-        ...     '87956abb4d27de1b49e5e059f904fbb475804715ab25a17306fa0e196f305215'
-        ...     '3a60dfa073ca78de49edeaac9c54cab3d0138750c23c0b68de7924a69d1ba002'
-        ...     'a24ac592622a45c59c1ded7133794292a09602bd57a36601d35438846fcb370f'
-        ...     '39c0fa7a15b34d14ab6f95ee5bf5b26bd5def1e7ed07350922d445da07d93622'
-        ...     '2db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
-        ... )
-        >>> python.scalar2.to_bytes(python.scl2(bs)).hex()[700:]
-        '36222db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
+        >>> s = python.scl()
+        >>> t = python.scl(s)
+        >>> s == t
+        True
+        >>> python.scl(bytes([255] * 32)) is None
+        True
         """
         if s is None:
-            return python.rnd2()
+            return python.rnd()
 
-        try:
-            return python.sde2(s)
-        except ValueError: # pragma: no cover
-            return None
+        if int.from_bytes(s, 'little') < r:
+            return bytes.__new__(python.scalar, s)
+
+        return None
 
     @staticmethod
-    def sse2(s: scalar2) -> bytes:
+    def sse(s: scalar) -> bytes:
         """
-        Return the binary representation of a second-level scalar.
+        Return the binary representation of a scalar.
 
-        >>> s = python.scalar2.hash('123'.encode())
-        >>> python.sde2(python.sse2(s)) == s
+        >>> s = python.scalar.hash('123'.encode())
+        >>> python.sde(python.sse(s)) == s
         True
         """
         return bytes(b for b in s)
 
     @staticmethod
-    def sde2(bs: bytes) -> scalar2:
+    def sde(bs: bytes) -> scalar:
         """
-        Construct a second-level scalar from its binary representation.
+        Construct a scalar from its binary representation.
 
-        >>> s = python.scalar2.hash('123'.encode())
+        >>> s = python.scalar.hash('123'.encode())
         >>> bs = bytes.fromhex(
-        ...     '36980a8359d40e106075488e80cf1479f2e6ba95d6a99a67832d21b7b94d8c1d'
-        ...     '5eb4d655f23e1d5d499d51d1c552b5e7df6943091427cd080f582e120613a021'
-        ...     '85898ef7d016e47a74a8df62316cc4ad975cb64bb63867ed9b5221f77bb9a121'
-        ...     '7bd89cd213eee0c3fdf2e0e13ef9e30383ea5607c8d13fc10e04448a6c964a00'
-        ...     '04a098a55beab09732220966319333608b2187ee2196eb5b4253bc2b1aea5303'
-        ...     '654260dd687a2eb176a494258ff7ef753f93105a6f0e9f46c926afdbe31ff124'
-        ...     '6bdd87c32537abcdb46ad542792edd74a229c9ba61abcd993f074237a91f5215'
-        ...     '8f6b07886895733edde15cb22129459162d89d3662826b74e4fcbe4e9e8c2420'
-        ...     'bd53586a09f91ff8f67f92cba72c5b64a9c3965c01e93710200ab4e084955316'
-        ...     'fb18950835b79fb4c2930efcc5fcaa9d82ee0faff036b80657daee233a445901'
-        ...     '7df3e57cb535ed26162b3ee0f8961131a93fe3198dc5393d277ed8bac5532411'
-        ...     '93b7ad15c52ca123fd26f592a2219b1bf118b3035893cc4abf614b422f978718'
+        ...     '93d829354cb3592743174133104b5405ba6992b67bb219fbde3e394d70505913'
         ... )
-        >>> python.sde2(bs) == s
+        >>> python.sde(bs) == s
         True
-        >>> python.sse(python.sde2(bs)) == bs
+        >>> python.sse(python.sde(bs)) == bs
         True
         """
-        return bytes.__new__(python.scalar2, bs)
+        return bytes.__new__(python.scalar, bs)
 
     @staticmethod
-    def inv2(s: scalar2) -> scalar2:
+    def inv(s: scalar) -> scalar:
         """
-        Return the inverse of a second-level scalar.
+        Return the inverse of a scalar (modulo
+        ``r = 16798108731015832284940804142231733909759579603404752749028378864165570215949``
+        in the prime field `F*_r`).
 
-        >>> s = python.scl2()
-        >>> python.smu2(s, python.smu2(s, python.inv2(s))) == s
-        True
-        >>> python.smu2(python.smu2(s, s), python.inv2(s)) == s
+        >>> s = python.scl()
+        >>> p = python.pnt()
+        >>> python.mul(python.inv(s), python.mul(s, p)) == p
         True
         """
-        return bytes.__new__(
-            python.scalar2,
-            _Fp12(_Fp12.deserialize(s).inverse()).serialize()
-        )
+        return python.scalar.from_int(bn.invmodp(int(s), r))
 
     @staticmethod
-    def smu2(s: scalar2, t: scalar2) -> scalar2:
+    def smu(s: scalar, t: scalar) -> scalar:
         """
-        Return second-level scalar multiplied by another scalar.
+        Return the product of two scalars.
 
-        >>> p1 = python.point.hash('123'.encode())
-        >>> p2 = python.point.hash('456'.encode())
-        >>> q1 = python.point2.base(python.scalar.hash('123'.encode()))
-        >>> q2 = python.point2.base(python.scalar.hash('456'.encode()))
-        >>> s = p1 @ q1
-        >>> t = p2 @ q2
-        >>> python.smu2(s, t) == python.smu2(t, s)
+        >>> s = python.scl()
+        >>> t = python.scl()
+        >>> python.smu(s, t) == python.smu(t, s)
         True
         """
-        return bytes.__new__(
-            python.scalar2,
-            _Fp12(_Fp12.deserialize(s) * _Fp12.deserialize(t)).serialize()
-        )
+        n = (python.scalar.__int__(s) * python.scalar.__int__(t)) % r
+        return python.scalar.from_int(n)
 
     @staticmethod
-    def sad2(s: scalar2, t: scalar2) -> scalar2:
+    def sad(s: scalar, t: scalar) -> scalar:
         """
-        Return scalar2 added to another scalar2.
+        Return the sum of two scalars.
 
-        >>> s = python.scl2()
-        >>> t = python.scl2()
-        >>> python.sad2(s, t) == python.sad2(t, s)
+        >>> s = python.scl()  # Could be `python.scl()`.
+        >>> t = python.scl()
+        >>> python.sad(s, t) == python.sad(t, s)
         True
         """
-        return bytes.__new__(
-            python.scalar2,
-            _Fp12(_Fp12.deserialize(s) + _Fp12.deserialize(t)).serialize()
-        )
+        return python.scalar.from_int((int(s) + int(t)) % r)
+
+    @staticmethod
+    def ssu(s: scalar, t: scalar) -> scalar:
+        """
+        Return the result of subtracting the right-hand scalar from the
+        left-hand scalar.
+
+        >>> s = python.scl()
+        >>> t = python.scl()
+        >>> python.ssu(s, t) == python.sad(s, python.sne(t))
+        True
+        >>> python.ssu(s, t) == python.sne(python.ssu(t, s))
+        True
+        """
+        return python.scalar.from_int((int(s) - int(t)) % r)
+
+    @staticmethod
+    def sne(s: scalar) -> scalar:
+        """
+        Return the additive inverse of a scalar.
+
+        >>> s = python.scl()
+        >>> t = python.scl()
+        >>> python.sne(python.sne(s)) == s
+        True
+        """
+        return python.scalar.from_int(r - int(s))
 
     @staticmethod
     def pnt2(h: Optional[bytes] = None) -> point2:
@@ -941,6 +819,136 @@ class python:
         """
         return bytes.__new__(python.point2, _ECp2(-1 * _ECp2.deserialize(p)).serialize())
 
+    @staticmethod
+    def rnd2() -> scalar2:
+        """
+        Return random non-zero second-level scalar.
+
+        >>> isinstance(python.rnd2(), python.scalar2)
+        True
+        """
+        return python.scalar2.hash(secrets.token_bytes(384))
+
+    @staticmethod
+    def scl2(s: Union[bytes, bytearray, None] = None) -> Optional[scalar2]:
+        """
+        Construct a second-level scalar if the supplied bytes-like object
+        represents a valid second-level scalar; otherwise, return ``None``.
+        If no byte vector is supplied, return a random second-level scalar.
+
+        >>> bs = bytes.fromhex(
+        ...     '18d0e065798ffa4ecca0a7cc6e2b8d6d3269f7eb413525e59b731332b02ea805'
+        ...     '4b90c89ce93e4452557f53aae5f8f13221858dde2ea6a50373f1858f11287021'
+        ...     '09b3daf7a217a20a3d872632f8ced643d32649b241a67601bec855bd43f07710'
+        ...     '88df722bcacc8fd174f16ad7ef1b1d5e622d93b7cfec6385c353c13793a4e01c'
+        ...     '371ef54cd836a88e1b1f1e198d566d3bbe5aa225734305f14cac9af9c821351c'
+        ...     '86b365190105d1b7e71011d1362ed6ad9133a2c2c42898e9ebc3d1604a608f10'
+        ...     '8461d37b2463b4f88f0ccb427b5eea8714ee88f8c33daf7ee4a3f45ca8bca911'
+        ...     '87956abb4d27de1b49e5e059f904fbb475804715ab25a17306fa0e196f305215'
+        ...     '3a60dfa073ca78de49edeaac9c54cab3d0138750c23c0b68de7924a69d1ba002'
+        ...     'a24ac592622a45c59c1ded7133794292a09602bd57a36601d35438846fcb370f'
+        ...     '39c0fa7a15b34d14ab6f95ee5bf5b26bd5def1e7ed07350922d445da07d93622'
+        ...     '2db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
+        ... )
+        >>> python.scalar2.to_bytes(python.scl2(bs)).hex()[700:]
+        '36222db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
+        """
+        if s is None:
+            return python.rnd2()
+
+        try:
+            return python.sde2(s)
+        except ValueError: # pragma: no cover
+            return None
+
+    @staticmethod
+    def sse2(s: scalar2) -> bytes:
+        """
+        Return the binary representation of a second-level scalar.
+
+        >>> s = python.scalar2.hash('123'.encode())
+        >>> python.sde2(python.sse2(s)) == s
+        True
+        """
+        return bytes(b for b in s)
+
+    @staticmethod
+    def sde2(bs: bytes) -> scalar2:
+        """
+        Construct a second-level scalar from its binary representation.
+
+        >>> s = python.scalar2.hash('123'.encode())
+        >>> bs = bytes.fromhex(
+        ...     '36980a8359d40e106075488e80cf1479f2e6ba95d6a99a67832d21b7b94d8c1d'
+        ...     '5eb4d655f23e1d5d499d51d1c552b5e7df6943091427cd080f582e120613a021'
+        ...     '85898ef7d016e47a74a8df62316cc4ad975cb64bb63867ed9b5221f77bb9a121'
+        ...     '7bd89cd213eee0c3fdf2e0e13ef9e30383ea5607c8d13fc10e04448a6c964a00'
+        ...     '04a098a55beab09732220966319333608b2187ee2196eb5b4253bc2b1aea5303'
+        ...     '654260dd687a2eb176a494258ff7ef753f93105a6f0e9f46c926afdbe31ff124'
+        ...     '6bdd87c32537abcdb46ad542792edd74a229c9ba61abcd993f074237a91f5215'
+        ...     '8f6b07886895733edde15cb22129459162d89d3662826b74e4fcbe4e9e8c2420'
+        ...     'bd53586a09f91ff8f67f92cba72c5b64a9c3965c01e93710200ab4e084955316'
+        ...     'fb18950835b79fb4c2930efcc5fcaa9d82ee0faff036b80657daee233a445901'
+        ...     '7df3e57cb535ed26162b3ee0f8961131a93fe3198dc5393d277ed8bac5532411'
+        ...     '93b7ad15c52ca123fd26f592a2219b1bf118b3035893cc4abf614b422f978718'
+        ... )
+        >>> python.sde2(bs) == s
+        True
+        >>> python.sse(python.sde2(bs)) == bs
+        True
+        """
+        return bytes.__new__(python.scalar2, bs)
+
+    @staticmethod
+    def inv2(s: scalar2) -> scalar2:
+        """
+        Return the inverse of a second-level scalar.
+
+        >>> s = python.scl2()
+        >>> python.smu2(s, python.smu2(s, python.inv2(s))) == s
+        True
+        >>> python.smu2(python.smu2(s, s), python.inv2(s)) == s
+        True
+        """
+        return bytes.__new__(
+            python.scalar2,
+            _Fp12(_Fp12.deserialize(s).inverse()).serialize()
+        )
+
+    @staticmethod
+    def smu2(s: scalar2, t: scalar2) -> scalar2:
+        """
+        Return second-level scalar multiplied by another scalar.
+
+        >>> p1 = python.point.hash('123'.encode())
+        >>> p2 = python.point.hash('456'.encode())
+        >>> q1 = python.point2.base(python.scalar.hash('123'.encode()))
+        >>> q2 = python.point2.base(python.scalar.hash('456'.encode()))
+        >>> s = p1 @ q1
+        >>> t = p2 @ q2
+        >>> python.smu2(s, t) == python.smu2(t, s)
+        True
+        """
+        return bytes.__new__(
+            python.scalar2,
+            _Fp12(_Fp12.deserialize(s) * _Fp12.deserialize(t)).serialize()
+        )
+
+    @staticmethod
+    def sad2(s: scalar2, t: scalar2) -> scalar2:
+        """
+        Return scalar2 added to another scalar2.
+
+        >>> s = python.scl2()
+        >>> t = python.scl2()
+        >>> python.sad2(s, t) == python.sad2(t, s)
+        True
+        """
+        return bytes.__new__(
+            python.scalar2,
+            _Fp12(_Fp12.deserialize(s) + _Fp12.deserialize(t)).serialize()
+        )
+
 # Indicate that data structures based on the dynamic/shared library
 # in mclbn256 have not (yet, at least) been defined.
 mclbn256 = False
@@ -989,24 +997,25 @@ try:
         If a shared/dynamic library file has been loaded successfully,
         this class encapsulates shared/dynamic library variants of both classes
         exported by this module and of all the underlying low-level functions:
-        :obj:`mcl.rnd <rnd>`, :obj:`mcl.scl <scl>`,
-        :obj:`mcl.sse <sse>`, :obj:`mcl.sde <sde>`,
-        :obj:`mcl.inv <inv>`, :obj:`mcl.smu <smu>`,
-        :obj:`mcl.sad <sad>`, :obj:`mcl.ssu <ssu>`,
-        :obj:`mcl.sne <sne>`,
         :obj:`mcl.pnt <pnt>`, :obj:`mcl.bas <bas>`,
         :obj:`mcl.can <can>`, :obj:`mcl.ser <ser>`,
         :obj:`mcl.des <des>`, :obj:`mcl.mul <mul>`,
         :obj:`mcl.add <add>`, :obj:`mcl.sub <sub>`,
         :obj:`mcl.neg <neg>`, :obj:`mcl.par <par>`,
+        :obj:`mcl.rnd <rnd>`, :obj:`mcl.scl <scl>`,
+        :obj:`mcl.sse <sse>`, :obj:`mcl.sde <sde>`,
+        :obj:`mcl.inv <inv>`, :obj:`mcl.smu <smu>`,
+        :obj:`mcl.sad <sad>`, :obj:`mcl.ssu <ssu>`,
+        :obj:`mcl.sne <sne>`,
+        :obj:`mcl.pnt2 <pnt2>`, :obj:`mcl.bas2 <bas2>`,
+        :obj:`mcl.can2 <can2>`, :obj:`mcl.ser2 <ser2>`,
+        :obj:`mcl.des2 <des2>`, :obj:`mcl.mul2 <mul2>`,
+        :obj:`mcl.add2 <add2>`, :obj:`mcl.sub2 <sub2>`,
+        :obj:`mcl.neg2 <neg2>`,
         :obj:`mcl.rnd2 <rnd2>`, :obj:`mcl.scl2 <scl2>`,
         :obj:`mcl.sse2 <sse2>`, :obj:`mcl.sde2 <sde2>`,
         :obj:`mcl.inv2 <inv2>`, :obj:`mcl.smu2 <smu2>`,
-        :obj:`mcl.sad2 <sad2>`, :obj:`mcl.pnt2 <pnt2>`,
-        :obj:`mcl.bas2 <bas2>`, :obj:`mcl.can2 <can2>`,
-        :obj:`mcl.ser2 <ser2>`, :obj:`mcl.des2 <des2>`,
-        :obj:`mcl.mul2 <mul2>`, :obj:`mcl.add2 <add2>`,
-        :obj:`mcl.sub2 <sub2>`, :obj:`mcl.neg2 <neg2>`,
+        :obj:`mcl.sad2 <sad2>`,
         :obj:`mcl.point <point>`, :obj:`mcl.scalar <scalar>`,
         :obj:`mcl.point <point2>`, and :obj:`mcl.scalar <scalar2>`.
         For example, you can perform addition of points using the point
@@ -1031,132 +1040,6 @@ try:
         True
         """
         # pylint: disable=too-many-public-methods
-
-        @staticmethod
-        def rnd() -> Fr:
-            """
-            Return random non-zero scalar.
-
-            >>> s = mcl.rnd()
-            >>> isinstance(s, Fr)
-            True
-            >>> s.__class__ = scalar
-            >>> len(mcl.scalar.to_bytes(s))
-            32
-            """
-            return Fr().randomize()
-
-        @classmethod
-        def scl(cls, bs: Union[bytes, bytearray, None] = None) -> Optional[Fr]:
-            """
-            Construct a scalar if the supplied bytes-like object represents
-            a valid scalar; otherwise, return ``None``. If no byte vector is
-            supplied, return a random scalar.
-
-            >>> s = mcl.scl()
-            >>> s.__class__ = scalar
-            >>> t = mcl.scl(mcl.scalar.to_bytes(s))
-            >>> s == t
-            True
-            >>> mcl.scl(bytes([255] * 32)) is None
-            True
-            """
-            if bs is None:
-                return cls.rnd()
-
-            try:
-                s = cls.sde(bs)
-                return s
-            except ValueError: # pragma: no cover
-                return None
-
-        @staticmethod
-        def sse(s: Fr) -> bytes:
-            """
-            Return the binary representation of a scalar.
-
-            >>> s = mcl.scalar.hash('123'.encode())
-            >>> mcl.sde(mcl.sse(s)) == s
-            True
-            """
-            IoEcProj, IoArrayRaw = 1024, 64 # Constants from mcl library. # pylint: disable=C0103
-            return s.tostr(IoEcProj|IoArrayRaw)
-
-        @staticmethod
-        def sde(bs: bytes) -> Fr:
-            """
-            Return a scalar from its binary representation.
-
-            >>> s = mcl.scalar.hash('123'.encode())
-            >>> bs = bytes.fromhex(
-            ...     '93d829354cb3592743174133104b5405ba6992b67bb219fbde3e394d70505913'
-            ... )
-            >>> mcl.sde(bs) == s
-            True
-            >>> mcl.sse(mcl.sde(bs)) == bs
-            True
-            """
-            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
-            return Fr.new_fromstr(bs, IoEcProj|IoArrayRaw)
-
-        @staticmethod
-        def inv(s: Fr) -> Fr:
-            r"""
-            Return inverse of a scalar (modulo
-            ``r = 16798108731015832284940804142231733909759579603404752749028378864165570215949``
-            in the prime field *F*\_*r*).
-
-            >>> (s, p) = (mcl.scl(), mcl.pnt())
-            >>> mcl.mul(mcl.inv(s), mcl.mul(s, p)) == p
-            True
-            """
-            return Fr.__invert__(s)
-
-        @staticmethod
-        def smu(s: Fr, t: Fr) -> Fr:
-            """
-            Return scalar multiplied by another scalar.
-
-            >>> (s, t) = (mcl.scl(), mcl.scl())
-            >>> mcl.smu(s, t) == mcl.smu(t, s)
-            True
-            """
-            return Fr.__mul__(s, t)
-
-        @staticmethod
-        def sad(s: Fr, t: Fr) -> Fr:
-            """
-            Return scalar added to another scalar.
-
-            >>> (s, t) = (mcl.scl(), mcl.scl())
-            >>> mcl.sad(s, t) == mcl.sad(t, s)
-            True
-            """
-            return Fr.__add__(s, t)
-
-        @staticmethod
-        def ssu(s: Fr, t: Fr) -> Fr:
-            """
-            Return the result of one scalar subtracted from another scalar.
-
-            >>> (s, t) = (mcl.scl(), mcl.scl())
-            >>> mcl.ssu(s, t) == mcl.sad(s, mcl.sne(t))
-            True
-            >>> mcl.ssu(s, t) == mcl.sne(mcl.ssu(t, s))
-            True
-            """
-            return Fr.__sub__(s, t)
-
-        @staticmethod
-        def sne(s: Fr) -> Fr:
-            """
-            Return the additive inverse of a scalar.
-
-            >>> (s, t) = (mcl.scl(), mcl.scl())
-            >>> mcl.sne(mcl.sne(s)) == s
-            True
-            """
-            return Fr.__neg__(s)
 
         @staticmethod
         def pnt(h: Union[bytes, bytearray, None] = None) -> G1:
@@ -1381,130 +1264,130 @@ try:
             return G2.__matmul__(G2.__new__(G2, p), G1.__new__(G1, q))
 
         @staticmethod
-        def rnd2() -> GT:
+        def rnd() -> Fr:
             """
-            Return random non-zero second-level scalar.
+            Return random non-zero scalar.
 
-            >>> isinstance(mcl.rnd2(), GT)
+            >>> s = mcl.rnd()
+            >>> isinstance(s, Fr)
+            True
+            >>> s.__class__ = scalar
+            >>> len(mcl.scalar.to_bytes(s))
+            32
+            """
+            return Fr().randomize()
+
+        @classmethod
+        def scl(cls, bs: Union[bytes, bytearray, None] = None) -> Optional[Fr]:
+            """
+            Construct a scalar if the supplied bytes-like object represents
+            a valid scalar; otherwise, return ``None``. If no byte vector is
+            supplied, return a random scalar.
+
+            >>> s = mcl.scl()
+            >>> s.__class__ = scalar
+            >>> t = mcl.scl(mcl.scalar.to_bytes(s))
+            >>> s == t
+            True
+            >>> mcl.scl(bytes([255] * 32)) is None
             True
             """
-            return mcl.scalar2.hash(secrets.token_bytes(384))
-
-        @staticmethod
-        def scl2(s: Union[bytes, bytearray, None] = None) -> Optional[GT]:
-            """
-            Construct a second-level scalar if the supplied bytes-like object
-            represents a valid second-level scalar; otherwise, return ``None``.
-            If no byte vector is supplied, return a random second-level scalar.
-
-            >>> bs = bytes.fromhex(
-            ...     '18d0e065798ffa4ecca0a7cc6e2b8d6d3269f7eb413525e59b731332b02ea805'
-            ...     '4b90c89ce93e4452557f53aae5f8f13221858dde2ea6a50373f1858f11287021'
-            ...     '09b3daf7a217a20a3d872632f8ced643d32649b241a67601bec855bd43f07710'
-            ...     '88df722bcacc8fd174f16ad7ef1b1d5e622d93b7cfec6385c353c13793a4e01c'
-            ...     '371ef54cd836a88e1b1f1e198d566d3bbe5aa225734305f14cac9af9c821351c'
-            ...     '86b365190105d1b7e71011d1362ed6ad9133a2c2c42898e9ebc3d1604a608f10'
-            ...     '8461d37b2463b4f88f0ccb427b5eea8714ee88f8c33daf7ee4a3f45ca8bca911'
-            ...     '87956abb4d27de1b49e5e059f904fbb475804715ab25a17306fa0e196f305215'
-            ...     '3a60dfa073ca78de49edeaac9c54cab3d0138750c23c0b68de7924a69d1ba002'
-            ...     'a24ac592622a45c59c1ded7133794292a09602bd57a36601d35438846fcb370f'
-            ...     '39c0fa7a15b34d14ab6f95ee5bf5b26bd5def1e7ed07350922d445da07d93622'
-            ...     '2db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
-            ... )
-            >>> s = mcl.scl2(bs)
-            >>> s.__class__ = mcl.scalar2
-            >>> mcl.scalar2.to_bytes(s).hex()[700:]
-            '36222db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
-            """
-            if s is None:
-                return mcl.rnd2()
+            if bs is None:
+                return cls.rnd()
 
             try:
-                return mcl.sde2(s)
+                s = cls.sde(bs)
+                return s
             except ValueError: # pragma: no cover
                 return None
 
         @staticmethod
-        def sse2(s: scalar2) -> bytes:
+        def sse(s: Fr) -> bytes:
             """
-            Return the binary representation of a second-level scalar.
+            Return the binary representation of a scalar.
 
-            >>> s = scalar2.hash('123'.encode())
-            >>> mcl.sde2(mcl.sse2(s)) == s
+            >>> s = mcl.scalar.hash('123'.encode())
+            >>> mcl.sde(mcl.sse(s)) == s
             True
             """
             IoEcProj, IoArrayRaw = 1024, 64 # Constants from mcl library. # pylint: disable=C0103
             return s.tostr(IoEcProj|IoArrayRaw)
 
         @staticmethod
-        def sde2(bs: bytes) -> GT:
+        def sde(bs: bytes) -> Fr:
             """
-            Return the second-level scalar corresponding to the supplied binary
-            representation thereof.
+            Return a scalar from its binary representation.
 
-            >>> s = mcl.scalar2.hash('123'.encode())
+            >>> s = mcl.scalar.hash('123'.encode())
             >>> bs = bytes.fromhex(
-            ...     '36980a8359d40e106075488e80cf1479f2e6ba95d6a99a67832d21b7b94d8c1d'
-            ...     '5eb4d655f23e1d5d499d51d1c552b5e7df6943091427cd080f582e120613a021'
-            ...     '85898ef7d016e47a74a8df62316cc4ad975cb64bb63867ed9b5221f77bb9a121'
-            ...     '7bd89cd213eee0c3fdf2e0e13ef9e30383ea5607c8d13fc10e04448a6c964a00'
-            ...     '04a098a55beab09732220966319333608b2187ee2196eb5b4253bc2b1aea5303'
-            ...     '654260dd687a2eb176a494258ff7ef753f93105a6f0e9f46c926afdbe31ff124'
-            ...     '6bdd87c32537abcdb46ad542792edd74a229c9ba61abcd993f074237a91f5215'
-            ...     '8f6b07886895733edde15cb22129459162d89d3662826b74e4fcbe4e9e8c2420'
-            ...     'bd53586a09f91ff8f67f92cba72c5b64a9c3965c01e93710200ab4e084955316'
-            ...     'fb18950835b79fb4c2930efcc5fcaa9d82ee0faff036b80657daee233a445901'
-            ...     '7df3e57cb535ed26162b3ee0f8961131a93fe3198dc5393d277ed8bac5532411'
-            ...     '93b7ad15c52ca123fd26f592a2219b1bf118b3035893cc4abf614b422f978718'
+            ...     '93d829354cb3592743174133104b5405ba6992b67bb219fbde3e394d70505913'
             ... )
-            >>> mcl.sde2(bs) == s
+            >>> mcl.sde(bs) == s
             True
-            >>> mcl.sse(mcl.sde2(bs)) == bs
+            >>> mcl.sse(mcl.sde(bs)) == bs
             True
             """
             IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
-            return GT.new_fromstr(bs, IoEcProj|IoArrayRaw)
+            return Fr.new_fromstr(bs, IoEcProj|IoArrayRaw)
 
         @staticmethod
-        def inv2(s: GT) -> GT:
-            """
-            Return the inverse of a second-level scalar.
+        def inv(s: Fr) -> Fr:
+            r"""
+            Return inverse of a scalar (modulo
+            ``r = 16798108731015832284940804142231733909759579603404752749028378864165570215949``
+            in the prime field *F*\_*r*).
 
-            >>> s = mcl.scl2()
-            >>> mcl.smu2(s, mcl.smu2(s, mcl.inv2(s))) == s
-            True
-            >>> mcl.smu2(mcl.smu2(s, s), mcl.inv2(s)) == s
+            >>> (s, p) = (mcl.scl(), mcl.pnt())
+            >>> mcl.mul(mcl.inv(s), mcl.mul(s, p)) == p
             True
             """
-            return GT.__inv__(s)
+            return Fr.__invert__(s)
 
         @staticmethod
-        def smu2(s: GT, t: GT) -> GT:
+        def smu(s: Fr, t: Fr) -> Fr:
             """
-            Return the product of two second-level scalars.
+            Return scalar multiplied by another scalar.
 
-            >>> p1 = mcl.point.hash('123'.encode())
-            >>> p2 = mcl.point.hash('456'.encode())
-            >>> q1 = mcl.point2.base(mcl.scalar.hash('123'.encode()))
-            >>> q2 = mcl.point2.base(mcl.scalar.hash('456'.encode()))
-            >>> s = p1 @ q1
-            >>> t = p2 @ q2
-            >>> mcl.smu2(s, t) == mcl.smu2(t, s)
+            >>> (s, t) = (mcl.scl(), mcl.scl())
+            >>> mcl.smu(s, t) == mcl.smu(t, s)
             True
             """
-            return GT.__mul__(s, t)
+            return Fr.__mul__(s, t)
 
         @staticmethod
-        def sad2(s: GT, t: GT) -> GT:
+        def sad(s: Fr, t: Fr) -> Fr:
             """
-            Return the sum of two second-level scalars.
+            Return scalar added to another scalar.
 
-            >>> s = mcl.scl2()
-            >>> t = mcl.scl2()
-            >>> mcl.sad2(s, t) == mcl.sad2(t, s)
+            >>> (s, t) = (mcl.scl(), mcl.scl())
+            >>> mcl.sad(s, t) == mcl.sad(t, s)
             True
             """
-            return GT.__add__(s, t)
+            return Fr.__add__(s, t)
+
+        @staticmethod
+        def ssu(s: Fr, t: Fr) -> Fr:
+            """
+            Return the result of one scalar subtracted from another scalar.
+
+            >>> (s, t) = (mcl.scl(), mcl.scl())
+            >>> mcl.ssu(s, t) == mcl.sad(s, mcl.sne(t))
+            True
+            >>> mcl.ssu(s, t) == mcl.sne(mcl.ssu(t, s))
+            True
+            """
+            return Fr.__sub__(s, t)
+
+        @staticmethod
+        def sne(s: Fr) -> Fr:
+            """
+            Return the additive inverse of a scalar.
+
+            >>> (s, t) = (mcl.scl(), mcl.scl())
+            >>> mcl.sne(mcl.sne(s)) == s
+            True
+            """
+            return Fr.__neg__(s)
 
         @staticmethod
         def pnt2(h: Optional[bytes] = None) -> G2:
@@ -1671,6 +1554,132 @@ try:
             True
             """
             return G2.__neg__(p)
+
+        @staticmethod
+        def rnd2() -> GT:
+            """
+            Return random non-zero second-level scalar.
+
+            >>> isinstance(mcl.rnd2(), GT)
+            True
+            """
+            return mcl.scalar2.hash(secrets.token_bytes(384))
+
+        @staticmethod
+        def scl2(s: Union[bytes, bytearray, None] = None) -> Optional[GT]:
+            """
+            Construct a second-level scalar if the supplied bytes-like object
+            represents a valid second-level scalar; otherwise, return ``None``.
+            If no byte vector is supplied, return a random second-level scalar.
+
+            >>> bs = bytes.fromhex(
+            ...     '18d0e065798ffa4ecca0a7cc6e2b8d6d3269f7eb413525e59b731332b02ea805'
+            ...     '4b90c89ce93e4452557f53aae5f8f13221858dde2ea6a50373f1858f11287021'
+            ...     '09b3daf7a217a20a3d872632f8ced643d32649b241a67601bec855bd43f07710'
+            ...     '88df722bcacc8fd174f16ad7ef1b1d5e622d93b7cfec6385c353c13793a4e01c'
+            ...     '371ef54cd836a88e1b1f1e198d566d3bbe5aa225734305f14cac9af9c821351c'
+            ...     '86b365190105d1b7e71011d1362ed6ad9133a2c2c42898e9ebc3d1604a608f10'
+            ...     '8461d37b2463b4f88f0ccb427b5eea8714ee88f8c33daf7ee4a3f45ca8bca911'
+            ...     '87956abb4d27de1b49e5e059f904fbb475804715ab25a17306fa0e196f305215'
+            ...     '3a60dfa073ca78de49edeaac9c54cab3d0138750c23c0b68de7924a69d1ba002'
+            ...     'a24ac592622a45c59c1ded7133794292a09602bd57a36601d35438846fcb370f'
+            ...     '39c0fa7a15b34d14ab6f95ee5bf5b26bd5def1e7ed07350922d445da07d93622'
+            ...     '2db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
+            ... )
+            >>> s = mcl.scl2(bs)
+            >>> s.__class__ = mcl.scalar2
+            >>> mcl.scalar2.to_bytes(s).hex()[700:]
+            '36222db5baa9dec152c2b2bcfc46cde6fd22e70271af8a164e77e5808ce602095a1f'
+            """
+            if s is None:
+                return mcl.rnd2()
+
+            try:
+                return mcl.sde2(s)
+            except ValueError: # pragma: no cover
+                return None
+
+        @staticmethod
+        def sse2(s: scalar2) -> bytes:
+            """
+            Return the binary representation of a second-level scalar.
+
+            >>> s = scalar2.hash('123'.encode())
+            >>> mcl.sde2(mcl.sse2(s)) == s
+            True
+            """
+            IoEcProj, IoArrayRaw = 1024, 64 # Constants from mcl library. # pylint: disable=C0103
+            return s.tostr(IoEcProj|IoArrayRaw)
+
+        @staticmethod
+        def sde2(bs: bytes) -> GT:
+            """
+            Return the second-level scalar corresponding to the supplied binary
+            representation thereof.
+
+            >>> s = mcl.scalar2.hash('123'.encode())
+            >>> bs = bytes.fromhex(
+            ...     '36980a8359d40e106075488e80cf1479f2e6ba95d6a99a67832d21b7b94d8c1d'
+            ...     '5eb4d655f23e1d5d499d51d1c552b5e7df6943091427cd080f582e120613a021'
+            ...     '85898ef7d016e47a74a8df62316cc4ad975cb64bb63867ed9b5221f77bb9a121'
+            ...     '7bd89cd213eee0c3fdf2e0e13ef9e30383ea5607c8d13fc10e04448a6c964a00'
+            ...     '04a098a55beab09732220966319333608b2187ee2196eb5b4253bc2b1aea5303'
+            ...     '654260dd687a2eb176a494258ff7ef753f93105a6f0e9f46c926afdbe31ff124'
+            ...     '6bdd87c32537abcdb46ad542792edd74a229c9ba61abcd993f074237a91f5215'
+            ...     '8f6b07886895733edde15cb22129459162d89d3662826b74e4fcbe4e9e8c2420'
+            ...     'bd53586a09f91ff8f67f92cba72c5b64a9c3965c01e93710200ab4e084955316'
+            ...     'fb18950835b79fb4c2930efcc5fcaa9d82ee0faff036b80657daee233a445901'
+            ...     '7df3e57cb535ed26162b3ee0f8961131a93fe3198dc5393d277ed8bac5532411'
+            ...     '93b7ad15c52ca123fd26f592a2219b1bf118b3035893cc4abf614b422f978718'
+            ... )
+            >>> mcl.sde2(bs) == s
+            True
+            >>> mcl.sse(mcl.sde2(bs)) == bs
+            True
+            """
+            IoEcProj, IoArrayRaw = 1024, 64  # MCl constants  # pylint: disable=C0103
+            return GT.new_fromstr(bs, IoEcProj|IoArrayRaw)
+
+        @staticmethod
+        def inv2(s: GT) -> GT:
+            """
+            Return the inverse of a second-level scalar.
+
+            >>> s = mcl.scl2()
+            >>> mcl.smu2(s, mcl.smu2(s, mcl.inv2(s))) == s
+            True
+            >>> mcl.smu2(mcl.smu2(s, s), mcl.inv2(s)) == s
+            True
+            """
+            return GT.__inv__(s)
+
+        @staticmethod
+        def smu2(s: GT, t: GT) -> GT:
+            """
+            Return the product of two second-level scalars.
+
+            >>> p1 = mcl.point.hash('123'.encode())
+            >>> p2 = mcl.point.hash('456'.encode())
+            >>> q1 = mcl.point2.base(mcl.scalar.hash('123'.encode()))
+            >>> q2 = mcl.point2.base(mcl.scalar.hash('456'.encode()))
+            >>> s = p1 @ q1
+            >>> t = p2 @ q2
+            >>> mcl.smu2(s, t) == mcl.smu2(t, s)
+            True
+            """
+            return GT.__mul__(s, t)
+
+        @staticmethod
+        def sad2(s: GT, t: GT) -> GT:
+            """
+            Return the sum of two second-level scalars.
+
+            >>> s = mcl.scl2()
+            >>> t = mcl.scl2()
+            >>> mcl.sad2(s, t) == mcl.sad2(t, s)
+            True
+            """
+            return GT.__add__(s, t)
 
     # Indicate that data structures based on the dynamic/shared library have
     # successfully been defined.
@@ -3089,5 +3098,5 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
 python = python # pylint: disable=self-assigning-variable
 mcl = mcl # pylint: disable=self-assigning-variable
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     doctest.testmod() # pragma: no cover

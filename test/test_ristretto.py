@@ -37,8 +37,8 @@ def api_functions():
     namespaces.
     """
     return {
-        'scl', 'rnd', 'inv', 'smu',
-        'pnt', 'bas', 'can', 'mul', 'add', 'sub', 'neg'
+        'pnt', 'bas', 'can', 'mul', 'add', 'sub', 'neg',
+        'scl', 'rnd', 'inv', 'smu'
     }
 
 def api_classes():
@@ -119,57 +119,17 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=too-man
         """
         Direct tests of primitive operators that operate on bytes-like objects.
         """
-        def test_rnd(self):
-            sodium_hidden_and_fallback(hidden, fallback)
-            for _ in range(TRIALS_PER_TEST):
-                s = cls.rnd()
-                self.assertTrue(len(s) == SCALAR_LEN and cls.scl(s))
-
-        def test_scl_none(self):
-            sodium_hidden_and_fallback(hidden, fallback)
-            for _ in range(TRIALS_PER_TEST):
-                s = cls.scl()
-                self.assertTrue(len(s) == SCALAR_LEN and cls.scl(s))
-
-        def test_scl(
-                self,
-                bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
-            ):
-            sodium_hidden_and_fallback(hidden, fallback)
-            fun = lambda bs: bitlist([1 if cls.scl(bs) is not None else 0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
-
-        def test_inv(
-                self,
-                bits='41c07230000960b274044a0080a8018aa0114380150000028c2700006081e1e1'
-            ):
-            sodium_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                s = cls.scl(bs)
-                return cls.inv(s) if s is not None else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
-
-        def test_smu(
-                self,
-                bits='2ca120487000010295804000850254008018000000008000080100008400000c'
-            ):
-            sodium_hidden_and_fallback(hidden, fallback)
-            def fun(bs):
-                (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
-                return cls.smu(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
-            return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
-
-        def test_pnt_none(self):
-            sodium_hidden_and_fallback(hidden, fallback)
-            for _ in range(TRIALS_PER_TEST):
-                self.assertTrue(len(cls.pnt()) == POINT_LEN)
-
         def test_pnt(
                 self,
                 bits='baf12de24e54deae0aa116816bf5eee23b1168c78e892372e08a9884de9d4c1b'
             ):
             sodium_hidden_and_fallback(hidden, fallback)
             return check_or_generate_operation(self, cls.pnt, [POINT_HASH_LEN], bits)
+
+        def test_pnt_none(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                self.assertTrue(len(cls.pnt()) == POINT_LEN)
 
         def test_bas(
                 self,
@@ -229,6 +189,46 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=too-man
             def fun(bs):
                 return cls.neg(cls.pnt(bs))
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN], bits)
+
+        def test_rnd(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                s = cls.rnd()
+                self.assertTrue(len(s) == SCALAR_LEN and cls.scl(s))
+
+        def test_scl(
+                self,
+                bits='4df8fe738c097afa7f255b10c3ab118eeb73e38935605042ccb7581c73f1e5e9'
+            ):
+            sodium_hidden_and_fallback(hidden, fallback)
+            fun = lambda bs: bitlist([1 if cls.scl(bs) is not None else 0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
+
+        def test_scl_none(self):
+            sodium_hidden_and_fallback(hidden, fallback)
+            for _ in range(TRIALS_PER_TEST):
+                s = cls.scl()
+                self.assertTrue(len(s) == SCALAR_LEN and cls.scl(s))
+
+        def test_inv(
+                self,
+                bits='41c07230000960b274044a0080a8018aa0114380150000028c2700006081e1e1'
+            ):
+            sodium_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                s = cls.scl(bs)
+                return cls.inv(s) if s is not None else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN], bits)
+
+        def test_smu(
+                self,
+                bits='2ca120487000010295804000850254008018000000008000080100008400000c'
+            ):
+            sodium_hidden_and_fallback(hidden, fallback)
+            def fun(bs):
+                (s1, s2) = (cls.scl(bs[:SCALAR_LEN]), cls.scl(bs[SCALAR_LEN:]))
+                return cls.smu(s1, s2) if (s1 is not None and s2 is not None) else bytes([0])
+            return check_or_generate_operation(self, fun, [SCALAR_LEN, SCALAR_LEN], bits)
 
     class Test_classes(TestCase):
         """
