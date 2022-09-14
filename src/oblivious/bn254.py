@@ -262,8 +262,8 @@ class python:
     """
     Wrapper class for pure-Python implementations of primitive operations.
 
-    This class encapsulates pure Python variants of all primitive operations
-    and classes exported by this module:
+    This class encapsulates pure-Python variants of all classes exported by
+    this module and of all the underlying low-level operations:
     :obj:`python.pnt <pnt>`, :obj:`python.bas <bas>`,
     :obj:`python.can <can>`, :obj:`python.ser <ser>`,
     :obj:`python.des <des>`, :obj:`python.mul <mul>`,
@@ -283,17 +283,19 @@ class python:
     :obj:`python.sse2 <sse2>`, :obj:`python.sde2 <sde2>`,
     :obj:`python.inv2 <inv2>`, :obj:`python.smu2 <smu2>`,
     :obj:`python.sad2 <sad2>`,
-    :obj:`python.point <point>`, :obj:`python.scalar <scalar>`,
-    :obj:`python.point <point2>`, and :obj:`python.scalar <scalar2>`.
+    :obj:`python.point <oblivious.bn254.python.point>`,
+    :obj:`python.scalar <oblivious.bn254.python.scalar>`,
+    :obj:`python.point2 <oblivious.bn254.python.point2>`, and
+    :obj:`python.scalar2 <oblivious.bn254.python.scalar2>`.
     For example, you can perform multiplication of scalars
-    using the pure Python scalar multiplication implementation.
+    using the pure-Python scalar multiplication implementation.
 
     >>> s = python.scl()
     >>> t = python.scl()
     >>> python.smu(s, t) == python.smu(t, s)
     True
 
-    Pure Python variants of the :obj:`python.point <point>`
+    Pure-Python variants of the :obj:`python.point <point>`
     and :obj:`python.scalar <scalar>` classes always employ pure
     Python implementations of operations when their methods are
     invoked.
@@ -879,9 +881,6 @@ try:
     # Attempt to load mclbn256 with its (bundled) shared/dynamic library file.
     from mclbn256 import Fr, G1, G2, GT # pylint: disable=import-error
 
-    # Ensure the chosen version of mclbn256 (or its substitute) has the necessary primitives.
-    #mclbn256.mclbn256.assert_compatible()
-
     # pylint: disable=C2801,W0621
     class mcl:
         """
@@ -912,8 +911,8 @@ try:
         is imported is to evaluate the expression ``mcl is not None``.
 
         If a shared/dynamic library file has been loaded successfully,
-        this class encapsulates shared/dynamic library variants of both classes
-        exported by this module and of all the underlying low-level functions:
+        this class encapsulates shared/dynamic library variants of all classes
+        exported by this module and of all the underlying low-level operations:
         :obj:`mcl.pnt <pnt>`, :obj:`mcl.bas <bas>`,
         :obj:`mcl.can <can>`, :obj:`mcl.ser <ser>`,
         :obj:`mcl.des <des>`, :obj:`mcl.mul <mul>`,
@@ -933,8 +932,10 @@ try:
         :obj:`mcl.sse2 <sse2>`, :obj:`mcl.sde2 <sde2>`,
         :obj:`mcl.inv2 <inv2>`, :obj:`mcl.smu2 <smu2>`,
         :obj:`mcl.sad2 <sad2>`,
-        :obj:`mcl.point <point>`, :obj:`mcl.scalar <scalar>`,
-        :obj:`mcl.point <point2>`, and :obj:`mcl.scalar <scalar2>`.
+        :obj:`mcl.point <oblivious.bn254.mcl.point>`,
+        :obj:`mcl.scalar <oblivious.bn254.mcl.scalar>`,
+        :obj:`mcl.point2 <oblivious.bn254.mcl.point2>`, and
+        :obj:`mcl.scalar2 <oblivious.bn254.mcl.scalar2>`.
         For example, you can perform addition of points using the point
         addition implementation found in the shared/dynamic library
         bundled with the instance of the package
@@ -1874,7 +1875,7 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> t = scalar.random()
             >>> -((~s) * (s * p)) - p == scalar.from_int(-2) * p
             True
-            >>> s*t*p @ q == s*p @ (t*q)
+            >>> (s * (t * p)) @ q == (s * p) @ (t * q)
             True
 
             Suppose there are two points: one multiplied by the scalar ``s`` and the other
@@ -2833,17 +2834,14 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             ...     'okrFkmIqRcWcHe1xM3lCkqCWAr1Xo2YB01Q4hG/LNw85wPp6FbNNFKtvle5b9bJr'
             ...     '1d7x5+0HNQki1EXaB9k2Ii21uqnewVLCsrz8Rs3m/SLnAnGvihZOd+WAjOYCCVof'
             ... )
-            >>> s_inv = bytes(~s).hex()[700:]
-            >>> s_inv_mcl    = 'ec02e64a4556213eade4604303b93219233e21fd8e50f536e6421c7f73597f5bc905'
-            >>> s_inv_python = 'd71413d63b9d7e08181eaecca0227b6de4dc36a8befe4e38597420345aec519c220b'
-            >>> s_inv_python = '070f5f4e874c86a5b65521efdd004e9cfe12d9473ba6bcfc756e5aac17f486f4e903'
-            >>> mclbn256 = s.__class__ != python.scalar2 # In case ``python`` and ``mcl`` are both defined.
-            >>> s_inv == s_inv_mcl if mclbn256 else s_inv == s_inv_python
-            True
-            >>> ~~s == s
+            >>> ~(~s) == s
             True
             >>> ~s == s
             False
+            >>> bytes(~s).hex()[700:] == (
+            ...     'ec02e64a4556213eade4604303b93219233e21fd8e50f536e6421c7f73597f5bc905'
+            ... )
+            True
             """
             s = self._implementation.inv2(self)
             s.__class__ = self.__class__
