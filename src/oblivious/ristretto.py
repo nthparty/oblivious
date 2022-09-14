@@ -177,7 +177,7 @@ class python:
     """
     Wrapper class for pure-Python implementations of primitive operations.
 
-    This class encapsulates pure-Python variants of all low-level functions
+    This class encapsulates pure-Python variants of all low-level operations
     and of both classes exported by this module:
     :obj:`python.scl <scl>`, :obj:`python.rnd <rnd>`,
     :obj:`python.inv <inv>`, :obj:`python.smu <smu>`,
@@ -185,7 +185,8 @@ class python:
     :obj:`python.can <can>`, :obj:`python.mul <mul>`,
     :obj:`python.add <add>`, :obj:`python.sub <sub>`,
     :obj:`python.neg <neg>`,
-    :obj:`python.point <point>`, and :obj:`python.scalar <scalar>`.
+    :obj:`python.point <oblivious.ristretto.python.point>`, and
+    :obj:`python.scalar <oblivious.ristretto.python.scalar>`.
     For example, you can perform addition of points using
     the pure-Python point addition implementation.
 
@@ -520,14 +521,15 @@ try:
 
         If a shared/dynamic library file has been loaded successfully, this
         class encapsulates shared/dynamic library variants of both classes
-        exported by this module and of all the underlying low-level functions:
+        exported by this module and of all the underlying low-level operations:
         :obj:`sodium.scl <scl>`, :obj:`sodium.rnd <rnd>`,
         :obj:`sodium.inv <inv>`, :obj:`sodium.smu <smu>`,
         :obj:`sodium.pnt <pnt>`, :obj:`sodium.bas <bas>`,
         :obj:`sodium.can <can>`, :obj:`sodium.mul <mul>`,
         :obj:`sodium.add <add>`, :obj:`sodium.sub <sub>`,
         :obj:`sodium.neg <neg>`,
-        :obj:`sodium.point <point>`, and :obj:`sodium.scalar <scalar>`.
+        :obj:`sodium.point <oblivious.ristretto.sodium.point>`, and
+        :obj:`sodium.scalar <oblivious.ristretto.sodium.scalar>`.
         For example, you can perform addition of points using
         the point addition implementation found in the libsodium
         shared/dynamic library found on the host system.
