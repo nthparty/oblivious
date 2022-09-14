@@ -55,14 +55,9 @@ This library supports concise construction of elliptic curve points and scalars.
     >>> from oblivious.ristretto import point, scalar
     >>> p = point.hash('abc'.encode()) # Point derived from a hash of a string.
     >>> s = scalar() # Random scalar.
+    >>> t = scalar.from_int(0) # Scalar corresponding to the zero residue.
 
-    >>> from oblivious.bn254 import point, scalar
-    >>> s = scalar.random()
-    >>> p = point.random()
-    >>> q = point.base(s)
-    >>> p * q
-
-Built-in Python operators are overloaded to support point operations (addition, subtraction, negation, and equality) and scalar operations (multiplication by a scalar and inversion of scalars)::
+Built-in Python operators are overloaded to support point operations (such as addition, subtraction, negation, and equality) and scalar operations (such as multiplication by a scalar and inversion of scalars)::
 
     >>> q = s * p
     >>> p == (~s) * q
@@ -71,6 +66,7 @@ Built-in Python operators are overloaded to support point operations (addition, 
     True
     >>> p + q == q + p
     True
+    >>> t * p == p - p
 
 .. |point| replace:: ``point``
 .. _point: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.point
@@ -81,7 +77,7 @@ Built-in Python operators are overloaded to support point operations (addition, 
 .. |bytes| replace:: ``bytes``
 .. _bytes: https://docs.python.org/3/library/stdtypes.html#bytes
 
-The |point|_ and |scalar|_ classes have common conversion methods that correspond to those supported by |bytes|_ objects (and in some cases are derived from |bytes|_)::
+The |point|_ and |scalar|_ classes have common conversion methods that correspond to those supported by |bytes|_ objects (and in some cases, these classes are themselves derived from |bytes|_)::
 
     >>> hex = '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
     >>> s = scalar.fromhex(hex)
@@ -134,17 +130,17 @@ In the example below, the scalar multiplication operation invokes a binding for 
 .. |add| replace:: ``__add__``
 .. _add: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.point.__add__
 
-The operations and class methods exported by the |ristretto|_ module directly (*e.g.*, the method |add|_ within the class |point|_ that is imported via the statement ``from oblivious.ristretto import point``) correspond either (A) to libsodium wrappers if an instance of libsodium is found and loaded or (B) to pure-Python implementations if all attempts to load a working instances of libsodium fail. The ordered list below summarizes what definitions are exported under various conditions and the ordered sequence of attempts to locate and load an instance of libsodium.
+The class methods exported by the |ristretto|_ module directly (*e.g.*, the method |add|_ within the class |point|_ that is imported via the statement ``from oblivious.ristretto import point``) correspond either (A) to libsodium wrappers if an instance of libsodium is found and loaded or (B) to pure-Python implementations if all attempts to load a working instances of libsodium fail. The ordered list below summarizes what definitions are exported under various conditions and the ordered sequence of attempts to locate and load an instance of libsodium.
 
-1. Under all conditions, the wrapper class |python|_ is defined and encapsulates a pure-Python variant of every operation and class method available in the |ristretto|_ module. **As a starting default**, all classes exported directly by the |ristretto|_ module correspond to the pure-Python implementations.
+1. Under all conditions, the wrapper class |python|_ is defined and encapsulates a pure-Python variant of every low-level operation and class available in the |ristretto|_ module. **As a starting default**, all classes exported directly by the |ristretto|_ module correspond to the pure-Python implementations.
 
 2. If a shared/dynamic library instance of libsodium is found on the system and successfully loaded during one of the attempts below, then the wrapper class |sodium|_ is defined:
 
    a. the built-in ``ctypes.util.find_library`` function is able to locate ``'sodium'`` or ``'libsodium'`` and it is loaded successfully;
-   b. a file ``libsodium.so`` or ``libsodium.dll`` in the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH`` environment variables is found and loaded successfully; or
+   b. a file ``libsodium.so`` or ``libsodium.dll`` under the paths specified by the ``PATH`` and ``LD_LIBRARY_PATH`` environment variables is found and loaded successfully; or
    c. the optional `rbcl <https://pypi.org/project/rbcl>`__ package is installed and the compiled subset of libsodium included in that package is loaded successfully.
 
-3. If ``sodium`` is **not** ``None``, then the |sodium|_ class encapsulates libsodium wrappers for every operation and class supported by the |ristretto|_ module. Furthermore, **those classes exported directly by the library are redefined** to use the bindings available in the loaded instance of libsodium. The |python|_ class is still exported, as well, and all operations and class methods encapsulated within |python|_ remain as-is (*i.e.*, pure-Python implementations).
+3. If ``sodium`` is **not** ``None``, then the |sodium|_ class encapsulates libsodium wrappers for low-level operations and for every class exported by the |ristretto|_ module. Furthermore, **those classes exported directly by the library are redefined** to use the bindings available in the loaded instance of libsodium. The |python|_ class is still exported, as well, and all operations and class methods encapsulated within |python|_ remain as-is (*i.e.*, pure-Python implementations).
 
 .. |bn254| replace:: ``bn254``
 .. _bn254: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.bn254.html
