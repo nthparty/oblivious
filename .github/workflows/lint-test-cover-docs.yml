@@ -8,7 +8,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ['3.7', '3.8', '3.9', '3.10']
-        xcl: ['omit', 'install']  # rbcl, mcl, etc. for Python bindings to a C library binary
+        xcl: ['omit', 'install']
     name: "Python ${{ matrix.python-version }}"
     steps:
       - uses: actions/checkout@v2
@@ -17,9 +17,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
-      - name: Install the optional rbcl and mcl packages and associated dependencies.
+      - name: Install the optional rbcl and mclbn256 packages and associated dependencies.
         run: |
-          pip install -U .[rbcl,mcl]
+          pip install -U .[rbcl,mclbn256]
         if: matrix.xcl == 'install'
       - name: Lint and test module.
         run: |

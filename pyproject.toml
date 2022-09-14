@@ -30,7 +30,7 @@ rbcl = [
     "cffi~=1.15",
     "rbcl~=0.3"
 ]
-mcl = [
+mclbn256 = [
     "mclbn256~=1.3"
 ]
 docs = [

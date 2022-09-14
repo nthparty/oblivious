@@ -32,10 +32,11 @@ This library is available as a `package on PyPI <https://pypi.org/project/oblivi
 
     python -m pip install oblivious
 
-It is possible to install the library together with a bundled dynamic/shared library such as `rbcl <https://pypi.org/project/rbcl>`__ and/or `mclbn256 <https://pypi.org/project/mclbn256>`__::
+It is possible to install the library together with packages that bundle dynamic/shared libraries, such as `rbcl <https://pypi.org/project/rbcl>`__ and/or `mclbn256 <https://pypi.org/project/mclbn256>`__::
 
     python -m pip install oblivious[rbcl]
-    python -m pip install oblivious[mcl]
+    python -m pip install oblivious[mclbn256]
+    python -m pip install oblivious[rbcl,mclbn256]
 
 The library can be imported in the usual ways::
 
@@ -166,7 +167,7 @@ The documentation can be generated automatically from the source files using `Sp
 
 Testing and Conventions
 ^^^^^^^^^^^^^^^^^^^^^^^
-All unit tests are executed and their coverage is measured when using `pytest <https://docs.pytest.org>`__ (see the ``pyproject.toml`` file for configuration details, and note that unit tests that require `rbcl <https://pypi.org/project/rbcl>`__ are skipped if that optional package is not installed)::
+All unit tests are executed and their coverage is measured when using `pytest <https://docs.pytest.org>`__ (see the ``pyproject.toml`` file for configuration details, and note that unit tests that require `rbcl <https://pypi.org/project/rbcl>`__ and/or `mclbn256 <https://pypi.org/project/mclbn256>`__ are skipped if the corresponding optional package is not installed)::
 
     python -m pip install .[test]
     python -m pytest
