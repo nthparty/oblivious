@@ -62,11 +62,12 @@ Built-in Python operators are overloaded to support point operations (such as ad
     >>> q = s * p
     >>> p == (~s) * q
     True
-    >>> p == (((~s) * s)) * p
+    >>> p == ((~s) * s) * p
     True
     >>> p + q == q + p
     True
     >>> t * p == p - p
+    True
 
 .. |point| replace:: ``point``
 .. _point: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.point
