@@ -870,19 +870,6 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 
         def __rmul__(self: point, other: Any) -> NoReturn:
             """
-            Multiply this instance by the supplied scalar and return the result.
-
-            >>> p = point.hash('123'.encode())
-            >>> s = scalar.hash('456'.encode())
-            >>> (s * p).hex()
-            'f61b377aa86050aaa88c90f4a4a0f1e36b0000cf46f6a34232c2f1da7a799f16'
-
-            Multiplying a point by the scalar corresponding to the zero residue
-            yields the additive identity point.
-
-            >>> scalar.from_int(0) * point() == p - p
-            True
-
             This functionality is implemented exclusively in the method
             :obj:`scalar.__mul__`, as that method pre-empts this method
             when the second argument has the correct type (*i.e.*, it is
@@ -1102,12 +1089,16 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
 
             return self._implementation.scalar(self._implementation.inv(self))
 
-        def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point, None]:
+        def __mul__(self: scalar, other: Union[scalar, point]) -> Union[scalar, point]:
             """
-            Multiply supplied scalar or point by this instance.
+            Multiply the supplied scalar or point by this instance.
 
-            >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
+            >>> p = point.hash('123'.encode())
+            >>> s = scalar.hash('456'.encode())
+            >>> (s * p).hex()
+            'f61b377aa86050aaa88c90f4a4a0f1e36b0000cf46f6a34232c2f1da7a799f16'
             >>> p = point.from_base64('hoVaKq3oIlxEndP2Nqv3Rdbmiu4iinZE6Iwo+kcKAik=')
+            >>> s = scalar.from_base64('MS0MkTD2kVO+yfXQOGqVE160XuvxMK9fH+0cbtFfJQA=')
             >>> (s * s).hex()
             'd4aecf034f60edc5cb32cdd5a4be6d069959aa9fd133c51c9dcfd960ee865e0f'
             >>> isinstance(s * s, scalar)
@@ -1120,10 +1111,18 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             Multiplying any point or scalar by the scalar corresponding to the
             zero residue yields the point or scalar corresponding to zero.
 
-            >>> (scalar.from_int(0) * point()) + p == p
+            >>> scalar.from_int(0) * point() == p - p
             True
             >>> scalar.from_int(0) * scalar() == scalar.from_int(0)
             True
+
+            Any attempt to multiply a value or object of an incompatible type by this
+            instance raises an exception.
+
+            >>> s * 2
+            Traceback (most recent call last):
+              ...
+            TypeError: multiplication by a scalar is defined only for scalars and points
             """
             if (
                 isinstance(other, python.scalar) or
@@ -1131,7 +1130,15 @@ for _implementation in [python] + ([sodium] if sodium is not None else []):
             ):
                 return self._implementation.scalar(self._implementation.smu(self, other))
 
-            return self._implementation.point(self._implementation.mul(self, other))
+            if (
+                isinstance(other, python.point) or
+                (sodium is not None and isinstance(other, sodium.point))
+            ):
+                return self._implementation.point(self._implementation.mul(self, other))
+
+            raise TypeError(
+                'multiplication by a scalar is defined only for scalars and points'
+            )
 
         def __rmul__(self: scalar, other: Union[scalar, point]):
             """
