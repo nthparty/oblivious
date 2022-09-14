@@ -65,7 +65,9 @@ class Test_namespace(TestCase):
         self.assertTrue(api_classes().issubset(module.__dict__.keys()))
 
     def test_python(self):
-        self.assertTrue(api_functions().issubset(set(dir(bn254.python))))
+        self.assertTrue(
+            (api_functions() - {'par'}).issubset(set(dir(bn254.python)))
+        )
         self.assertTrue(api_classes().issubset(set(dir(bn254.python))))
 
     def test_mcl(self):
@@ -231,13 +233,12 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=too-man
 
         def test_par(
                 self,
-                bits='0000'
+                bits='49f2'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
                 (p1, p2) = (cls.point.hash(bs), cls.point2.hash(bs))
-                # Outputs for ``python`` and ``mcl`` differ, as expected.
-                return bytes([0 if len(cls.sse2(cls.par(p1, p2))) == 384 else 1])
+                return cls.sse2(cls.par(p1, p2))
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN, POINT_HASH_LEN], bits)
 
         def test_rnd(self):
@@ -630,7 +631,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=too-man
 
         def test_point_pair(
                 self,
-                bits='0000'
+                bits='9cd3'
             ):
             mcl_hidden_and_fallback(hidden, fallback)
             def fun(bs):
@@ -638,8 +639,7 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=too-man
                     cls.point.hash(bs[:POINT_HASH_LEN]),
                     cls.point2.hash(bs[POINT_HASH_LEN:])
                 )
-                # Output differs between ``python`` and ``mcl`` implementations (as expected).
-                return bytes([0]) if isinstance(p1 @ p2, cls.scalar2) else bytes([1])
+                return p1 @ p2
             return check_or_generate_operation(self, fun, [POINT_HASH_LEN, POINT_HASH_LEN], bits)
 
         def test_scalar_random(self):
@@ -1495,6 +1495,13 @@ def define_classes(cls, hidden=False, fallback=False): # pylint: disable=too-man
             s = cls.scalar2.random()
             self.assertRaises(TypeError, lambda: bytes([0]) * s)
 
+    # Remove tests for functions/methods for which no pure-Python implementation
+    # exists.
+    if cls == bn254.python:
+        delattr(Test_primitives, 'test_par')
+        delattr(Test_classes, 'test_point_pair')
+        delattr(Test_types, 'test_types_point_point2_matmul')
+
     return (
         Test_primitives,
         Test_classes,
@@ -1528,7 +1535,13 @@ if bn254.mcl is not None:
 
 if __name__ == "__main__":
     # Generate reference bit lists for tests.
-    for tests in [Test_primitives_python(), Test_classes_python()]:
+    implementation_test_ensembles = (
+        [Test_primitives_python(), Test_classes_python()]
+        if bn254.mcl is None else
+        [Test_primitives_mcl(), Test_classes_mcl()]
+    )
+
+    for tests in implementation_test_ensembles:
         print(
             '\nUnit test reference bit vectors for ' +
             tests.__class__.__name__ + ' methods...'

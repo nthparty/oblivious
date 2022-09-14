@@ -30,19 +30,7 @@ underlying libraries.
 
 For most users, the classes :obj:`~oblivious.bn254.point`,
 :obj:`~oblivious.bn254.scalar`, :obj:`~oblivious.bn254.point2`,
-and :obj:`~oblivious.bn254.scalar2` should be sufficient. The diagram below
-illustrates the relationships between these classes and the operations they
-support.
-
-.. figure:: ../../diagram-bn254-classes.svg
-  :alt: Diagram illustrating the classes and operations found in the :obj:`~oblivious.bn254` module.
-  :width: 100%
-
-  Diagram illustrating the relationships between the classes and operations
-  found in the :obj:`~oblivious.bn254` module. Note that multiplication of a
-  point by a scalar (denoted by ``*`` and corresponding to the method
-  :obj:`oblivious.bn254.point.__rmul__`) is computationally difficult to invert
-  only if the scalar is not known.
+and :obj:`~oblivious.bn254.scalar2` should be sufficient.
 
 When using the classes within :obj:`~oblivious.bn254.python` and/or
 :obj:`~oblivious.bn254.mcl`, users should be aware that objects corresponding
@@ -62,7 +50,6 @@ import base64
 import secrets
 from bn254.ecp import generator as get_base
 from bn254.ecp2 import generator as get_base2
-from bn254.pair import e
 from bn254 import big as bn, Fp12 as Fp12_, Fp as _Fp, Fp2 as _Fp2
 from bn254.ecp import ECp as ECp_
 from bn254.ecp2 import ECp2 as ECp2_
@@ -162,7 +149,7 @@ class _ECp(ECp_): # pylint: disable=invalid-name
         if isinstance(p, (ECp_, _ECp)):
             self.setxy(*p.get())
         elif isinstance(p, python.point):
-            self.setxy(*_ECp.deserialize(p).get())
+            self.setxy(*_ECp.deserialize(p).get()) # pragma: no cover
 
     def serialize(self) -> bytes:
         d = 0x212ba4f27ffffff5a2c62effffffffcdb939ffffffffff8a15ffffffffffff8e
@@ -212,7 +199,7 @@ class _ECp2(ECp2_): # pylint: disable=invalid-name
         if isinstance(q, (ECp2_, _ECp2)):
             self.set(*q.get())
         elif isinstance(q, python.point2):
-            self.set(*_ECp2.deserialize(bytes(q)).get())
+            self.set(*_ECp2.deserialize(bytes(q)).get()) # pragma: no cover
 
     def serialize(self) -> bytes:
         d = 0x212ba4f27ffffff5a2c62effffffffcdb939ffffffffff8a15ffffffffffff8e
@@ -461,72 +448,6 @@ class python:
         '825aa78af4c88d6de4abaebabf1a96f668956b92876cfb5d3a44829899cb480f'
         """
         return bytes.__new__(python.point, _ECp.serialize(-1 * _ECp.deserialize(p)))
-
-    @staticmethod
-    def par(p: Union[point, point2], q: Union[point, point2]) -> scalar2:
-        """
-        Return the result of applying the pairing function to a point and a
-        second-level point.
-
-        >>> p = python.point.hash('123'.encode())
-        >>> q = python.point2.base(python.scalar.from_int(456))
-        >>> z = python.par(p, q).hex()[700:]
-        >>> z_mcl    = 'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
-        >>> z_python = '731ff16849a86c40280717696a8aa44fbe16f565f087d003413d141de7f5d109fc0c'
-        >>> mclbn256 = p.__class__ != python.point # In case both ``python`` and ``mcl`` are defined.
-        >>> z == z_mcl if mclbn256 else z == z_python
-        True
-
-        The pairing function is bilinear.
-
-        >>> p = python.point.random()
-        >>> s = python.scalar.random()
-
-        >>> t = python.scalar.random()
-        >>> q = python.point2.random()
-        >>> -((~s) * (s * p)) - p == python.scalar.from_int(-2) * p
-        True
-        >>> s*t*p @ q == s*p @ (t*q)
-        True
-
-        Suppose there are two points: one multiplied by the scalar ``s`` and the other
-        multiplied by the scalar ``t``. Their equality can be determined by using a
-        balancing point: ``g**(~s * t)``.  If the pairing of ``t * x`` with ``g`` is the
-        same as the pairing with ``s * y`` and ``g**(~s * t)``, then ``x`` equals ``y``.
-
-        >>> x = y = p
-        >>> g = python.point2.base(python.scalar.from_int(1))
-        >>> b = python.point2.base(~s * t)
-        >>> (t * x) @ g == (s * y) @ b
-        True
-
-        Any attempt to to pair values or objects that do not have compatible types
-        raises an exception.
-
-        >>> b @ b
-        Traceback (most recent call last):
-          ...
-        TypeError: pairing is defined only for a point and a second-level point
-        """
-        (_p, _q) = (
-            (p, q)
-            if (isinstance(p, python.point) and isinstance(q, python.point2)) else
-            (
-                (q, p)
-                if (isinstance(q, python.point) and isinstance(p, python.point2)) else
-                (None, None)
-            )
-        )
-
-        if type(_p) is type(None): # pylint: disable=unidiomatic-typecheck
-            raise TypeError(
-                'pairing is defined only for a point and a second-level point'
-            )
-
-        p_ = _ECp.__new__(ECp_, _p)
-        q_ = _ECp2.__new__(ECp2_, _q)
-        z_ = e(q_, p_)
-        return bytes.__new__(python.scalar2, _Fp12(z_).serialize())
 
     @staticmethod
     def rnd() -> scalar:
@@ -920,12 +841,8 @@ class python:
         """
         Return second-level scalar multiplied by another scalar.
 
-        >>> p1 = python.point.hash('123'.encode())
-        >>> p2 = python.point.hash('456'.encode())
-        >>> q1 = python.point2.base(python.scalar.hash('123'.encode()))
-        >>> q2 = python.point2.base(python.scalar.hash('456'.encode()))
-        >>> s = p1 @ q1
-        >>> t = p2 @ q2
+        >>> s = python.scalar2.random()
+        >>> t = python.scalar2.random()
         >>> python.smu2(s, t) == python.smu2(t, s)
         True
         """
@@ -1935,13 +1852,18 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             Return the result of pairing another second-level point with this
             instance.
 
+            **This method is only defined for the classes**
+            :obj:`oblivious.bn254.mcl.point` **and** :obj:`oblivious.bn254.mcl.point2`
+            **that are available when the**
+            `mclbn256 <https://pypi.org/project/mclbn256>`__ **package is installed**.
+            Otherwise, :obj:`oblivious.bn254.point` and :obj:`oblivious.bn254.point2`
+            correspond to the pure-Python implementations of these classes (for which
+            this method is not defined).
+
             >>> p = point.hash('123'.encode())
             >>> q = point2.base(scalar.from_int(456))
             >>> z = (p @ q).hex()[700:]
-            >>> z_mcl    = 'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
-            >>> z_python = '731ff16849a86c40280717696a8aa44fbe16f565f087d003413d141de7f5d109fc0c'
-            >>> mclbn256 = p.__class__ != python.point # In case both ``python`` and ``mcl`` are defined.
-            >>> z == z_mcl if mclbn256 else z == z_python
+            >>> z == 'd01f7e038b05acc5519eeda026c4aa111eb12f3483f274c60e34e6ec7571435df707'
             True
 
             The pairing function is bilinear.
@@ -1955,13 +1877,12 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
             >>> s*t*p @ q == s*p @ (t*q)
             True
 
-            >>> x = y = p
-
             Suppose there are two points: one multiplied by the scalar ``s`` and the other
             multiplied by the scalar ``t``. Their equality can be determined by using a
             balancing point: ``g**(~s * t)``.  If the pairing of ``t * x`` with ``g`` is the
             same as the pairing with ``s * y`` and ``g**(~s * t)``, then ``x`` equals ``y``.
 
+            >>> x = y = p
             >>> g = point2.base(scalar.from_int(1))
             >>> b = point2.base(~s * t)
             >>> (t * x) @ g == (s * y) @ b
@@ -3092,6 +3013,10 @@ for (_implementation, _p_base_cls, _s_base_cls, _p2_base_cls, _s2_base_cls) in (
     _implementation.scalar = scalar
     _implementation.point2 = point2
     _implementation.scalar2 = scalar2
+
+# Remove method for which no pure-Python implementation exists.
+delattr(python.point, '__matmul__')
+delattr(python.point2, '__matmul__')
 
 # Redefine top-level wrapper classes to ensure that they appear at the end of
 # the auto-generated documentation.
