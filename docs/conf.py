@@ -124,7 +124,6 @@ def rtd_url_for_installed_version(name):
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'parts': (rtd_url_for_installed_version('parts'), None),
-    'bitlist': (rtd_url_for_installed_version('bitlist'), None),
     'fe25519': (rtd_url_for_installed_version('fe25519'), None),
     'ge25519': (rtd_url_for_installed_version('ge25519'), None)
 }
