@@ -13,7 +13,6 @@ set BUILDDIR=_build
 if "%1" == "" goto help
 
 del _source\modules.rst
-del _source\oblivious.rst
 %SPHINXBUILD% >NUL 2>NUL
 if errorlevel 9009 (
 	echo.
