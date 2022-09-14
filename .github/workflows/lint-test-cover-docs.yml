@@ -8,7 +8,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ['3.7', '3.8', '3.9', '3.10']
-        rbcl: ['omit', 'install']
+        xcl: ['omit', 'install']
     name: "Python ${{ matrix.python-version }}"
     steps:
       - uses: actions/checkout@v2
@@ -17,23 +17,23 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
-      - name: Install optional rbcl package.
+      - name: Install the optional rbcl and mclbn256 packages and associated dependencies.
         run: |
-          pip install -U six~=1.16 cffi~=1.15 rbcl
-        if: matrix.rbcl == 'install'
+          pip install -U .[rbcl,mclbn256]
+        if: matrix.xcl == 'install'
       - name: Lint and test module.
         run: |
-          pip install -U pylint pytest pytest-cov .
-          python -m pylint oblivious ./test/test_oblivious.py # Check against linting rules.
+          pip install -U .[lint,test]
+          python -m pylint src/oblivious test/test_ristretto.py test/test_bn254.py # Check against linting rules.
           python -m pytest # Run tests.
       - name: Publish coverage results.
         run: |
-          pip install -U pylint coveralls
+          pip install -U .[coveralls]
           python -m coveralls --service=github # Submit to coveralls.
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8' && matrix.rbcl == 'install'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8' && matrix.xcl == 'install'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Test auto-generation of documentation.
         run: |
-          pip install -U -r docs/requirements.txt
-          cd docs && sphinx-apidoc -f -E --templatedir=_templates -o _source .. ../setup.py && make html && cd ..
+          pip install -U .[docs]
+          cd docs && sphinx-apidoc -f -E --templatedir=_templates -o _source ../src && make html && cd ..

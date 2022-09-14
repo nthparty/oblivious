@@ -1,6 +1,6 @@
-The library contains one module:
-
 .. toctree::
    :maxdepth: 3
+   :hidden:
 
-   _source/oblivious
+   _source/oblivious.ristretto
+   _source/oblivious.bn254

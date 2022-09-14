@@ -69,6 +69,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
+docs/_source/
 docs/_build/
 
 # PyBuilder
@@ -131,6 +132,6 @@ dmypy.json
 # Coverage reports
 cover/
 
-# manually added
+# Manually added
 sandbox/
 .idea

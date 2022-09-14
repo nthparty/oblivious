@@ -1,0 +1,65 @@
+[project]
+name = "oblivious"
+version = "6.0.0"
+description = """\
+    Python library that serves as an API for common \
+    cryptographic primitives used to implement OPRF, OT, \
+    and PSI protocols.\
+    """
+license = {text = "MIT"}
+authors = [
+    {name = "Nth Party, Ltd."},
+    {email = "team@nthparty.com"}
+]
+readme = "README.rst"
+requires-python = ">=3.7"
+dependencies = [
+    "parts~=1.5",
+    "fe25519~=1.3",
+    "ge25519~=1.3",
+    "bn254~=0.1"
+]
+
+[project.urls]
+Repository = "https://github.com/nthparty/oblivious"
+Documentation = "https://oblivious.readthedocs.io"
+
+[project.optional-dependencies]
+rbcl = [
+    "six~=1.16",
+    "cffi~=1.15",
+    "rbcl~=0.3"
+]
+mclbn256 = [
+    "mclbn256~=1.3"
+]
+docs = [
+    "toml~=0.10.2",
+    "sphinx~=4.2.0",
+    "sphinx-rtd-theme~=1.0.0"
+]
+test = [
+    "pytest~=7.0",
+    "pytest-cov~=3.0",
+    "bitlist~=1.0",
+    "fountains~=2.0"
+]
+lint = [
+    "pylint~=2.14.0"
+]
+coveralls = [
+    "coveralls~=3.3.1"
+]
+publish = [
+    "build~=0.8",
+    "twine~=4.0"
+]
+
+[build-system]
+requires = [
+    "setuptools~=62.0"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules --ignore=docs --cov=oblivious --cov-report term-missing"
