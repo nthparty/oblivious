@@ -44,6 +44,8 @@ The library can be imported in the usual ways::
     from oblivious import ristretto
     from oblivious import bn254
 
+While the above will work verbatim if typed into Bash, other shells such as Zsh may require escaping the brackets (*e.g.* :code:`pip install oblivious\[rbcl\]`) or even the comma(s).
+
 Examples
 ^^^^^^^^
 
@@ -81,7 +83,7 @@ Built-in Python operators are overloaded to support point operations (such as ad
 The |point|_ and |scalar|_ classes have common conversion methods that correspond to those supported by |bytes|_ objects (and in some cases, these classes are themselves derived from |bytes|_)::
 
     >>> hex = '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
-    >>> s = scalar.fromhex(hex)
+    >>> s = scalar.from_hex(hex)
     >>> s.hex()
     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
 
