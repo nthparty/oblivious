@@ -28,17 +28,23 @@ This library provides pure-Python implementations, Python wrappers for `libsodiu
 
 Installation and Usage
 ----------------------
-This library is available as a `package on PyPI <https://pypi.org/project/oblivious>`__::
+This library is available as a `package on PyPI <https://pypi.org/project/oblivious>`__:
+
+.. code-block:: bash
 
     python -m pip install oblivious
 
-It is possible to install the library together with packages that bundle dynamic/shared libraries, such as `rbcl <https://pypi.org/project/rbcl>`__ and/or `mclbn256 <https://pypi.org/project/mclbn256>`__ (note that in some environments, the brackets and/or commas may need to be escaped)::
+It is possible to install the library together with packages that bundle dynamic/shared libraries, such as `rbcl <https://pypi.org/project/rbcl>`__ and/or `mclbn256 <https://pypi.org/project/mclbn256>`__ (note that in some environments, the brackets and/or commas may need to be escaped):
+
+.. code-block:: bash
 
     python -m pip install oblivious[rbcl]
     python -m pip install oblivious[mclbn256]
     python -m pip install oblivious[rbcl,mclbn256]
 
-The library can be imported in the usual ways::
+The library can be imported in the usual ways:
+
+.. code-block:: python
 
     import oblivious
     from oblivious import ristretto
@@ -50,14 +56,18 @@ Examples
 .. |ristretto| replace:: ``ristretto``
 .. _ristretto: https://oblivious.readthedocs.io/en/7.0.0/_source/oblivious.ristretto.html
 
-This library supports concise construction of elliptic curve points and scalars. The examples below use the |ristretto|_ module that provides data structures for working with the `Ristretto <https://ristretto.group>`__ group::
+This library supports concise construction of elliptic curve points and scalars. The examples below use the |ristretto|_ module that provides data structures for working with the `Ristretto <https://ristretto.group>`__ group:
+
+.. code-block:: python
 
     >>> from oblivious.ristretto import point, scalar
     >>> p = point.hash('abc'.encode()) # Point derived from a hash of a string.
     >>> s = scalar() # Random scalar.
     >>> t = scalar.from_int(0) # Scalar corresponding to the zero residue.
 
-Built-in Python operators are overloaded to support point operations (such as addition, subtraction, negation, and equality) and scalar operations (such as multiplication by a scalar and inversion of scalars)::
+Built-in Python operators are overloaded to support point operations (such as addition, subtraction, negation, and equality) and scalar operations (such as multiplication by a scalar and inversion of scalars):
+
+.. code-block:: python
 
     >>> q = s * p
     >>> p == (~s) * q
@@ -78,14 +88,18 @@ Built-in Python operators are overloaded to support point operations (such as ad
 .. |bytes| replace:: ``bytes``
 .. _bytes: https://docs.python.org/3/library/stdtypes.html#bytes
 
-The |point|_ and |scalar|_ classes have common conversion methods that correspond to those supported by |bytes|_ objects (and in some cases, these classes are themselves derived from |bytes|_)::
+The |point|_ and |scalar|_ classes have common conversion methods that correspond to those supported by |bytes|_ objects (and in some cases, these classes are themselves derived from |bytes|_):
+
+.. code-block:: python
 
     >>> hex = '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
     >>> s = scalar.from_hex(hex)
     >>> s.hex()
     '35c141f1c2c43543de9d188805a210abca3cd39a1e986304991ceded42b11709'
 
-In addition, Base64 conversion methods are included to support concise encoding and decoding of |point|_ and |scalar|_ objects::
+In addition, Base64 conversion methods are included to support concise encoding and decoding of |point|_ and |scalar|_ objects:
+
+.. code-block:: python
 
     >>> s.to_base64()
     'NcFB8cLENUPenRiIBaIQq8o805oemGMEmRzt7UKxFwk='
@@ -107,7 +121,9 @@ Each module within this library can export two variants of its primitives and da
 
 For example, the |ristretto|_ module exports two container classes/namespaces: |python|_ and |sodium|_. These encapsulate pure-Python implementations and shared/dynamic library (*i.e.*, libsodium) wrappers, respectively, of all operations and classes available in the |ristretto|_ module. This makes it possible to explicitly choose whether an operation requires only Python or also requires the presence of a compiled copy of libsodium on the host system.
 
-The example below uses pure-Python implementations of the scalar multiplication operation (relying on the `ge25519 <https://pypi.org/project/ge25519>`__ library)::
+The example below uses pure-Python implementations of the scalar multiplication operation (relying on the `ge25519 <https://pypi.org/project/ge25519>`__ library):
+
+.. code-block:: python
 
     >>> from oblivious.ristretto import python
     >>> p = python.point.hash('abc'.encode())
@@ -115,13 +131,17 @@ The example below uses pure-Python implementations of the scalar multiplication 
     >>> (s * p).to_base64()
     'SrC7vA9sSR5f4E27ALxk14MPotTYR6B33B4ZN+mQXFA='
 
-To check whether an instance of the libsodium shared/dynamic library has been loaded successfully, the check below can be performed::
+To check whether an instance of the libsodium shared/dynamic library has been loaded successfully, the check below can be performed:
+
+.. code-block:: python
 
     >>> from oblivious.ristretto import sodium
     >>> sodium is not None # Was the dynamic/shared library loaded?
     True
 
-In the example below, the scalar multiplication operation invokes a binding for the ``crypto_scalarmult_ristretto255`` function `exported by libsodium <https://libsodium.gitbook.io/doc/advanced/point-arithmetic/ristretto>`__::
+In the example below, the scalar multiplication operation invokes a binding for the ``crypto_scalarmult_ristretto255`` function `exported by libsodium <https://libsodium.gitbook.io/doc/advanced/point-arithmetic/ristretto>`__:
+
+.. code-block:: python
 
     >>> p = sodium.point.hash('abc'.encode())
     >>> s = sodium.scalar.hash('123'.encode())
@@ -150,13 +170,17 @@ The classes within the |bn254|_ module (both those that are pure-Python implemen
 
 Development
 -----------
-All installation and development dependencies are fully specified in ``pyproject.toml``. The ``project.optional-dependencies`` object is used to `specify optional requirements <https://peps.python.org/pep-0621>`__ for various development tasks. This makes it possible to specify additional options (such as ``docs``, ``lint``, and so on) when performing installation using `pip <https://pypi.org/project/pip>`__::
+All installation and development dependencies are fully specified in ``pyproject.toml``. The ``project.optional-dependencies`` object is used to `specify optional requirements <https://peps.python.org/pep-0621>`__ for various development tasks. This makes it possible to specify additional options (such as ``docs``, ``lint``, and so on) when performing installation using `pip <https://pypi.org/project/pip>`__:
+
+.. code-block:: bash
 
     python -m pip install .[docs,lint]
 
 Documentation
 ^^^^^^^^^^^^^
-The documentation can be generated automatically from the source files using `Sphinx <https://www.sphinx-doc.org>`__::
+The documentation can be generated automatically from the source files using `Sphinx <https://www.sphinx-doc.org>`__:
+
+.. code-block:: bash
 
     python -m pip install .[docs]
     cd docs
@@ -164,17 +188,23 @@ The documentation can be generated automatically from the source files using `Sp
 
 Testing and Conventions
 ^^^^^^^^^^^^^^^^^^^^^^^
-All unit tests are executed and their coverage is measured when using `pytest <https://docs.pytest.org>`__ (see the ``pyproject.toml`` file for configuration details, and note that unit tests that require `rbcl <https://pypi.org/project/rbcl>`__ and/or `mclbn256 <https://pypi.org/project/mclbn256>`__ are skipped if the corresponding optional package is not installed)::
+All unit tests are executed and their coverage is measured when using `pytest <https://docs.pytest.org>`__ (see the ``pyproject.toml`` file for configuration details, and note that unit tests that require `rbcl <https://pypi.org/project/rbcl>`__ and/or `mclbn256 <https://pypi.org/project/mclbn256>`__ are skipped if the corresponding optional package is not installed):
+
+.. code-block:: bash
 
     python -m pip install .[test]
     python -m pytest
 
-Concise unit tests are implemented with the help of `fountains <https://pypi.org/project/fountains>`__; new reference specifications for the tests in a given testing module can be generated by running that testing module directly::
+Concise unit tests are implemented with the help of `fountains <https://pypi.org/project/fountains>`__; new reference specifications for the tests in a given testing module can be generated by running that testing module directly:
+
+.. code-block:: bash
 
     python test/test_ristretto.py
     python test/test_bn254.py
 
-Style conventions are enforced using `Pylint <https://pylint.readthedocs.io>`__::
+Style conventions are enforced using `Pylint <https://pylint.readthedocs.io>`__:
+
+.. code-block:: bash
 
     python -m pip install .[lint]
     python -m pylint src/oblivious test/test_ristretto.py test/test_bn254.py
@@ -189,20 +219,28 @@ Beginning with version 0.1.0, the version number format for this library and the
 
 Publishing
 ^^^^^^^^^^
-This library can be published as a `package on PyPI <https://pypi.org/project/oblivious>`__ by a package maintainer. First, install the dependencies required for packaging and publishing::
+This library can be published as a `package on PyPI <https://pypi.org/project/oblivious>`__ by a package maintainer. First, install the dependencies required for packaging and publishing:
+
+.. code-block:: bash
 
     python -m pip install .[publish]
 
-Ensure that the correct version number appears in ``pyproject.toml``, and that any links in this README document to the Read the Docs documentation of this package (or its dependencies) have appropriate version numbers. Also ensure that the Read the Docs project for this library has an `automation rule <https://docs.readthedocs.io/en/stable/automation-rules.html>`__ that activates and sets as the default all tagged versions. Create and push a tag for this version (replacing ``?.?.?`` with the version number)::
+Ensure that the correct version number appears in ``pyproject.toml``, and that any links in this README document to the Read the Docs documentation of this package (or its dependencies) have appropriate version numbers. Also ensure that the Read the Docs project for this library has an `automation rule <https://docs.readthedocs.io/en/stable/automation-rules.html>`__ that activates and sets as the default all tagged versions. Create and push a tag for this version (replacing ``?.?.?`` with the version number):
+
+.. code-block:: bash
 
     git tag ?.?.?
     git push origin ?.?.?
 
-Remove any old build/distribution files. Then, package the source into a distribution archive::
+Remove any old build/distribution files. Then, package the source into a distribution archive:
+
+.. code-block:: bash
 
     rm -rf build dist src/*.egg-info
     python -m build --sdist --wheel .
 
-Finally, upload the package distribution archive to `PyPI <https://pypi.org>`__::
+Finally, upload the package distribution archive to `PyPI <https://pypi.org>`__:
+
+.. code-block:: bash
 
     python -m twine upload dist/*
