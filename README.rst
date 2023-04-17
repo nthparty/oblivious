@@ -32,7 +32,7 @@ This library is available as a `package on PyPI <https://pypi.org/project/oblivi
 
     python -m pip install oblivious
 
-It is possible to install the library together with packages that bundle dynamic/shared libraries, such as `rbcl <https://pypi.org/project/rbcl>`__ and/or `mclbn256 <https://pypi.org/project/mclbn256>`__::
+It is possible to install the library together with packages that bundle dynamic/shared libraries, such as `rbcl <https://pypi.org/project/rbcl>`__ and/or `mclbn256 <https://pypi.org/project/mclbn256>`__ (note that in some environments, the brackets and/or commas may need to be escaped)::
 
     python -m pip install oblivious[rbcl]
     python -m pip install oblivious[mclbn256]
@@ -44,13 +44,11 @@ The library can be imported in the usual ways::
     from oblivious import ristretto
     from oblivious import bn254
 
-While the above will work verbatim if typed into Bash, other shells such as Zsh may require escaping the brackets (*e.g.* :code:`pip install oblivious\[rbcl\]`) or even the comma(s).
-
 Examples
 ^^^^^^^^
 
 .. |ristretto| replace:: ``ristretto``
-.. _ristretto: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html
+.. _ristretto: https://oblivious.readthedocs.io/en/7.0.0/_source/oblivious.ristretto.html
 
 This library supports concise construction of elliptic curve points and scalars. The examples below use the |ristretto|_ module that provides data structures for working with the `Ristretto <https://ristretto.group>`__ group::
 
@@ -72,10 +70,10 @@ Built-in Python operators are overloaded to support point operations (such as ad
     True
 
 .. |point| replace:: ``point``
-.. _point: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.point
+.. _point: https://oblivious.readthedocs.io/en/7.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.point
 
 .. |scalar| replace:: ``scalar``
-.. _scalar: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.scalar
+.. _scalar: https://oblivious.readthedocs.io/en/7.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.scalar
 
 .. |bytes| replace:: ``bytes``
 .. _bytes: https://docs.python.org/3/library/stdtypes.html#bytes
@@ -100,10 +98,10 @@ Using Pure Python or a Shared/Dynamic Library
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. |python| replace:: ``python``
-.. _python: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.python
+.. _python: https://oblivious.readthedocs.io/en/7.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.python
 
 .. |sodium| replace:: ``sodium``
-.. _sodium: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.sodium
+.. _sodium: https://oblivious.readthedocs.io/en/7.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.sodium
 
 Each module within this library can export two variants of its primitives and data structures: one corresponding to pure-Python implementations and another corresponding to shared/dynamic library wrappers.
 
@@ -131,7 +129,7 @@ In the example below, the scalar multiplication operation invokes a binding for 
     'SrC7vA9sSR5f4E27ALxk14MPotTYR6B33B4ZN+mQXFA='
 
 .. |add| replace:: ``__add__``
-.. _add: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.point.__add__
+.. _add: https://oblivious.readthedocs.io/en/7.0.0/_source/oblivious.ristretto.html#oblivious.ristretto.point.__add__
 
 The class methods exported by the |ristretto|_ module directly (*e.g.*, the method |add|_ within the class |point|_ that is imported via the statement ``from oblivious.ristretto import point``) correspond either (A) to libsodium wrappers if an instance of libsodium is found and loaded or (B) to pure-Python implementations if all attempts to load a working instances of libsodium fail. The ordered list below summarizes what definitions are exported under various conditions and the ordered sequence of attempts to locate and load an instance of libsodium.
 
@@ -146,7 +144,7 @@ The class methods exported by the |ristretto|_ module directly (*e.g.*, the meth
 3. If ``sodium`` is **not** ``None``, then the |sodium|_ class encapsulates libsodium wrappers for low-level operations and for every class exported by the |ristretto|_ module. Furthermore, **those classes exported directly by the library are redefined** to use the bindings available in the loaded instance of libsodium. The |python|_ class is still exported, as well, and all operations and class methods encapsulated within |python|_ remain as-is (*i.e.*, pure-Python implementations).
 
 .. |bn254| replace:: ``bn254``
-.. _bn254: https://oblivious.readthedocs.io/en/6.0.0/_source/oblivious.bn254.html
+.. _bn254: https://oblivious.readthedocs.io/en/7.0.0/_source/oblivious.bn254.html
 
 The classes within the |bn254|_ module (both those that are pure-Python implementations and those that are wrappers for functions in the `mcl <https://github.com/herumi/mcl>`__ library) are organized in a similar manner. More information is available in the documentation for the |bn254|_ module.
 
@@ -176,7 +174,7 @@ Concise unit tests are implemented with the help of `fountains <https://pypi.org
     python test/test_ristretto.py
     python test/test_bn254.py
 
-Style conventions are enforced using `Pylint <https://pylint.pycqa.org>`__::
+Style conventions are enforced using `Pylint <https://pylint.readthedocs.io>`__::
 
     python -m pip install .[lint]
     python -m pylint src/oblivious test/test_ristretto.py test/test_bn254.py

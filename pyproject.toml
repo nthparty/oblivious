@@ -1,6 +1,6 @@
 [project]
 name = "oblivious"
-version = "6.0.0"
+version = "7.0.0"
 description = """\
     Python library that serves as an API for common \
     cryptographic primitives used to implement OPRF, OT, \
@@ -8,7 +8,7 @@ description = """\
     """
 license = {text = "MIT"}
 authors = [
-    {name = "Nth Party, Ltd."},
+    {name = "Nth Party"},
     {email = "team@nthparty.com"}
 ]
 readme = "README.rst"
